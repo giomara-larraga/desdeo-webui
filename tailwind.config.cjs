@@ -1,6 +1,12 @@
+import { skeleton } from '@skeletonlabs/tw-plugin';
+//import forms from '@tailwindcss/forms';
+//import { join } from 'path';
+import { desdeo } from './src/desdeo';
+
 const { join } = require("path");
 const forms = require("@tailwindcss/forms");
-const skeleton = require("@skeletonlabs/skeleton/tailwind/skeleton.cjs");
+//const skeleton = require("@skeletonlabs/skeleton/tailwind/skeleton.cjs");
+
 
 /** @type {import("tailwindcss").Config} */
 module.exports = {
@@ -15,5 +21,13 @@ module.exports = {
   theme: {
     extend: {},
   },
-  plugins: [forms, ...skeleton()],
+  //plugins: [forms, ...skeleton()],
+  plugins: [
+	skeleton({
+		themes: {
+			custom: [desdeo]
+		}
+	}),
+	forms
+]
 };

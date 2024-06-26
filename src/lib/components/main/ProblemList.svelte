@@ -18,17 +18,11 @@
 
   let data: TableSource;
   $: data = {
-    head: [
-      "Name",
-      "Objectives",
-      "Variables",
-      "Constraints",
-      "Finite ideal and nadir points",
-    ],
+    head: ["Name", "Variables", "Objectives", "Defined by", "Last access"],
     body: tableMapperValues(rows, [
       "problem_name",
-      "n_objectives",
       "n_variables",
+      "n_objectives",
       "n_constraints",
       "has_finite_bounds",
     ]),
