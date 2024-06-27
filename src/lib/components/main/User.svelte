@@ -9,7 +9,7 @@
   }
 </script>
 
-<div class="flex gap-2">
+<div class="flex gap-2" style="color: white;">
   {#if $login_status === LoginStatus.LoggedOut}
     <span>Not logged in</span>
     <span><a class="anchor" href="/login">Log in</a></span>

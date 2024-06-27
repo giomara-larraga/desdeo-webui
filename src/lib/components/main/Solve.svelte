@@ -35,13 +35,20 @@
     >
   {/if} -->
 
-<h3 class="h3">Optimization Problems</h3>
-<div>Please select a problem.</div>
+<h3 class="h4">Optimization Problems</h3>
+<br />
+<p class="p1">
+  Here you can select one of the problems available in DESDEO to start
+  optimizing. According to the selected problem, you will be able to select the
+  most suitable method.
+</p>
+<br />
 <SelectProblem
   {problems}
   bind:selected_problem
   hide_saved={$login_status !== LoginStatus.LoggedInAsUser}
 />
+<br />
 <button
   type="button"
   class="btn variant-filled-primary"

@@ -18,7 +18,14 @@
 
   let data: TableSource;
   $: data = {
-    head: ["Name", "Variables", "Objectives", "Defined by", "Last access"],
+    head: [
+      "Name",
+      "Variables",
+      "Objectives",
+      "Defined by",
+      "Last access",
+      "Options",
+    ],
     body: tableMapperValues(rows, [
       "problem_name",
       "n_variables",

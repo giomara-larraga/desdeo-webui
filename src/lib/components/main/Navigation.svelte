@@ -19,13 +19,13 @@
 -->
 
 <AppRail class="nav-bar">
-  <svelte:fragment slot="lead">
+  <!--   <svelte:fragment slot="lead">
     <AppRailAnchor href="/dashboard" title="Account">
       <div class="icon-wrapper">
         <img src={logo} class="icon" alt="logo" />
       </div>
     </AppRailAnchor>
-  </svelte:fragment>
+  </svelte:fragment> -->
   <!-- --- -->
   <AppRailAnchor
     href="/saved_problems"
