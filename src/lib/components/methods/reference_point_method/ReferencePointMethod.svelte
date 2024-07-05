@@ -180,14 +180,14 @@ A user interface for the reference point method.
       <div>
         Please click "start" to start solving the problem with the method.
       </div>
-      <button class="btn variant-filled" on:click={handle_initialize}
+      <button class="variant-filled btn" on:click={handle_initialize}
         >Start</button
       >
     {:else if _.is_initialized(method)}
       <div>Please select a reference point and then click "iterate".</div>
       <div class="flex gap-4">
         <button
-          class="btn variant-filled"
+          class="variant-filled btn"
           on:click={handle_iterate}
           disabled={!_.is_valid_reference_point(method, preference)}
           >Iterate</button
@@ -205,7 +205,7 @@ A user interface for the reference point method.
       </div>
       <div class="flex gap-4">
         <button
-          class="btn variant-filled"
+          class="variant-filled btn"
           on:click={handle_iterate}
           disabled={!_.is_valid_reference_point(method, preference)}
           >Iterate</button

@@ -2,7 +2,7 @@
   import PlusIcon from "~icons/heroicons/plus";
 </script>
 
-<button class="btn variant-filled" on:click>
+<button class="variant-filled btn" on:click>
   <span><PlusIcon /></span>
   <span>New</span>
 </button>

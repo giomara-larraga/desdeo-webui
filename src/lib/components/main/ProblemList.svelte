@@ -20,15 +20,16 @@
   $: data = {
     head: [
       "Name",
-      "Objectives",
       "Variables",
-      "Constraints",
-      "Finite ideal and nadir points",
+      "Objectives",
+      "Defined by",
+      "Last access",
+      "Options",
     ],
     body: tableMapperValues(rows, [
       "problem_name",
-      "n_objectives",
       "n_variables",
+      "n_objectives",
       "n_constraints",
       "has_finite_bounds",
     ]),

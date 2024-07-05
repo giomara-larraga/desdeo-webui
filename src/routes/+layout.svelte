@@ -8,7 +8,7 @@
   //
   // See https://www.skeleton.dev/docs/generator.
   //
-  import "@skeletonlabs/skeleton/themes/theme-hamlindigo.css";
+  import "@skeletonlabs/skeleton/themes/theme-skeleton.css";
 
   // Contains the bulk of Skeleton's required styles
   import "@skeletonlabs/skeleton/styles/skeleton.css";

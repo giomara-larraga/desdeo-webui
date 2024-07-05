@@ -778,12 +778,12 @@ A user interface for the NIMBUS method.
             {#if state === State.ClassifySelected}
               <div class="flex gap-4">
                 <button
-                  class="btn variant-filled inline"
+                  class="variant-filled btn inline"
                   on:click={handle_iterate}
                   disabled={!is_classification_valid}>Iterate</button
                 >
                 <button
-                  class="btn variant-filled inline"
+                  class="variant-filled btn inline"
                   on:click={press_final_button}
                   disabled={!(state === State.ClassifySelected)}
                   >Finish with chosen solution</button
@@ -797,7 +797,7 @@ A user interface for the NIMBUS method.
             {:else if state === State.IntermediateSelected}
               <div class="flex gap-4">
                 <button
-                  class="btn variant-filled"
+                  class="variant-filled btn"
                   on:click={handle_intermediate}
                   disabled={!is_intermediate_selection_valid}>Iterate</button
                 >
@@ -808,7 +808,7 @@ A user interface for the NIMBUS method.
             {:else if state === State.SaveSolutionsSelected}
               <div class="flex gap-4">
                 <button
-                  class="btn variant-filled"
+                  class="variant-filled btn"
                   on:click={handle_save_solutions}
                   disabled={!is_save_solutions_valid}>Save</button
                 >

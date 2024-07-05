@@ -9,7 +9,7 @@
   function handleLogin() {
     loginOAuth2(username, password)
       .then(() => {
-        goto("/");
+        goto("/dashboard");
       })
       .catch((error) => {
         if (error.response && error.response.status === 401) {
@@ -63,7 +63,7 @@
       placeholder="Password"
     />
     <button
-      class="btn variant-filled-primary mt-2 uppercase"
+      class="variant-filled-primary btn mt-2 uppercase"
       disabled={!(() => {
         return username.length > 0 && password.length > 0;
       })()}
