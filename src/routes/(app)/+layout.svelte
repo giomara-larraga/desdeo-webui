@@ -5,7 +5,7 @@
   //import { drawerStore } from "@skeletonlabs/skeleton";
 </script>
 
-<AppShell slotPageContent="p-8 pt-8">
+<AppShell slotPageContent="p-4 pt-2">
   <svelte:fragment slot="header"><Header /></svelte:fragment>
   <svelte:fragment slot="sidebarLeft"><Navigation /></svelte:fragment>
   <slot />

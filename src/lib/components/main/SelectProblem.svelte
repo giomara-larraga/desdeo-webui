@@ -14,20 +14,24 @@
    * The active tab. The default is to show the problems provided by DESDEO
    * because saving problems is not yet supported.
    */
-  let tab = 1;
+  let tab = 0;
 </script>
 
 <div class="grid grid-cols-2 gap-10">
   <TabGroup>
-    {#if !hide_saved}
-      <Tab bind:group={tab} name="saved" value={0}>Your saved problems</Tab>
-    {/if}
-    <Tab bind:group={tab} name="desdeo" value={1}
+    <Tab bind:group={tab} name="desdeo" value={0}
       >Problems provided by DESDEO</Tab
     >
+    {#if !hide_saved}
+      <Tab bind:group={tab} name="saved" value={1}>Your saved problems</Tab>
+    {/if}
 
     <svelte:fragment slot="panel">
       {#if tab === 0}
+        <Card>
+          <ProblemList {problems} bind:selected_problem />
+        </Card>
+      {:else if tab === 1}
         Saving problems is not yet supported. Please take a look at the
         <button
           class="anchor"
@@ -35,10 +39,6 @@
             tab = 1;
           }}>problems provided by DESDEO</button
         >.
-      {:else if tab === 1}
-        <Card>
-          <ProblemList {problems} bind:selected_problem />
-        </Card>
       {/if}
     </svelte:fragment>
   </TabGroup>

@@ -473,10 +473,15 @@ export type Problem = {
 export type Objective = {
   name: string;
   minimize: boolean;
+  ideal: number;
+  nadir: number;
 };
 
 export type Variable = {
   name: string;
+  upperbound: number;
+  lowerbound: number;
+  type: string;
 };
 
 //
@@ -492,8 +497,15 @@ function transform_problem(problem: BackendProblem): Problem {
     objectives: problem.objective_names.map((name, j) => ({
       name,
       minimize: problem.minimize[j],
+      ideal: problem.ideal[j],
+      nadir: problem.nadir[j],
     })),
-    variables: problem.variable_names.map((name) => ({ name })),
+    variables: problem.variable_names.map((name) => ({
+      name,
+      upperbound: 0,
+      lowerbound: 0,
+      type: "-",
+    })),
     n_constraints: problem.n_constraints,
     ideal_point: problem.ideal,
     nadir_point: problem.nadir,
