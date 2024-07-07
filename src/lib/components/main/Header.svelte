@@ -8,12 +8,12 @@
   <User />
 </div> -->
 
-<AppBar background="bg-black">
+<AppBar background="bg-dark">
   <svelte:fragment slot="lead">
-    <div class="icon-wrapper" style="padding-left: 1rem;">
+    <div class="icon-wrapper" style="padding-left: 0.5rem;">
       <img src={logo} class="icon" alt="logo" />
     </div></svelte:fragment
   >
-
+  DESDEO
   <svelte:fragment slot="trail"><User /></svelte:fragment>
 </AppBar>

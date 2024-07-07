@@ -19,6 +19,8 @@
     {:else}
       <span>Logged in as a guest</span>
     {/if}
-    <button class="anchor" on:click={handleLogout}>Log out</button>
+    <button class="anchor" style="color: white;" on:click={handleLogout}
+      >Log out</button
+    >
   {/if}
 </div>

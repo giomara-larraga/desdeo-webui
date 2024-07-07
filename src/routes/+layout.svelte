@@ -8,13 +8,16 @@
   //
   // See https://www.skeleton.dev/docs/generator.
   //
-  import "@skeletonlabs/skeleton/themes/theme-skeleton.css";
+  import "@skeletonlabs/skeleton/themes/theme-hamlindigo.css";
 
   // Contains the bulk of Skeleton's required styles
   import "@skeletonlabs/skeleton/styles/skeleton.css";
 
   // The application's global stylesheet
   import "../app.postcss";
+
+  // The application's global stylesheet
+  //import "../app.postcss";
 
   // Math fonts for the MathLive component
   //
