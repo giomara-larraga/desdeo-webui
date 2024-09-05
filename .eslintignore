@@ -1,0 +1,6 @@
+# Only lint files under the src/ and tests/ directories
+*
+!/src/
+!/src/**/*
+!/tests/
+!/tests/**/*
