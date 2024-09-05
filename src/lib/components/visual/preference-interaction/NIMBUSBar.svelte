@@ -101,7 +101,7 @@
     style="--justify: {barName ? 'space-between' : 'flex-end'}"
   >
     {#if barName}
-      <span>{barName}</span>
+      <span style="font-size: small;">{barName}</span>
     {/if}
 
     <Input

@@ -28,7 +28,18 @@ A user interface for the NIMBUS method.
   import { onMount } from "svelte";
   import EchartsComponent from "$lib/components/visual/general/EchartsComponent.svelte";
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
+  import { RPP_Info, solution_process } from "./data";
+   type Solution = {
+    iteration: number;
+    index: number;
+    objective_values: number[];
+    decision_variables: number[];
+  };
 
+   type Iteration ={
+      solutions: Solution[];
+      reference_point: number[];
+  };
   /** The problem to solve. */
   export let problem_id: number;
   // Link to the backend.
@@ -56,14 +67,15 @@ A user interface for the NIMBUS method.
   // The type of the problem info object returned by the backend.
   type problemInfoType = {
     objective_long_names: string[];
+    objective_short_names: string[];
     is_maximized: boolean[];
     lower_bounds: number[];
     upper_bounds: number[];
-    previous_preference: number[];
-    current_solutions: number[][];
-    saved_solutions: number[][];
-    all_solutions: number[][];
   };
+
+
+
+ 
 
   // The current state of the method.
   let state: State = State.InitialLoad;
@@ -72,17 +84,18 @@ A user interface for the NIMBUS method.
 
   // Preference input values.
   let preference: (number | undefined)[];
-
+  let solutionProcess: Iteration[];
+  let currentIteration: number;
   let problemInfo: problemInfoType;
 
   // Indexes of currently selected solutions.
   let selected_solutions: number[];
 
   // The reference solution to be used in the classification preference input component.
-  let reference_solution: number[] | undefined;
+  let reference_solution: Solution | undefined;
 
   // The objective values of the solutions to be visualized.
-  let solutions_to_visualize: number[][];
+  let solutions_to_visualize: Solution[];
 
   // The number of intermediate solutions to generate.
   let numIntermediates = 5;
@@ -101,27 +114,6 @@ A user interface for the NIMBUS method.
 
   let max_multiplier: number[] | undefined = undefined;
   let classification_checker = false;
-
-  type mapOptionsType = {
-    one: object;
-    two: object;
-    three: object;
-  };
-  let mapOptions: mapOptionsType = {
-    one: Object,
-    two: Object,
-    three: Object,
-  };
-
-  enum PeriodChoice {
-    one = "one",
-    two = "two",
-    three = "three",
-  }
-
-  let periodChoice: PeriodChoice = PeriodChoice.one;
-  let geoJSON: object | undefined = undefined;
-  let mapName: string | undefined = undefined;
 
   let finalChoiceState = false;
 
@@ -147,13 +139,13 @@ A user interface for the NIMBUS method.
       const pref_less_ref = preference.some(
         (value, index) =>
           value! * max_multiplier![index] <
-          reference_solution![index] * max_multiplier![index]
+          reference_solution!.objective_values[index] * max_multiplier![index]
       );
 
       const pref_greater_ref = preference.some(
         (value, index) =>
           value! * max_multiplier![index] >
-          reference_solution![index] * max_multiplier![index]
+          reference_solution!.objective_values[index] * max_multiplier![index]
       );
 
       if (pref_less_ref && pref_greater_ref) {
@@ -243,19 +235,19 @@ A user interface for the NIMBUS method.
   }
 
   $: {
-    if (problemInfo !== undefined) {
+    if (solutionProcess !== undefined) {
       if (
         visualizationChoiceState === VisualizationChoiceState.CurrentSolutions
       ) {
-        solutions_to_visualize = problemInfo.current_solutions;
+        solutions_to_visualize = solutionProcess[currentIteration].solutions;
       } else if (
         visualizationChoiceState === VisualizationChoiceState.SavedSolutions
       ) {
-        solutions_to_visualize = problemInfo.saved_solutions;
+        solutions_to_visualize = getAllSolutions();
       } else if (
         visualizationChoiceState === VisualizationChoiceState.AllSolutions
       ) {
-        solutions_to_visualize = problemInfo.all_solutions;
+        solutions_to_visualize = getAllSolutions();
       }
     }
   }
@@ -288,7 +280,23 @@ A user interface for the NIMBUS method.
 
   /** The number of decimals to show for numeric values. */
   const decimals = 3;
+  export function getAllSolutions(){
+    const solution_list: Solution[] = []
+    for (let i = 0; i < solution_process.length; i++) {
+        const element = solution_process[i];
+        solution_list.push(...element.solutions);
+    }
+    return solution_list
+};
 
+export function getObjectives(data: Solution[]):number[][]{
+    const objective_values: number[][] = [];
+    for (let index = 0; index < data.length; index++) {
+        const element = data[index];
+        objective_values.push(element.objective_values);   
+    }
+    return objective_values;
+  }
   function press_final_button() {
     const modal: ModalSettings = {
       type: "confirm",
@@ -314,37 +322,9 @@ A user interface for the NIMBUS method.
   //
   // TODO: Handle errors bettter.
   //
-  async function handle_initialize() {
-    try {
-      let endpoint = API_URL + "/nimbus/initialize";
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + AUTH_TOKEN,
-        },
-        body: JSON.stringify({
-          problem_id: problem_id, // TODO: This should be the id in the database.
-          method_id: 1, // Backend technically supports this, but we need to add support for it in the UI.
-        }),
-      });
-
-      if (response.ok) {
-        const data: problemInfoType = await response.json();
-        problemInfo = data;
-        preference = problemInfo.previous_preference;
-        state = State.ClassifySelected;
-        reference_solution = problemInfo.current_solutions[0];
-        selected_solutions = [0];
-
-        state = State.ClassifySelected;
-      } else {
-        throw new Error("Failed to initialize NIMBUS method.");
-      }
-
+  function handle_initialize() {
       //
-    } catch (err) {
+    
       // This is just a temporary solution to make it easier to test the UI
       // without having to run the backend. It should be removed later.
 
@@ -353,44 +333,21 @@ A user interface for the NIMBUS method.
       // best to also reset the visualization mode to non-maximized.
       //
       visualizations_maximized = false;
-
-      problemInfo = {
-        objective_long_names: ["Objective 1", "Objective 2", "Objective 3"],
-        is_maximized: [false, false, true],
-        lower_bounds: [-0, -5, 10],
-        upper_bounds: [1, 5, 20],
-        previous_preference: [0.6, 1, 15],
-        current_solutions: [
-          [0.5, 2, 14],
-          [0.6, 1, 15],
-          [0.7, 3, 13],
-        ],
-        saved_solutions: [
-          [0.8, 4, 12],
-          [0.9, 5, 11],
-        ],
-        all_solutions: [
-          [0.5, 2, 14],
-          [0.6, 1, 15],
-          [0.7, 3, 13],
-          [0.8, 4, 12],
-          [0.9, 5, 11],
-        ],
-      };
-
-      preference = problemInfo.previous_preference;
+      solutionProcess = solution_process
+      problemInfo = RPP_Info;
+      currentIteration = 0;
+      preference = solutionProcess[currentIteration].reference_point;
       state = State.ClassifySelected;
 
       // TODO: Uncomment this when the backend is ready.
       //
-      toastStore.trigger({
+      /*toastStore.trigger({
         // prettier-ignore
         message: "Oops! Something went wrong.",
         background: "variant-filled-error",
         timeout: 5000,
-      });
-      console.error(err);
-    }
+      });*/
+      //console.error(err);
   }
 
   //
@@ -400,260 +357,17 @@ A user interface for the NIMBUS method.
     await handle_initialize();
   });
 
-  async function handle_iterate() {
-    if (!is_classification_valid) {
-      const err = Error("`handle_iterate` called in wrong state.");
-      toastStore.trigger({
-        // prettier-ignore
-        message: "Oops! Something went wrong. Iteration called with invalid classification.",
-        background: "variant-filled-error",
-        timeout: 5000,
-      });
-      console.error(err);
-    }
-    try {
-      let endpoint = API_URL + "/nimbus/iterate";
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + AUTH_TOKEN,
-        },
-        body: JSON.stringify({
-          problem_id: problem_id, // The problem is reconstructed from the database each time we iterate.
-          method_id: 1,
-          preference: preference, // Technically sent as a reference point, the classification is generated in the backend.
-          reference_solution: reference_solution, // The reference solution is needed to generate the classification.
-          num_solutions: numSolutions,
-        }),
-      });
-
-      if (response.ok) {
-        const data: problemInfoType = await response.json();
-        problemInfo = data;
-        preference = problemInfo.previous_preference;
+  function handle_iterate() {
+        currentIteration = currentIteration + 1;
+        preference = solutionProcess[currentIteration].reference_point;
         state = State.ClassifySelected;
         visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
-        reference_solution = problemInfo.current_solutions[0];
+        reference_solution = solutionProcess[currentIteration].solutions[0];
         selected_solutions = [0];
-      } else {
-        throw new Error("Failed to iterate NIMBUS method.");
-      }
-    } catch (err) {
-      toastStore.trigger({
-        // prettier-ignore
-        message: "Oops! Something went wrong. Iteration failed at the backend.",
-        background: "variant-filled-error",
-        timeout: 5000,
-      });
-      console.error(err);
-
-      //
-      // TODO: We really should do something better. The correct behaviour
-      // should depend on the reason for failing and should probably involve
-      // adding new states to the state machine. Now we can't really leave
-      // the method in the previous state because we don't know the reason
-      // for the failure.
-    }
-  }
-  /*
-  async function actually_get_maps(mapped_solution: number[], year: string) {
-    if (!(state === State.ClassifySelected)) {
-      throw new Error("`get_maps` called in wrong state.");
-    }
-
-    try {
-      let endpoint = API_URL + "/nimbus/utopia";
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + AUTH_TOKEN,
-        },
-        body: JSON.stringify({
-          problemID: problem_id, // The problem is reconstructed from the database each time we iterate.
-          solution: mapped_solution,
-          Year: year,
-        }),
-      });
-      if (response.ok) {
-        return await response.json();
-      } else {
-        throw new Error("Failed to get maps.");
-      }
-    } catch (err) {
-      toastStore.trigger({
-        // prettier-ignore
-        message: "Oops! Something went wrong with map visualization.",
-        background: "variant-filled-error",
-        timeout: 5000,
-      });
-      console.error(err);
-
-      //
-    }
   }
 
-  async function get_maps(mapped_solution: number[]) {
-    const data = await actually_get_maps(mapped_solution, "2025");
-    mapOptions["one"] = data.option;
-    geoJSON = data.forestMap;
-    mapName = data.mapName;
-    const data2 = await actually_get_maps(mapped_solution, "2030");
-    mapOptions["two"] = data2.option;
-    const data3 = await actually_get_maps(mapped_solution, "2035");
-    mapOptions["three"] = data3.option;
-  }
-*/
-
-  async function handle_intermediate() {
-    if (
-      !is_intermediate_selection_valid ||
-      solutions_to_visualize === undefined
-    ) {
-      throw new Error("`handle_intermediate` called in wrong state.");
-    }
-
-    try {
-      // This feature should be available for all methods, not just NIMBUS.
-      // However, each method endpoint should return the response in the
-      // necessary format. In this case, the problemInfoType is returned.
-      // The "previousPreference" field is set to be the preference used
-      // in the previous classification.
-      let endpoint = API_URL + "/nimbus/intermediate";
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + AUTH_TOKEN,
-        },
-        body: JSON.stringify({
-          problemID: problem_id, // The problem is reconstructed from the database each time we iterate.
-          solution1: solutions_to_visualize[selected_solutions[0]],
-          solution2: solutions_to_visualize[selected_solutions[1]],
-          numIntermediates: numIntermediates,
-        }),
-      });
-
-      if (response.ok) {
-        const data: problemInfoType = await response.json();
-        problemInfo = data;
-        preference = problemInfo.previous_preference;
-        state = State.ClassifySelected; // TODO: Should this be IntermediateSelected? Or should we always return to ClassifySelected?
-        visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
-        reference_solution = problemInfo.current_solutions[0];
-        selected_solutions = [0];
-      } else {
-        // Iteration failed somehow.
-        throw new Error("Failed to generate intermediate solutions.");
-      }
-    } catch (err) {
-      // Network error. Authentication error. Server error. etc.
-      toastStore.trigger({
-        // prettier-ignore
-        message: "Oops! Something went wrong.",
-        background: "variant-filled-error",
-        timeout: 5000,
-      });
-      console.error(err);
-
-      //
-    }
-  }
-  async function handle_save_solutions() {
-    if (!is_save_solutions_valid || solutions_to_visualize === undefined) {
-      throw new Error("`handle_save_solutions` called in wrong state.");
-    }
-
-    try {
-      // Same comment about endpoints as in `handle_intermediate`.
-      let endpoint = API_URL + "/nimbus/save";
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + AUTH_TOKEN,
-        },
-        body: JSON.stringify({
-          problem_id: problem_id, // The problem is reconstructed from the database each time we iterate.
-          method_id: 1,
-          previousPreference: problemInfo.previous_preference,
-          solutions: selected_solutions.map(
-            (index) => solutions_to_visualize[index]
-          ),
-        }),
-      });
-
-      if (response.ok) {
-        const data: problemInfoType = await response.json();
-        problemInfo.saved_solutions = data.saved_solutions;
-        //preference = problemInfo.previous_preference;
-        state = State.ClassifySelected; // TODO: Should this be SaveSolutionsSelected? Or should we always return to ClassifySelected?
-        visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
-        reference_solution = problemInfo.current_solutions[0];
-        selected_solutions = [0];
-      } else {
-        // Iteration failed somehow.
-        throw new Error("Failed to save solutions.");
-      }
-    } catch (err) {
-      // Network error. Authentication error. Server error. etc.
-      toastStore.trigger({
-        // prettier-ignore
-        message: "Oops! Something went wrong while saving solutions.",
-        background: "variant-filled-error",
-        timeout: 5000,
-      });
-      console.error(err);
-
-      //
-    }
-  }
-
-  async function handle_final_choice() {
-    if (!is_classification_valid) {
-      const err = Error("`handle_iterate` called in wrong state.");
-      toastStore.trigger({
-        // prettier-ignore
-        message: "Oops! Something went wrong while saving final choice.",
-        background: "variant-filled-error",
-        timeout: 5000,
-      });
-      console.error(err);
-    }
-    try {
-      let endpoint = API_URL + "/nimbus/choose";
-
-      const response = await fetch(endpoint, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: "Bearer " + AUTH_TOKEN,
-        },
-        body: JSON.stringify({
-          problem_id: problem_id, // The problem is reconstructed from the database each time we iterate.
-          method_id: 1,
-          solution: reference_solution,
-        }),
-      });
-      if (response.ok) {
-        finalChoiceState = true;
-      } else {
-        throw new Error("Failed to save final choice.");
-      }
-    } catch (err) {
-      toastStore.trigger({
-        // prettier-ignore
-        message: "Oops! Something went wrong.",
-        background: "variant-filled-error",
-        timeout: 5000,
-      });
-      console.error(err);
-    }
+  function handle_final_choice() {
+    finalChoiceState = true;
   }
 </script>
 
@@ -673,29 +387,10 @@ A user interface for the NIMBUS method.
             <svelte:fragment slot="header"
               >Preference information</svelte:fragment
             >
-            <RadioGroup>
-              <RadioItem
-                bind:group={state}
-                name="justify"
-                value={State.ClassifySelected}>Provide classification</RadioItem
-              >
-              <RadioItem
-                bind:group={state}
-                name="justify"
-                value={State.SaveSolutionsSelected}
-                >Save best candidate solutions</RadioItem
-              >
-            </RadioGroup>
-            {#if state === State.ClassifySelected}
-              <div>
-                Provide your preferences by classifying the objectives by either
-                clicking on the bars or using the input boxes. You must give a
-                preference for each objective. You must improve and impair at
-                least one objective. You can choose the maximum number of new
-                solutions to generate.
-              </div>
+            
+           
               <Input
-                labelName="Maximum number of solutions to generate using NIMBUS:"
+                labelName="Maximum number of solutions to generate:"
                 bind:value={numSolutions}
                 onChange={() => {
                   if (numSolutions < MIN_NUM_SOLUTIONS) {
@@ -707,72 +402,16 @@ A user interface for the NIMBUS method.
                 }}
               />
               <ClassificationPreference
-                objective_long_names={problemInfo.objective_long_names}
+                objective_long_names={problemInfo.objective_short_names}
                 is_maximized={problemInfo.is_maximized}
                 lower_bounds={problemInfo.lower_bounds}
                 upper_bounds={problemInfo.upper_bounds}
-                solutionValue={reference_solution}
-                previousValue={problemInfo.previous_preference}
+                solutionValue={reference_solution.objective_values}
+                previousValue={solutionProcess[currentIteration].reference_point}
                 bind:preference
                 decimalPrecision={3}
               />
-            {:else if state === State.IntermediateSelected}
-              <div>
-                Select two solutions and then click "Iterate" to generate
-                intermediate solutions.
-              </div>
-              <Input
-                labelName="Number of intermediate solutions:"
-                bind:value={numIntermediates}
-                onChange={() => {
-                  if (numIntermediates < MIN_NUM_INTERMEDIATES) {
-                    numIntermediates = MIN_NUM_INTERMEDIATES;
-                  }
-                  if (numIntermediates > MAX_NUM_INTERMEDIATES) {
-                    numIntermediates = MAX_NUM_INTERMEDIATES;
-                  }
-                }}
-              />
-              {#if solutions_to_visualize !== undefined}
-                <ParallelCoordinatePlotBase
-                  names={problemInfo.objective_long_names}
-                  values={solutions_to_visualize}
-                  ranges={transform_bounds(
-                    problemInfo.lower_bounds,
-                    problemInfo.upper_bounds
-                  )}
-                  lowerIsBetter={problemInfo.is_maximized.map(
-                    (value) => !value
-                  )}
-                  showIndicators={true}
-                  disableInteraction={false}
-                  maxSelections={2}
-                  bind:selectedIndices={selected_solutions}
-                />
-              {/if}
-            {:else if state === State.SaveSolutionsSelected}
-              <div>
-                Select any number of solutions and then click "Save" to save
-                solutions of interest to the database.
-              </div>
-              {#if solutions_to_visualize !== undefined}
-                <ParallelCoordinatePlotBase
-                  names={problemInfo.objective_long_names}
-                  values={solutions_to_visualize}
-                  ranges={transform_bounds(
-                    problemInfo.lower_bounds,
-                    problemInfo.upper_bounds
-                  )}
-                  lowerIsBetter={problemInfo.is_maximized.map(
-                    (value) => !value
-                  )}
-                  showIndicators={true}
-                  disableInteraction={false}
-                  maxSelections={solutions_to_visualize.length}
-                  bind:selectedIndices={selected_solutions}
-                />
-              {/if}
-            {/if}
+          
             {#if state === State.ClassifySelected}
               <div class="flex gap-4">
                 <button
@@ -792,30 +431,6 @@ A user interface for the NIMBUS method.
                   Please give a valid classification for the objectives.
                 </div>
               {/if}
-            {:else if state === State.IntermediateSelected}
-              <div class="flex gap-4">
-                <button
-                  class="btn variant-filled"
-                  on:click={handle_intermediate}
-                  disabled={!is_intermediate_selection_valid}>Iterate</button
-                >
-              </div>
-              {#if !is_intermediate_selection_valid}
-                <div class="text-error-500">Please select two solutions.</div>
-              {/if}
-            {:else if state === State.SaveSolutionsSelected}
-              <div class="flex gap-4">
-                <button
-                  class="btn variant-filled"
-                  on:click={handle_save_solutions}
-                  disabled={!is_save_solutions_valid}>Save</button
-                >
-              </div>
-              {#if !is_save_solutions_valid}
-                <div class="text-error-500">
-                  Please select at least one solution.
-                </div>
-              {/if}
             {:else}
               <GeneralError />
             {/if}
@@ -825,7 +440,7 @@ A user interface for the NIMBUS method.
       <div slot="solutionSetChoice">
         <Card>
           <svelte:fragment slot="header"
-            >Choose which solution set to visualize</svelte:fragment
+            >Decision Space</svelte:fragment
           >
           <RadioGroup>
             <RadioItem
@@ -862,12 +477,12 @@ A user interface for the NIMBUS method.
       <div slot="visualizations">
         {#if state === State.ClassifySelected && !finalChoiceState}
           <Card>
-            <svelte:fragment slot="header">Solution Explorer</svelte:fragment>
+            <svelte:fragment slot="header">Objective Space</svelte:fragment>
 
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
               <Visualizations
-                names={problemInfo.objective_long_names}
-                values={solutions_to_visualize}
+                names={problemInfo.objective_short_names}
+                values={getObjectives(solutions_to_visualize)}
                 lower_bounds={problemInfo.lower_bounds}
                 upper_bounds={problemInfo.upper_bounds}
                 lower_is_better={problemInfo.is_maximized.map(
@@ -888,8 +503,8 @@ A user interface for the NIMBUS method.
 
             {#if problemInfo !== undefined && reference_solution !== undefined}
               <ParallelCoordinatePlotBase
-                names={problemInfo.objective_long_names}
-                values={[reference_solution]}
+                names={problemInfo.objective_short_names}
+                values={[reference_solution.objective_values]}
                 ranges={transform_bounds(
                   problemInfo.lower_bounds,
                   problemInfo.upper_bounds
@@ -906,27 +521,26 @@ A user interface for the NIMBUS method.
       </div>
       <div slot="solutions">
         <Card>
-          <svelte:fragment slot="header">Solutions</svelte:fragment>
+          <svelte:fragment slot="header">Data View</svelte:fragment>
           <div class="flex flex-col gap-4">
             <p>
-              Objective values of solutions generated by NIMBUS. Click on a row
-              to select a solution.
+              Solutions generated by NIMBUS. Click on a row to select a solution.
             </p>
             <div class="overflow-x-auto">
               {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
                 {#if !finalChoiceState}
                   <Table
-                    head={problemInfo.objective_long_names}
+                    head={problemInfo.objective_short_names}
                     body={solutions_to_visualize.map((solution) => {
-                      return solution.map((value) => value.toFixed(decimals));
+                      return solution.objective_values.map((value) => value.toFixed(decimals));
                     })}
                     bind:selected_rows={selected_solutions}
                   />
                 {:else if reference_solution !== undefined}
                   <Table
-                    head={problemInfo.objective_long_names}
+                    head={problemInfo.objective_short_names}
                     body={[reference_solution].map((solution) => {
-                      return solution.map((value) => value.toFixed(decimals));
+                      return solution.objective_values.map((value) => value.toFixed(decimals));
                     })}
                   />
                 {/if}
@@ -940,33 +554,9 @@ A user interface for the NIMBUS method.
       <div slot="Map">
         <Card>
           <svelte:fragment slot="header"
-            >Treatment options visualized on a map</svelte:fragment
+            >Impact Overview</svelte:fragment
           >
-          {#if mapOptions[periodChoice] !== undefined && geoJSON !== undefined}
-            <EchartsComponent
-              option={mapOptions[periodChoice]}
-              {geoJSON}
-              {mapName}
-              customStyle="height: 500px; width: 100%;"
-            />
-          {/if}
-          <RadioGroup>
-            <RadioItem
-              bind:group={periodChoice}
-              name="justify"
-              value={PeriodChoice.one}>2025</RadioItem
-            >
-            <RadioItem
-              bind:group={periodChoice}
-              name="justify"
-              value={PeriodChoice.two}>2030</RadioItem
-            >
-            <RadioItem
-              bind:group={periodChoice}
-              name="justify"
-              value={PeriodChoice.three}>2035</RadioItem
-            >
-          </RadioGroup>
+          Impact plot
         </Card>
       </div>
     </NimbusLayout>
