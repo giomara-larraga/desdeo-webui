@@ -40,6 +40,7 @@
     handleSelectionChange,
   } from "$lib/components/visual/helperFunctions";
   import EchartsComponent from "../../general/EchartsComponent.svelte";
+    import { symbol } from "d3";
 
   // Props for this component:
   /** The values to display on the plot. */
@@ -137,12 +138,11 @@
 
   const hoverLineStyle = {
     color: selectedLineStyle.color,
-    width: 7,
+    width: 3,
     opacity: 0.4,
   };
 
   const lineStyle = {
-    width: 3.5,
     opacity: 1,
   };
 
@@ -291,7 +291,7 @@
           silent: disableInteraction,
           type: "parallel",
           lineStyle: lineStyle,
-          selectedMode: "multiple",
+          selectedMode: "single",
           // TODO: Implement changing line color without using select. Now select causes type error, thus the ts-ignore. For some reason parallel axis does not have select property, but for example bar charts have:https://echarts.apache.org/en/option.html#series-bar.select, parallel: https://echarts.apache.org/en/option.html#series-parallel
           //  eslint-disable-next-line @typescript-eslint/ban-ts-comment
           // @ts-ignore -- Error says that disabled doesn't exist in the echarts series type, but in the documentation it exists. Might be because it's a new property, so they have not updated the type yet. https://echarts.apache.org/en/option.html#series-bar.emphasis.disabled
@@ -301,7 +301,7 @@
           emphasis: {
             lineStyle: hoverLineStyle,
           },
-          // colorBy: "series",
+          colorBy: "series",
           data: seriesData,
         },
       ],

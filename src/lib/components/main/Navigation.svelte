@@ -11,26 +11,19 @@
   import IconHeroiconsSolidUserCircle from "~icons/heroicons-solid/user-circle";
   import { AppRail, AppRailAnchor } from "@skeletonlabs/skeleton";
 
-  let currentTile = 0;
 </script>
+
+
 
 <!--
   TODO: Use the theme system instead of hardcoded colors?
 -->
 
 <AppRail class="nav-bar">
-  <!--   <svelte:fragment slot="lead">
-    <AppRailAnchor href="/dashboard" title="Account">
-      <div class="icon-wrapper">
-        <img src={logo} class="icon" alt="logo" />
-      </div>
-    </AppRailAnchor>
-  </svelte:fragment> -->
-  <!-- --- -->
   <AppRailAnchor
-    href="/list_problems"
-    selected={$page.url.pathname === "/list_problems"}
-    bind:group={currentTile}
+    href="/saved_problems"
+    selected={$page.url.pathname === '/saved_problems'}
+    hover = "bg-gray-500-hover-token"
     name="tile-1"
     value={0}
     title="tile-1"
@@ -45,7 +38,6 @@
   <AppRailAnchor
     href="/methods"
     selected={$page.url.pathname === "/methods"}
-    bind:group={currentTile}
     name="tile-2"
     value={1}
     title="tile-2"
@@ -60,7 +52,6 @@
   <AppRailAnchor
     href="/solve"
     selected={$page.url.pathname === "/solve"}
-    bind:group={currentTile}
     name="tile-3"
     value={2}
     title="tile-3"
@@ -75,7 +66,6 @@
   <AppRailAnchor
     href="/archive"
     selected={$page.url.pathname === "/archive"}
-    bind:group={currentTile}
     name="tile-3"
     value={2}
     title="tile-3"
@@ -90,7 +80,6 @@
   <AppRailAnchor
     href="/help"
     selected={$page.url.pathname === "/help"}
-    bind:group={currentTile}
     name="tile-3"
     value={2}
     title="tile-3"

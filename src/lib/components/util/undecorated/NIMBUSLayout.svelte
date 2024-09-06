@@ -5,10 +5,15 @@
 </script>
 
 <style>
+  .preferences {
+    background-color: rgba(9, 66, 119, 0.06);
+    padding: 1rem;
+  }
+  
   .grid-layout {
     display: grid;
     gap: 10px;
-    height: calc(100vh - 80px); /* Full viewport height */
+    height: calc(100vh - 48px); /* Full viewport height */
   }
 
   .scrollable {
@@ -49,7 +54,7 @@
   <!-- 3-column grid layout -->
   <div class="grid-layout grid-3-cols">
     <!-- Preferences (full height, first column) -->
-    <div class="row-span-3 no-scroll">
+    <div class="preferences row-span-3 no-scroll">
       <slot name="preferences" />
     </div>
 
