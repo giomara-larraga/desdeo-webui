@@ -33,7 +33,9 @@
   import { onMount } from "svelte";
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
   import { RPP_Info, solution_process } from "./data";
-    import { getCurrentIteration } from "../../helpers";
+  import { getCurrentIteration } from "../../helpers";
+  import ScatterPlot from "$lib/components/visual/visualization/props-linking/ScatterPlot.svelte";
+    import Histogram from "$lib/components/visual/visualization/props-linking/Histogram.svelte";
  
   let tabSet: number = 0;
    
@@ -429,7 +431,11 @@ export function getObjectives(data: Solution[]):number[][]{
         {/if}
       </div>
       <div slot="solutionSetChoice">
-       <p>to be added</p>
+       <Card>
+        <ScatterPlot solutions={solutions_to_visualize}>
+
+        </ScatterPlot>
+      </Card>
       </div>
       <div slot="visualizations">
         {#if state === State.ClassifySelected && !finalChoiceState}
@@ -437,13 +443,12 @@ export function getObjectives(data: Solution[]):number[][]{
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
               <Visualizations
                 names={problemInfo.objective_short_names}
-                values={getObjectives(solutions_to_visualize)}
+                solutions={solutions_to_visualize}
                 lower_bounds={problemInfo.lower_bounds}
                 upper_bounds={problemInfo.upper_bounds}
                 lower_is_better={problemInfo.is_maximized.map(
                   (value) => !value
                 )}
-                grid_mode={false}
                 bind:selected={selected_solutions}
                 bind:tab={visualizations_tab}
                 max_selections={1}
@@ -459,7 +464,7 @@ export function getObjectives(data: Solution[]):number[][]{
             {#if problemInfo !== undefined && reference_solution !== undefined}
               <ParallelCoordinatePlotBase
                 names={problemInfo.objective_short_names}
-                values={[reference_solution.objective_values]}
+                solutions={[reference_solution]}
                 ranges={transform_bounds(
                   problemInfo.lower_bounds,
                   problemInfo.upper_bounds
@@ -500,10 +505,7 @@ export function getObjectives(data: Solution[]):number[][]{
       </div>
       <div slot="Map">
         <Card>
-          <svelte:fragment slot="header"
-            >Impact Overview</svelte:fragment
-          >
-          Impact plot
+          <Histogram indicatorNames={problemInfo.objective_short_names} values={[0.5,0.1,0.8,0.1]} aspect={"aspect-[5/3]"}/>
         </Card>
       </div>
     </NimbusLayout>

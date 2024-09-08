@@ -12,10 +12,9 @@ length.
 
 <script lang="ts">
   import TabbedVisualizations from "./TabbedVisualizations.svelte";
-  import GriddedVisualizations from "./GriddedVisualizations.svelte";
 
   export let names: string[] | undefined = undefined;
-  export let values: Point[];
+  export let solutions: Solution[];
   export let lower_bounds: number[];
   export let upper_bounds: number[];
   export let lower_is_better: boolean[];
@@ -24,26 +23,12 @@ length.
   export let highlighted: number | undefined = undefined;
   export let disabled = false;
   export let tab = 0;
-  export let grid_mode = false;
 </script>
 
-{#if grid_mode}
-  <GriddedVisualizations
-    {names}
-    {values}
-    {lower_bounds}
-    {upper_bounds}
-    {lower_is_better}
-    bind:selected
-    {max_selections}
-    bind:highlighted
-    {disabled}
-    mini_nimbus={true}
-  />
-{:else}
+
   <TabbedVisualizations
     {names}
-    {values}
+    {solutions}
     {lower_bounds}
     {upper_bounds}
     {lower_is_better}
@@ -53,4 +38,4 @@ length.
     bind:tab
     {disabled}
   />
-{/if}
+

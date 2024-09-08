@@ -15,7 +15,7 @@ length.
   import { transform_bounds } from "$lib/components/util/util";
 
   export let names: string[] | undefined = undefined;
-  export let values: Point[];
+  export let solutions: Solution[];
   export let lower_bounds: number[];
   export let upper_bounds: number[];
   export let lower_is_better: boolean[];
@@ -42,7 +42,7 @@ length.
     {#if tab === 0}
       <ParallelCoordinatePlotBase
         {names}
-        {values}
+        {solutions}
         ranges={bounds}
         lowerIsBetter={lower_is_better}
         showIndicators={true}
@@ -53,26 +53,7 @@ length.
       />
     {:else if tab === 1}
       <MultiMiniBarChart
-        solutions={values}
-        lowerBounds={lower_bounds}
-        upperBounds={upper_bounds}
-        lowerIsBetter={lower_is_better}
-        bind:selectedIndices={selected}
-      />
-    {:else if tab === 2}
-      <ParallelCoordinatePlotBase
-        {names}
-        {values}
-        ranges={bounds}
-        lowerIsBetter={lower_is_better}
-        showIndicators={true}
-        disableInteraction={disabled}
-        maxSelections={max_selections}
-        bind:selectedIndices={selected}
-        bind:highlightedIndex={highlighted}
-      />
-      <MultiMiniBarChart
-        solutions={values}
+        solutions={solutions}
         lowerBounds={lower_bounds}
         upperBounds={upper_bounds}
         lowerIsBetter={lower_is_better}

@@ -28,7 +28,6 @@
     colorPalette,
     selectedLineStyle,
   } from "$lib/components/visual/constants";
-  import type { Ranges } from "$lib/components/visual/types";
   import type { EChartOption } from "echarts";
   import {
     getChartModel,
@@ -44,7 +43,7 @@
 
   // Props for this component:
   /** The values to display on the plot. */
-  export let values: number[][];
+  export let solutions: Solution[];
 
   /** Whether a lower value is better for each axis. */
   export let lowerIsBetter: boolean[] = [];
@@ -86,7 +85,7 @@
   export let disableAnimation: boolean | undefined = true;
 
   /** The aspect ratio of the plot container. */
-  export let aspect: string | undefined = "aspect-[5/3]";
+  export let aspect: string | undefined = "aspect-[6/3]";
 
   /** Custom CSS styles to apply to the chart container. */
   export let customStyle: string | undefined = undefined;
@@ -95,6 +94,20 @@
   export let chart: echarts.ECharts | undefined = undefined;
 
   let option: EChartOption;
+
+    // Utility to group solutions by iteration number
+  function groupSolutionsByIteration(solutions: Solution[]) {
+    const grouped = new Map<number, Solution[]>();
+    const reference_points: number[][] = []
+    for (let sol of solutions) {
+      if (!grouped.has(sol.iteration)) {
+        grouped.set(sol.iteration, []);
+        reference_points.push(sol.reference_point);
+      }
+      grouped.get(sol.iteration)?.push(sol);
+    }
+    return reference_points;
+  }
 
   $: if (selectedIndices) {
     if (chart) {
@@ -108,8 +121,8 @@
     }
   }
 
-  $: if (values) {
-    option = createOption(names, values);
+  $: if (solutions) {
+    option = createOption(names, solutions);
     if (chart) {
       // data = { names: names, values: values };
       chart.setOption(option);
@@ -223,7 +236,7 @@
     }
     // If names are not given, use the default names.
     else {
-      for (let i = 0; i < values[0].length; i++) {
+      for (let i = 0; i < solutions[0].objective_values.length; i++) {
         if (ranges) {
           min = ranges[i] ? ranges[i].min : "dataMin";
           max = ranges[i] ? ranges[i].max : "dataMax";
@@ -249,12 +262,20 @@
    * @param names - The names of the axes.
    * @param values - The values to be shown on the parallel coordinate.
    */
-  function createOption(names: string[], values: number[][]): EChartOption {
+  function createOption(names: string[], values: Solution[]): EChartOption {
+    const reference_points = groupSolutionsByIteration(solutions);
     // Creates the lines on the chart as series data.
     let seriesData: { value: number[]; name: string }[] = [];
     for (let i = 0; i < values.length; i++) {
-      seriesData.push({ value: values[i], name: "Alternative " + (i + 1) });
+      seriesData.push({ value: values[i].objective_values, name: "Alternative " + (i + 1) });
     }
+
+    let seriesRP: {value: number[]; name: string}[] = [];
+    for (let index = 0; index < reference_points.length; index++) {
+      seriesRP.push({ value: reference_points[index], name: "Reference point " + (index + 1)});      
+    }
+
+
     // Create the option object for the whole chart.
     return {
       color: colors,
@@ -301,9 +322,16 @@
           emphasis: {
             lineStyle: hoverLineStyle,
           },
-          colorBy: "series",
           data: seriesData,
         },
+        {
+          type: "parallel",
+          data: seriesRP,
+          lineStyle: {
+            width: 4,
+            color: "#C00000"
+          }
+        }
       ],
       // graphic: createGraphicData(),
     };

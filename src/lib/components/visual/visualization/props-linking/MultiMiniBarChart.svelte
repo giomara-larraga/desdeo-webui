@@ -11,7 +11,7 @@
   export let colors: string[] = [];
 
   /** The values to use for the chart. */
-  export let solutions: number[][];
+  export let solutions: Solution[];
 
   /** The lower bounds for each objective */
   export let lowerBounds: number[] = [];
@@ -59,7 +59,7 @@
       >
         <MiniBarChart
           {colors}
-          values={value}
+          values={value.objective_values}
           {lowerBounds}
           {upperBounds}
           {lowerIsBetter}
@@ -72,7 +72,7 @@
       >
         <MiniBarChart
           {colors}
-          values={value}
+          values={value.objective_values}
           {lowerBounds}
           {upperBounds}
           {lowerIsBetter}

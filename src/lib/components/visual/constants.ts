@@ -27,7 +27,7 @@ export const boundLineStyle = {
 };
 
 export const selectedLineStyle = {
-  color: "#72082B",
+  color: "#094277",
   width: 3,
   opacity: 1,
 };
