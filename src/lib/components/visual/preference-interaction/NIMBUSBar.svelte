@@ -116,7 +116,7 @@
   <div class="secondPart">
     <div id="prev">
       <!-- TODO: Implement this so that when no prev values is given, nothing shows up. But implementation should not make a mess. Maybe reserve a blank space (how)? -->
-      <span style="color:gray; font-size: small; ">Previous preference</span>
+      <span style="color:gray; font-size: x-small; ">Previous preference</span>
       {#if previousValue}
         <span id="prevValue">{previousValue}</span>
       {:else}
@@ -154,9 +154,9 @@
     height: 100%;
     width: 100%;
     column-gap: 2em;
-    border-style: solid;
-    border-width: 2px;
-    border-color: "c000";
+    /*border-style: solid;*/
+    /*border-width: 2px;*/
+    /*border-color: "c000";*/
     padding: 0.5em;
   }
 
@@ -187,7 +187,7 @@
   #prevValue {
     margin-left: 0.5em;
     align-self: center;
-    font-size: small;
+    font-size: x-small;
     color: gray;
     font-weight: 600;
   }

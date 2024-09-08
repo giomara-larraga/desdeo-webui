@@ -10,7 +10,7 @@ A user interface for the NIMBUS method.
   // messages.
   //
 
-  import { modalStore, type ModalSettings } from "@skeletonlabs/skeleton";
+  import { modalStore, Tab, TabGroup, type ModalSettings } from "@skeletonlabs/skeleton";
 
   import type { Token } from "$lib/api";
   import { toastStore } from "@skeletonlabs/skeleton";
@@ -29,6 +29,7 @@ A user interface for the NIMBUS method.
   import EchartsComponent from "$lib/components/visual/general/EchartsComponent.svelte";
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
   import { RPP_Info, solution_process } from "./data";
+  let tabSet: number = 0;
    type Solution = {
     iteration: number;
     index: number;
@@ -384,7 +385,16 @@ export function getObjectives(data: Solution[]):number[][]{
       <div slot="preferences">
         {#if problemInfo !== undefined && reference_solution !== undefined}
           <div class="preferences-bar">
-            <h3>Preference information</h3>
+            <TabGroup>
+              <Tab bind:group={tabSet} name="tab1" value={0}  class="mb-0">
+                <svelte:fragment slot="lead">Preferences</svelte:fragment>
+              </Tab>
+              <Tab bind:group={tabSet} name="tab2" value={1} class="mb-0">Analysis</Tab>
+              <!-- Tab Panels --->
+              <svelte:fragment slot="panel">
+                {#if tabSet === 0}
+                  <div>
+                  
               <Input
                 labelName="Maximum number of solutions to generate:"
                 bind:value={numSolutions}
@@ -398,77 +408,83 @@ export function getObjectives(data: Solution[]):number[][]{
                 }}
               />
               <ClassificationPreference
-                objective_long_names={problemInfo.objective_short_names}
-                is_maximized={problemInfo.is_maximized}
-                lower_bounds={problemInfo.lower_bounds}
-                upper_bounds={problemInfo.upper_bounds}
-                solutionValue={reference_solution.objective_values}
-                previousValue={solutionProcess[currentIteration].reference_point}
-                bind:preference
-                decimalPrecision={3}
-              />
-          
+              objective_long_names={problemInfo.objective_short_names}
+              is_maximized={problemInfo.is_maximized}
+              lower_bounds={problemInfo.lower_bounds}
+              upper_bounds={problemInfo.upper_bounds}
+              solutionValue={reference_solution.objective_values}
+              previousValue={solutionProcess[currentIteration].reference_point}
+              bind:preference
+              decimalPrecision={3}
+            />
             {#if state === State.ClassifySelected}
-              <div class="flex gap-4">
-                <button
-                  class="btn variant-filled inline"
-                  on:click={handle_iterate}
-                  disabled={!is_classification_valid}>Iterate</button
-                >
-                <button
-                  class="btn variant-filled inline"
-                  on:click={press_final_button}
-                  disabled={!(state === State.ClassifySelected)}
-                  >Finish with chosen solution</button
-                >
+            <div class="flex gap-4">
+              <button
+                class="btn variant-filled inline"
+                on:click={handle_iterate}
+                disabled={!is_classification_valid}>Iterate</button
+              >
+              <button
+                class="btn variant-filled inline"
+                on:click={press_final_button}
+                disabled={!(state === State.ClassifySelected)}
+                >Finish with chosen solution</button
+              >
+            </div>
+            {#if !is_classification_valid}
+              <div class="text-error-500">
+                Please give a valid classification for the objectives.
               </div>
-              {#if !is_classification_valid}
-                <div class="text-error-500">
-                  Please give a valid classification for the objectives.
-                </div>
-              {/if}
-            {:else}
-              <GeneralError />
             {/if}
+          {:else}
+            <GeneralError />
+          {/if}
+                  </div>
+                {:else if tabSet === 1}
+                <div>
+                  <RadioGroup>
+                    <RadioItem
+                      bind:group={visualizationChoiceState}
+                      name="justify"
+                      value={VisualizationChoiceState.CurrentSolutions}
+                      >Current solutions</RadioItem
+                    >
+                    <RadioItem
+                      bind:group={visualizationChoiceState}
+                      name="justify"
+                      value={VisualizationChoiceState.SavedSolutions}
+                      >Best candidate solutions</RadioItem
+                    >
+                    <RadioItem
+                      bind:group={visualizationChoiceState}
+                      name="justify"
+                      value={VisualizationChoiceState.AllSolutions}
+                      >All solutions</RadioItem
+                    >
+                  </RadioGroup>
+        
+                  {#if visualizationChoiceState === VisualizationChoiceState.CurrentSolutions}
+                    <div>
+                      Visualize solutions generated by NIMBUS in the latest iteration.
+                    </div>
+                  {:else if visualizationChoiceState === VisualizationChoiceState.SavedSolutions}
+                    <div>Visualize best candidate solutions saved by you.</div>
+                  {:else if visualizationChoiceState === VisualizationChoiceState.AllSolutions}
+                    <div>Visualize all solutions generated by NIMBUS.</div>
+                  {/if}
+                  </div>
+                {/if}
+              </svelte:fragment>
+            </TabGroup>
+            
+
+          
+
               </div>
         {/if}
       </div>
       <div slot="solutionSetChoice">
-        <Card>
-          <svelte:fragment slot="header"
-            >Decision Space</svelte:fragment
-          >
-          <RadioGroup>
-            <RadioItem
-              bind:group={visualizationChoiceState}
-              name="justify"
-              value={VisualizationChoiceState.CurrentSolutions}
-              >Current solutions</RadioItem
-            >
-            <RadioItem
-              bind:group={visualizationChoiceState}
-              name="justify"
-              value={VisualizationChoiceState.SavedSolutions}
-              >Best candidate solutions</RadioItem
-            >
-            <RadioItem
-              bind:group={visualizationChoiceState}
-              name="justify"
-              value={VisualizationChoiceState.AllSolutions}
-              >All solutions</RadioItem
-            >
-          </RadioGroup>
-
-          {#if visualizationChoiceState === VisualizationChoiceState.CurrentSolutions}
-            <div>
-              Visualize solutions generated by NIMBUS in the latest iteration.
-            </div>
-          {:else if visualizationChoiceState === VisualizationChoiceState.SavedSolutions}
-            <div>Visualize best candidate solutions saved by you.</div>
-          {:else if visualizationChoiceState === VisualizationChoiceState.AllSolutions}
-            <div>Visualize all solutions generated by NIMBUS.</div>
-          {/if}
-        </Card>
+       <p>to be added</p>
       </div>
       <div slot="visualizations">
         {#if state === State.ClassifySelected && !finalChoiceState}

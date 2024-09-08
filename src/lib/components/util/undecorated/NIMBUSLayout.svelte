@@ -7,9 +7,13 @@
 <style>
   .preferences {
     background-color: rgba(9, 66, 119, 0.06);
-    padding: 1rem;
+    padding: 0rem;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
   }
-  
+  .visualizations{
+    padding-top: 0rem !important;
+  }
   .grid-layout {
     display: grid;
     gap: 10px;
@@ -59,7 +63,7 @@
     </div>
 
     <!-- Visualizations (spans 2 rows in second column) -->
-    <div class="row-span-2 no-scroll">
+    <div class="visualizations row-span-2 no-scroll">
       <slot name="visualizations" />
     </div>
 
@@ -85,7 +89,7 @@
     <div class="flex flex-col gap-10 no-scroll">
       <slot name="preferences" />
     </div>
-    <div class="flex flex-col gap-10 scrollable">
+    <div class="visualizations flex flex-col gap-10 scrollable">
       <slot name="solutionSetChoice" />
       <slot name="solutions" />
       <slot name="visualizations" />
@@ -95,7 +99,7 @@
 {:else}
   <!-- Another 2-column layout -->
   <div class="grid-layout grid-2-cols">
-    <div class="flex flex-col gap-10 no-scroll">
+    <div class="visualizations flex flex-col gap-10 no-scroll">
       <slot name="visualizations" />
       <slot name="solutions" />
     </div>
