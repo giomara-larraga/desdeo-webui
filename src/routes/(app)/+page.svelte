@@ -23,7 +23,7 @@
   import Visualizations from "$lib/components/util/undecorated/Visualizations.svelte";
   import Card from "$lib/components/main/Card.svelte";
   import GeneralError from "$lib/components/util/undecorated/GeneralError.svelte";
-  import Table from "$lib/components/util/undecorated/Table.svelte";
+  import Table from "$lib/components/util/undecorated/DetailedTable.svelte";
   import ParallelCoordinatePlotBase from "$lib/components/visual/visualization/props-linking/ParallelCoordinatePlot.svelte";
   import { transform_bounds } from "$lib/components/util/util";
 
@@ -33,18 +33,10 @@
   import { onMount } from "svelte";
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
   import { RPP_Info, solution_process } from "./data";
+    import { getCurrentIteration } from "../../helpers";
+ 
   let tabSet: number = 0;
-   type Solution = {
-    iteration: number;
-    index: number;
-    objective_values: number[];
-    decision_variables: number[];
-  };
-
-   type Iteration ={
-      solutions: Solution[];
-      reference_point: number[];
-  };
+   
 
   // Enum to represent the state of the method.
   enum State {
@@ -61,15 +53,6 @@
     AllSolutions,
   }
 
-  // The type of the problem info object returned by the backend.
-  type problemInfoType = {
-    objective_long_names: string[];
-    objective_short_names: string[];
-    is_maximized: boolean[];
-    lower_bounds: number[];
-    upper_bounds: number[];
-  };
-
   // The current state of the method.
   let state: State = State.InitialLoad;
   let visualizationChoiceState: VisualizationChoiceState =
@@ -77,7 +60,7 @@
 
   // Preference input values.
   let preference: (number | undefined)[];
-  let solutionProcess: Iteration[];
+  let solutionProcess: Solution[];
   let currentIteration: number;
   let problemInfo: problemInfoType;
 
@@ -227,15 +210,15 @@
       if (
         visualizationChoiceState === VisualizationChoiceState.CurrentSolutions
       ) {
-        solutions_to_visualize = solutionProcess[currentIteration].solutions;
+        solutions_to_visualize = getCurrentIteration(solutionProcess, currentIteration);
       } else if (
         visualizationChoiceState === VisualizationChoiceState.SavedSolutions
       ) {
-        solutions_to_visualize = getAllSolutions();
+        solutions_to_visualize = solutionProcess;
       } else if (
         visualizationChoiceState === VisualizationChoiceState.AllSolutions
       ) {
-        solutions_to_visualize = getAllSolutions();
+        solutions_to_visualize = solutionProcess;
       }
     }
   }
@@ -257,14 +240,7 @@
 
   /** The number of decimals to show for numeric values. */
   const decimals = 3;
-  export function getAllSolutions(){
-    const solution_list: Solution[] = []
-    for (let i = 0; i < solution_process.length; i++) {
-        const element = solution_process[i];
-        solution_list.push(...element.solutions);
-    }
-    return solution_list
-};
+
 
 export function getObjectives(data: Solution[]):number[][]{
     const objective_values: number[][] = [];
@@ -310,10 +286,10 @@ export function getObjectives(data: Solution[]):number[][]{
       // best to also reset the visualization mode to non-maximized.
       //
       visualizations_maximized = false;
-      solutionProcess = solution_process
+      solutionProcess = getCurrentIteration(solution_process,0);
       problemInfo = RPP_Info;
       currentIteration = 0;
-      preference = solutionProcess[currentIteration].reference_point;
+      preference = solutionProcess[solutionProcess.length-1].reference_point;
       state = State.ClassifySelected;
   }
 
@@ -326,10 +302,11 @@ export function getObjectives(data: Solution[]):number[][]{
 
   function handle_iterate() {
         currentIteration = currentIteration + 1;
-        preference = solutionProcess[currentIteration].reference_point;
+        solutionProcess.push(...getCurrentIteration(solution_process, currentIteration));
+        preference = solutionProcess[solutionProcess.length-1].reference_point;
         state = State.ClassifySelected;
         visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
-        reference_solution = solutionProcess[currentIteration].solutions[0];
+        reference_solution = solutionProcess[solutionProcess.length-1];
         selected_solutions = [0];
   }
 
@@ -457,8 +434,6 @@ export function getObjectives(data: Solution[]):number[][]{
       <div slot="visualizations">
         {#if state === State.ClassifySelected && !finalChoiceState}
           <Card>
-            <svelte:fragment slot="header">Objective Space</svelte:fragment>
-
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
               <Visualizations
                 names={problemInfo.objective_short_names}
@@ -501,24 +476,19 @@ export function getObjectives(data: Solution[]):number[][]{
       </div>
       <div slot="solutions">
         <Card>
-          <svelte:fragment slot="header">Data View</svelte:fragment>
           <div class="flex flex-col gap-4">
             <div class="overflow-x-auto">
               {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
                 {#if !finalChoiceState}
                   <Table
-                    head={problemInfo.objective_short_names}
-                    body={solutions_to_visualize.map((solution) => {
-                      return solution.objective_values.map((value) => value.toFixed(decimals));
-                    })}
+                    problem_info = {problemInfo}
+                    solution_list= {solutions_to_visualize}
                     bind:selected_rows={selected_solutions}
                   />
                 {:else if reference_solution !== undefined}
                   <Table
-                    head={problemInfo.objective_short_names}
-                    body={[reference_solution].map((solution) => {
-                      return solution.objective_values.map((value) => value.toFixed(decimals));
-                    })}
+                    problem_info = {problemInfo}
+                    solution_list= {solutions_to_visualize}
                   />
                 {/if}
               {:else}
