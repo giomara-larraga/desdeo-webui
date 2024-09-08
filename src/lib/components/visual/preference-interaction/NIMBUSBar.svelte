@@ -95,53 +95,39 @@
 
 <!-- NIMBUS bar with inputs -->
 <!-- <div class="container" style="--barColor:{barColor ? barColor : '#c000'}"> -->
-<div class="container {aspect}">
-  <div
-    class="firstPart"
-    style="--justify: {barName ? 'space-between' : 'flex-end'}"
-  >
+<div class="grid grid-cols-3 gap-0 grid-flow-row auto-rows-min">
+  <div class="col-span-3">
     {#if barName}
-      <span style="font-size: small;">{barName}</span>
+      <span style="font-size: small; font-weight:500">{barName}</span>
     {/if}
-
+  </div>
+  <div class="row-start-2">
     <Input
       bind:value={selectedValue}
       labelName={classificationValue}
       onChange={moveToRange}
     />
-    <!-- <div>
-      <input type="number" bind:value={selectedValue} step="any" on:change={moveToRange}/>
-    </div> -->
   </div>
-  <div class="secondPart">
-    <div id="prev">
-      <!-- TODO: Implement this so that when no prev values is given, nothing shows up. But implementation should not make a mess. Maybe reserve a blank space (how)? -->
-      <span style="color:gray; font-size: x-small; ">Previous preference</span>
-      {#if previousValue}
-        <span id="prevValue">{previousValue}</span>
-      {:else}
-        <span id="prevValue">--</span>
-      {/if}
-      <!-- <InputWithValidation
-        bind:value={previousValue}
-        {higherBound}
-        {lowerBound}
-        readonly={true}
-      /> -->
-    </div>
+
+  <div class="col-span-2 row-start-2">
     <SingleHorizontalBar
-      {lowerBound}
-      {higherBound}
-      {solutionValue}
-      bind:selectedValue
-      {previousValue}
-      {lowerIsBetter}
-      {decimalPrecision}
-      {barColor}
-      {arrowMode}
-    />
+    {lowerBound}
+    {higherBound}
+    {solutionValue}
+    bind:selectedValue
+    {previousValue}
+    {lowerIsBetter}
+    {decimalPrecision}
+    {barColor}
+    {arrowMode}
+  />
   </div>
-</div>
+
+  </div>
+  
+
+
+
 
 <style>
   /* A scrollable div where height is the height of the screen*/

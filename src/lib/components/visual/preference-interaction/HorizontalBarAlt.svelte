@@ -74,9 +74,9 @@
     //updateSolutionBar(Number.parseFloat(solutionValue.toFixed(decimalPrecision)));
   }
 
-  const arrowSize = 15;
+  const arrowSize = 10;
   const arrowColor = "black";
-  const shadowSize = 5;
+  const shadowSize = 3;
   const shadowColor = "rgba(0,0,0,0.6)";
   const dragArrowColor = "white";
   const hoverLineColor = "gray";
@@ -144,7 +144,7 @@
       left: arrowSize * 2,
       right: arrowSize * 2,
       top: arrowSize + 2,
-      bottom: arrowSize,
+      bottom: arrowSize + 4,
     },
   };
 
@@ -838,25 +838,31 @@
       idToChek = parentId;
     }
     let tooltipHelpText = "";
+    let tooltipValue: string | undefined = undefined;
     switch (idToChek) {
       case "prevLine":
         tooltipHelpText =
-          "Click this button to set the aspiration value to the previous value";
+          "Previous aspiration value";
+          tooltipValue = previousValue?.toString();
         break;
       case "drag":
       case "aspirationGroup":
-        tooltipHelpText = "Drag this line to change the aspiration value";
+        tooltipHelpText = "Aspiration value";
+        tooltipValue = selectedValue?.toString();
         break;
       case "verticalGroup":
-        tooltipHelpText = "Click this button to reset to the solution value";
+        tooltipHelpText = "Reset to the solution value";
+        tooltipValue = solutionValue?.toString();
         break;
       case "leftRightGroup":
         if (targetId === "left") {
           tooltipHelpText =
-            "Click this button to set the aspiration value to the lowest possible value";
+            "Lowest possible value";
+            tooltipValue = lowerBound.toString();
         } else {
           tooltipHelpText =
-            "Click this button to set the aspiration value to the highest possible value";
+            "Highest possible value";
+            tooltipValue= higherBound.toString();
         }
         break;
       default:
@@ -868,7 +874,7 @@
         show: true,
         trigger: "item",
         formatter: () => {
-          return tooltipHelpText;
+          return tooltipHelpText + "<br/>"+ tooltipValue;
         },
         position: idToChek == "verticalGroup" ? [20, -50] : [20, -30],
       },

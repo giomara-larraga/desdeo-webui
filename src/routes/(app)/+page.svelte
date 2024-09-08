@@ -18,14 +18,8 @@
   }
 
   fetchUserDetails();
-
-
-
   import { modalStore, Tab, TabGroup, type ModalSettings } from "@skeletonlabs/skeleton";
-
   import type { Token } from "$lib/api";
-  import { toastStore } from "@skeletonlabs/skeleton";
-
   import Visualizations from "$lib/components/util/undecorated/Visualizations.svelte";
   import Card from "$lib/components/main/Card.svelte";
   import GeneralError from "$lib/components/util/undecorated/GeneralError.svelte";
@@ -37,7 +31,6 @@
   import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import { onMount } from "svelte";
-  import EchartsComponent from "$lib/components/visual/general/EchartsComponent.svelte";
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
   import { RPP_Info, solution_process } from "./data";
   let tabSet: number = 0;
@@ -52,14 +45,6 @@
       solutions: Solution[];
       reference_point: number[];
   };
-  /** The problem to solve. */
-  export let problem_id: number;
-  // Link to the backend.
-  export let API_URL: string;
-  // The authentication token.
-  export let AUTH_TOKEN: Token;
-  // Flag to visualize the decision space. Useful for UTOPIA maybe? Unused for now.
-  //export let visualize_decision_space: boolean = false;
 
   // Enum to represent the state of the method.
   enum State {
@@ -85,10 +70,6 @@
     upper_bounds: number[];
   };
 
-
-
- 
-
   // The current state of the method.
   let state: State = State.InitialLoad;
   let visualizationChoiceState: VisualizationChoiceState =
@@ -108,11 +89,6 @@
 
   // The objective values of the solutions to be visualized.
   let solutions_to_visualize: Solution[];
-
-  // The number of intermediate solutions to generate.
-  let numIntermediates = 5;
-  let MIN_NUM_INTERMEDIATES = 1;
-  let MAX_NUM_INTERMEDIATES = 10;
 
   // The number of solutions NIMBUS should generate.
   let numSolutions = 1;
@@ -278,17 +254,6 @@
 
   let visualizations_maximized = false;
   let visualizations_tab = 0;
-  let gridded_visualizations = false;
-
-  // Always use tab mode if not in maximized mode.
-  $: if (!visualizations_maximized) {
-    gridded_visualizations = false;
-  }
-
-  $: if (reference_solution !== undefined && state === State.ClassifySelected) {
-    // we don't need maps for the base version of NIMBUS
-    //get_maps(reference_solution);
-  }
 
   /** The number of decimals to show for numeric values. */
   const decimals = 3;
@@ -350,16 +315,6 @@ export function getObjectives(data: Solution[]):number[][]{
       currentIteration = 0;
       preference = solutionProcess[currentIteration].reference_point;
       state = State.ClassifySelected;
-
-      // TODO: Uncomment this when the backend is ready.
-      //
-      /*toastStore.trigger({
-        // prettier-ignore
-        message: "Oops! Something went wrong.",
-        background: "variant-filled-error",
-        timeout: 5000,
-      });*/
-      //console.error(err);
   }
 
   //
@@ -418,6 +373,7 @@ export function getObjectives(data: Solution[]):number[][]{
                   }
                 }}
               />
+              <br/>
               <ClassificationPreference
               objective_long_names={problemInfo.objective_short_names}
               is_maximized={problemInfo.is_maximized}
@@ -428,6 +384,7 @@ export function getObjectives(data: Solution[]):number[][]{
               bind:preference
               decimalPrecision={3}
             />
+            <br/>
             {#if state === State.ClassifySelected}
             <div class="flex gap-4">
               <button
@@ -511,7 +468,7 @@ export function getObjectives(data: Solution[]):number[][]{
                 lower_is_better={problemInfo.is_maximized.map(
                   (value) => !value
                 )}
-                grid_mode={gridded_visualizations}
+                grid_mode={false}
                 bind:selected={selected_solutions}
                 bind:tab={visualizations_tab}
                 max_selections={1}
