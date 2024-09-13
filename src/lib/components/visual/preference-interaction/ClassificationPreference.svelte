@@ -73,7 +73,7 @@
     lowerBound={lower_bounds[j]}
     higherBound={upper_bounds[j]}
     bind:selected={selected}
-    solutions={getIthObjectiveValues(solutions, j)}
+    bind:solutions={solutions}
     currentObjective={j}
     previousValue={solutions[selected[0]].reference_point[j]}
     showExplanations={objectiveToImprove === j ? true : false}

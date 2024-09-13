@@ -346,7 +346,7 @@ export function getObjectives(data: Solution[]):number[][]{
               lower_bounds={problemInfo.lower_bounds}
               upper_bounds={problemInfo.upper_bounds}
               bind:selected={selected_solutions}
-              solutions={solutions_to_visualize}
+              bind:solutions={solutions_to_visualize}
               bind:preference
               decimalPrecision={3}
             />

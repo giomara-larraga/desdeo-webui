@@ -165,6 +165,25 @@
     addHorizontalBar(option);
   });
 
+  function updateSolutionArrows(){
+    let options = []
+    for (let index = 0; index < solutions.length; index++) {
+      let element = {
+          id: "arrow"+String(index),
+          style: {
+            fill: selected[0] == index? selectedColor: "transparent",
+            stroke: "black",
+            lineWidth: 1,
+          },
+      };
+      options.push(element)
+      
+    }
+    chart.setOption({
+      graphic: options,
+    });
+  }
+
   function generateSolutionLines(gridRect:any){
     let children = [];
     for (let index = 0; index < solutions.length; index++) {
@@ -196,8 +215,9 @@
               },            
               onclick: () => {
                 console.log("click");
-                selected[0] = index;
-                //updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
+                //selectedValue = solutions[selected[0]];
+                //selected[0] = solutions[index];
+                updateAspirationLine(roundToDecimal( solutions[selected[0]], decimalPrecision));
                 //selectedValue = selectedValue;
               },
             },
@@ -227,9 +247,49 @@
               },            
               onclick: () => {
                 console.log("click");
-                selected[0] = index;
-                //updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
+                //selectedValue = solutions[index];
+                //selected[0] = index;
+                updateAspirationLine(roundToDecimal(solutions[index], decimalPrecision));
                 //selectedValue = selectedValue;
+              },
+            },
+            {
+              id: "arrow"+ String(index),
+              type: "polygon",
+              // If the solution value is not defined, the arrow is invisible
+              x: solutions[index]
+                ? chart.convertToPixel({ seriesIndex: 0 }, [
+                  solutions[index],
+                    0,
+                  ])[0]
+                : 0,
+              invisible: solutions[index] ? false : true,
+              shape: {
+                points: [
+                  [-arrowSize, 0],
+                  [arrowSize, 0],
+                  [0, arrowSize],
+                ],
+              },
+              scaleY: 0.85,
+              scaleX: 0.85,
+              y: 2,
+              z:900,
+              style: {
+                fill: index == selected[0]? selectedColor: "transparent",
+                // fillOpacity: 0,
+                stroke: arrowColor,
+                lineWidth: 1.25,
+              },
+
+              onclick: () => {
+                // console.log("click");
+                selected[0] = index;
+                updateAspirationLine(roundToDecimal(solutions[index], decimalPrecision));
+                
+
+                //selectedValue = solutions[selected[0]];
+                //selected[0] = index;
               },
             }
             ,);
@@ -326,7 +386,7 @@
   function addHorizontalBar(option: echarts.EChartOption) {
     chart.setOption(option);
     updateBarColor();
-
+    //updateSolutionArrows();
     // TODO: How to get the gridRect without using the private method?
     // eslint-disable-next-line @typescript-eslint/ban-ts-comment
     // @ts-ignore -- getModel is private method, but no easy workaround available. Might break in the future.
@@ -365,7 +425,7 @@
                   type: "circle",
                   id: "dragCircle",
 
-                  z: 498,
+                  z: 800,
                   invisible: selectedValue == null ? true : false,
                   shape: {
                     r: scaleValue * 2 + referencePointStyle.lineWidth,
@@ -550,8 +610,8 @@
 
               onclick: () => {
                 // console.log("click");
-                
-                selectedValue = solutions[selected[0]];
+                updateAspirationLine(solutions[selected[0]]);
+                //selectedValue = solutions[selected[0]];
               },
             },
             //generateSolutionLines(gridRect),
@@ -576,13 +636,19 @@
             }
           },
         },
+        /*{
+           id: "arrowsSolutions",
+           type: "group",
+           children: drawTrianglesSolutions(),
+        },*/
         {
             id: "solutionsGroup",
             type: "group",
+            name: "interactiveButtons",
             children: generateSolutionLines(gridRect),
             onclick: () => {
                 console.log("click");
-                selectedValue = solutions[selected[0]];
+                //selectedValue = solutions[selected[0]];
                 //updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
                 //selectedValue = selectedValue;
             },
@@ -595,6 +661,7 @@
           shape: {
             x: gridRect.x,
             y: gridRect.y,
+            z:400,
             width: gridRect.width,
             height: gridRect.height,
           },
@@ -614,7 +681,7 @@
     addOnMouseEffect("arrow");
     for (let index = 0; index < solutions.length; index++) {
       addOnMouseEffect("line-"+String(index));
-      
+      addOnMouseEffect("arrow"+String(index));
     }
     //addTooltipListeners("solutionsGroup");
 
@@ -756,6 +823,8 @@
         ],
       });
       updateBarColor();
+      updateSolutionArrows();
+
       // Update the reset arrow position and make it visible
       chart.setOption({
         graphic: [

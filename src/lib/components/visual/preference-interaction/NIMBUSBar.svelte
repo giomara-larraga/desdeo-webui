@@ -5,6 +5,7 @@
 <script lang="ts">
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import SingleHorizontalBar from "$lib/components/visual/preference-interaction/HorizontalBarAltXAI.svelte";
+    import { getIthObjectiveValues } from "../../../../helpers";
 
   enum classification {
     ChangeFreely = "Change freely",
@@ -26,9 +27,10 @@
  // export let solutionValue: number | undefined = undefined;
 
   export let selected: number[];
-  export let solutions: number[];
+  export let solutions: Solution[];
   export let currentObjective: number;
 
+  let solutionsObjective = getIthObjectiveValues(solutions, currentObjective);
   /** The value that the user has selected */
   export let selectedValue: number | undefined = undefined;
 
@@ -57,7 +59,7 @@
 
   let classificationValue: classification = classification.ChangeFreely;
 
-  const precision = 1e-3;
+  const precision = 1e-4;
 
   $: {
     // Todo: This only works if lowerIsBetter is false, I think.
@@ -74,11 +76,11 @@
       selectedValue > higherBound
     ) {
       classificationValue = classification.ImproveFreely;
-    } else if (Math.abs(selectedValue - solutions[selected[0]]) < precision) {
+    } else if (Math.abs(selectedValue - solutionsObjective[selected[0]]) < precision) {
       classificationValue = classification.KeepContant;
-    } else if (selectedValue < solutions[selected[0]]) {
+    } else if (selectedValue < solutionsObjective[selected[0]]) {
       classificationValue = classification.WorsenUntil;
-    } else if (selectedValue > solutions[selected[0]]) {
+    } else if (selectedValue > solutionsObjective[selected[0]]) {
       classificationValue = classification.ImproveUntil;
     }
   }
@@ -120,7 +122,7 @@
     {lowerBound}
     {higherBound}
     bind:selected
-    {solutions}
+    bind:solutions={solutionsObjective}
     {showExplanations}
     bind:selectedValue
     {previousValue}
