@@ -14,7 +14,7 @@ length.
   import { TabGroup, Tab } from "@skeletonlabs/skeleton";
   import { transform_bounds } from "$lib/components/util/util";
 
-  export let names: string[] | undefined = undefined;
+  export let names: string[];
   export let solutions: Solution[];
   export let lower_bounds: number[];
   export let upper_bounds: number[];
@@ -30,13 +30,14 @@ length.
   // Import the visualizations here.
   import ParallelCoordinatePlotBase from "$lib/components/visual/visualization/props-linking/ParallelCoordinatePlot.svelte";
   import MultiMiniBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniBarChart.svelte";
+    import Pcp from "$lib/components/visual/d3/Charts/PCP.svelte";
   // import Petals from "$lib/components/visual/visualization/props-linking/MultiplePetalCharts.svelte";
 </script>
 
 <TabGroup>
   <Tab bind:group={tab} name="tab1" value={0}>Parallel Coordinate Plot</Tab>
   <Tab bind:group={tab} name="tab2" value={1}>Bar Chart</Tab>
-  <Tab bind:group={tab} name="tab3" value={2}>All</Tab>
+  <Tab bind:group={tab} name="tab3" value={2}>D3</Tab>
 
   <svelte:fragment slot="panel">
     {#if tab === 0}
@@ -59,6 +60,17 @@ length.
         lowerIsBetter={lower_is_better}
         bind:selectedIndices={selected}
       />
+    {:else if tab === 2}
+      <Pcp 
+      names={names}
+      solutions={solutions}
+      lowerBounds={lower_bounds}
+      upperBounds={upper_bounds}
+      lowerIsBetter={lower_is_better}
+      bind:selectedIndices={selected}
+      />
+        
+  
     {/if}
   </svelte:fragment>
 </TabGroup>

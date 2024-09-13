@@ -12,7 +12,7 @@ const Solution1 = {
     index: 0,
     objective_values: [5.766, 2.919, 6.874, -0.246, 0.107],
     decision_variables:[0.9,0.3],
-    reference_point: [6.34, 3.41, 7.49, -0.0029, 0.014]
+    reference_point: [6.34, 3.41, 7.3, -0.0029, 0.014]
 
 }
 const Solution2 = {
@@ -20,7 +20,7 @@ const Solution2 = {
     index: 1,
     objective_values: [5.882,3.010, 6.640, -0.825, 0.148],
     decision_variables:[0.7,0.1],
-    reference_point: [6.34, 3.41, 7.49, -0.0029, 0.014]
+    reference_point: [6.34, 3.41, 7.3, -0.0029, 0.014]
 
 }
 const Solution3 = {
@@ -28,7 +28,7 @@ const Solution3 = {
     index: 2,
     objective_values: [6.006, 2.905, 6.249, -0.140, 0.203],
     decision_variables:[1.3,1.1],
-    reference_point: [6.34, 3.41, 7.49, -0.0029, 0.014]
+    reference_point: [6.34, 3.41, 7.3, -0.0029, 0.014]
 
 }
 const Solution4 = {
@@ -36,7 +36,7 @@ const Solution4 = {
     index: 3,
     objective_values: [6.163, 2.960, 5.243, -0.422, 0.2772],
     decision_variables:[2.1,1.2],
-    reference_point: [6.34, 3.41, 7.49, -0.0029, 0.014]
+    reference_point: [6.34, 3.41, 7.3, -0.0029, 0.014]
 
 }
 const Solution5 = {

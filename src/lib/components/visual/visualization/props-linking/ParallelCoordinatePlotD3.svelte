@@ -30,8 +30,7 @@
     colorPalette,
     selectedLineStyle,
   } from "$lib/components/visual/constants";
-  import type { Ranges } from "$lib/components/visual/types";
-  type DataPoint = number[];
+    type DataPoint = number[];
 
   // Props for this component:
   /** The values to display on the plot. */

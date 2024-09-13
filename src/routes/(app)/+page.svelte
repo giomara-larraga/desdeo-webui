@@ -319,7 +319,7 @@ export function getObjectives(data: Solution[]):number[][]{
 
 <div class="flex flex-col gap-10">
   {#if state === State.InitialLoad}
-    <div class="grid grid-cols-2 items-start gap-10">
+    <div class="grid grid-cols-2 grid-rows-2 items-start gap-10">
       <!-- <ProblemDetails {problem} /> -->
     </div>
   {:else}

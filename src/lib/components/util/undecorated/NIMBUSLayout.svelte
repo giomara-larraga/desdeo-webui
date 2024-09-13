@@ -56,7 +56,7 @@
 
 {#if classify && !finalChoice && !voteChoice}
   <!-- 3-column grid layout -->
-  <div class="grid-layout grid-3-cols">
+  <div class="grid-layout grid-3-cols grid-rows-3">
     <!-- Preferences (full height, first column) -->
     <div class="preferences row-span-3 no-scroll">
       <slot name="preferences" />
