@@ -321,7 +321,7 @@
                     // opacity: 0.7,
                   },
                 },
-                {
+                /*{
                   type: "polyline",
                   id: "dragLeft",
                   right: referencePointStyle.lineWidth / 10,
@@ -362,7 +362,7 @@
                       [0, -scaleValue],
                     ],
                   },
-                },
+                },*/
                 // {
                 //   type:"line",
                 //   z: 502,
@@ -397,8 +397,9 @@
               },
               style: {
                 stroke: referencePointStyle.stroke,
-                lineWidth: referencePointStyle.lineWidth,
-                // opacity: 0.8,
+                lineWidth: 1,
+                
+                opacity: 0.5,
               },
 
               // draggable: "horizontal",
@@ -696,14 +697,14 @@
               id: "rec",
               invisible: false,
             },
-            {
+            /*{
               id: "dragLeft",
               invisible: false,
             },
             {
               id: "dragRight",
               invisible: false,
-            },
+            },*/
           ]
         : [
             {
