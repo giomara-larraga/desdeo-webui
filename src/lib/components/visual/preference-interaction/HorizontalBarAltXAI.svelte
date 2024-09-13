@@ -76,6 +76,7 @@
   }
 
   const arrowSize = 10;
+  const selectedColor= "navy"
   const arrowColor = "black";
   const shadowSize = 3;
   const shadowColor = "rgba(0,0,0,0.6)";
@@ -490,25 +491,30 @@
             });
           },
         },
-        // Add a circle for previous preference
+        // Add a line for previous preference
         {
           id: "prevLine",
-          type: "circle",
+          type: "rect",
           invisible: previousValue == null ? true : false,
-          x: chart.convertToPixel({ seriesIndex: 0 }, [previousValue, 0])[0],
+          y: gridRect.y,
 
+          x: chart.convertToPixel({ seriesIndex: 0 }, [previousValue, 0])[0],
           z: 5,
           transition: "all",
           shape: {
+                height: gridRect.height,
+                
+          },
+          /*shape: {
             cy: chart.getHeight() / 2,
             r: 5,
-          },
+          },*/
           style: {
-            fill: arrowColor,
+            fill: "#C00000",
             fillOpacity: 0.6,
-            stroke: arrowColor,
+            stroke: "#C00000",
             // lineDash: [2],
-            lineWidth: 2,
+            lineWidth: 3,
           },
         },
         {
@@ -519,7 +525,8 @@
             // Add a button (arrow) to reset the aspiration value to the solution value.
             {
               id: "arrow",
-              type: "polygon",
+              type: "rect",
+              z:500,
               // If the solution value is not defined, the arrow is invisible
               x: solutionValue
                 ? chart.convertToPixel({ seriesIndex: 0 }, [
@@ -527,22 +534,17 @@
                     0,
                   ])[0]
                 : 0,
+              y: gridRect.y,
               invisible: solutionValue ? false : true,
               shape: {
-                points: [
-                  [-arrowSize, 0],
-                  [arrowSize, 0],
-                  [0, arrowSize],
-                ],
+                height: gridRect.height,
+
               },
-              scaleY: 0.85,
-              scaleX: 0.85,
-              y: 2,
               style: {
-                fill: "transparent",
+                //fill: "transparent",
                 // fillOpacity: 0,
-                stroke: arrowColor,
-                lineWidth: 1.25,
+                stroke: selectedColor,
+                lineWidth: 3,
               },
 
               onclick: () => {

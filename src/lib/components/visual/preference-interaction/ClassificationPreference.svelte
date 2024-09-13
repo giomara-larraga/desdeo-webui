@@ -4,8 +4,10 @@
  -->
 
 <script lang="ts">
-  import NimbusBar from "$lib/components/visual/preference-interaction/NIMBUSBar.svelte";
+  import XnimbusBar from "./NIMBUSBar.svelte";
   import { colorPalette } from "$lib/components/visual/constants";
+  import IconHeroiconsQuestionMarkCircle from "~icons/heroicons-solid/question-mark-circle";
+    import { getIthObjectiveValues } from "../../../../helpers";
 
   /** The names of the objectives. */
   export let objective_long_names: string[];
@@ -26,14 +28,14 @@
    * The solution value to display on the chart. Must be the same length as
    * objective_names.
    */
-  export let solutionValue: number[];
+  export let solutionValue: number [];
 
   /**
    * The previous preference value to display on the chart. Must be the same
    * length as objective_names.
    */
   export let previousValue: number[];
-
+  //export let selectedSolution: number[]; 
   /**
    * The value that the user has selected. Must be the same length as
    * objective_names.
@@ -47,21 +49,45 @@
 
   // Extract the right number of colors from the color palette.
   let colors = colorPalette.slice(0, objective_long_names.length);
+
+  // Add a variable to keep track of which button is selected
+  let objectiveToImprove: number | null = null;
+
+  // Function to handle button click
+  function handleButtonClick(index: number) {
+    if (objectiveToImprove === index) {
+      objectiveToImprove = null;  // Toggle off if already selected
+    } else {
+      objectiveToImprove = index;  // Set the selected button
+    }
+  }
 </script>
 
 <div class="flex flex-col gap-4">
   {#each objective_long_names as objective_name, j}
-    <NimbusBar
-      barName={objective_name + " (" + (is_maximized[j] ? "max" : "min") + ")"}
-      lowerBound={lower_bounds[j]}
-      higherBound={upper_bounds[j]}
-      previousValue={previousValue[j]}
-      solutionValue={solutionValue[j]}
-      barColor={colors[j]}
-      bind:selectedValue={preference[j]}
-      {decimalPrecision}
-      lowerIsBetter={!is_maximized[j]}
-      arrowMode={true}
-    />
+  <div style="display:flex; flex-direction:row">
+    <XnimbusBar
+    barName={objective_name + " (" + (is_maximized[j] ? "max" : "min") + ")"}
+    lowerBound={lower_bounds[j]}
+    higherBound={upper_bounds[j]}
+    previousValue={previousValue[j]}
+    solutionValue={solutionValue[j]}
+    showExplanations={objectiveToImprove === j ? true : false}
+    barColor={colors[j]}
+    bind:selectedValue={preference[j]}
+    {decimalPrecision}
+    lowerIsBetter={!is_maximized[j]}
+    arrowMode={true}
+  />
+  <button
+    type="button"
+    class="btn-icon btn-icon-sm"
+    on:click={() => handleButtonClick(j)}
+    style="color: {objectiveToImprove === j ? 'blue' : 'black'}"
+  >     
+    <IconHeroiconsQuestionMarkCircle class="icon" />
+  </button>
+  </div>
+    
   {/each}
 </div>

@@ -4,7 +4,7 @@
  -->
 <script lang="ts">
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
-  import SingleHorizontalBar from "$lib/components/visual/preference-interaction/HorizontalBarAltXAI.svelte";
+  import SingleHorizontalBar from "$lib/components/visual/preference-interaction/XHorizontalBarAlt.svelte";
 
   enum classification {
     ChangeFreely = "Change freely",
@@ -22,19 +22,21 @@
   /** The name to be shown on top of the component. */
   export let barName: string | undefined = undefined;
 
+
   /** The solution value to display on the chart. */
-  export let solutionValue: number | undefined = undefined;
+  export let solutionValues: number[] = [];
 
   /** The value that the user has selected */
   export let selectedValue: number | undefined = undefined;
+
+  /** The value that the user has selected */
+  export let selectedSolution: number[];
 
   /** The previous value to display on the chart. */
   export let previousValue: number;
 
   /** Whether a lower value is better. */
   export let lowerIsBetter = true;
-
-  export let showExplanations = true;
 
   /** The decimal precision to use for rounding values. */
   export let decimalPrecision: number | undefined = undefined;
@@ -58,7 +60,7 @@
   $: {
     // Todo: This only works if lowerIsBetter is false, I think.
 
-    if (selectedValue === undefined || solutionValue === undefined) {
+    if (selectedValue === undefined || solutionValues.length === 0) {
       classificationValue = classification.ChangeFreely;
     } else if (
       Math.abs(selectedValue - lowerBound) < precision ||
@@ -70,18 +72,14 @@
       selectedValue > higherBound
     ) {
       classificationValue = classification.ImproveFreely;
-    } else if (Math.abs(selectedValue - solutionValue) < precision) {
+    } else if (Math.abs(selectedValue - solutionValues[selectedSolution[0]]) < precision) {
       classificationValue = classification.KeepContant;
-    } else if (selectedValue < solutionValue) {
+    } else if (selectedValue < solutionValues[selectedSolution[0]]) {
       classificationValue = classification.WorsenUntil;
-    } else if (selectedValue > solutionValue) {
+    } else if (selectedValue > solutionValues[selectedSolution[0]]) {
       classificationValue = classification.ImproveUntil;
     }
   }
-  //   export let barColor = "#a6b1e1";
-  //   // export let isMin = true;
-  //   // export let divId: string;
-  //   export let inputs = false;
 
   function moveToRange() {
     if (arrowMode && selectedValue != null) {
@@ -115,69 +113,17 @@
     <SingleHorizontalBar
     {lowerBound}
     {higherBound}
-    {solutionValue}
-    {showExplanations}
+    {solutionValues}
     bind:selectedValue
+    bind:selectedSolution
     {previousValue}
     {lowerIsBetter}
     {decimalPrecision}
     {barColor}
     {arrowMode}
   />
+  <div>
+  </div>
   </div>
 
   </div>
-  
-
-
-
-
-<style>
-  /* A scrollable div where height is the height of the screen*/
-
-  .container {
-    display: flex;
-    /* width: fit-content; */
-    /* min-width: max-content; */
-    /* justify-content: space-between; */
-    height: 100%;
-    width: 100%;
-    column-gap: 2em;
-    /*border-style: solid;*/
-    /*border-width: 2px;*/
-    /*border-color: "c000";*/
-    padding: 0.5em;
-  }
-
-  div div {
-    /* margin: 0.5em; */
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-  .firstPart {
-    min-width: 20%;
-    max-width: 20%;
-    justify-content: var(--justify);
-  }
-  .secondPart {
-    width: 100%;
-    justify-content: space-between;
-  }
-
-  #prev {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    margin: 0;
-    padding-bottom: 0;
-  }
-
-  #prevValue {
-    margin-left: 0.5em;
-    align-self: center;
-    font-size: x-small;
-    color: gray;
-    font-weight: 600;
-  }
-</style>

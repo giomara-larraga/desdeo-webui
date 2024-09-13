@@ -32,7 +32,7 @@
   @media (min-width: 1024px) {
     /* For larger screens */
     .grid-3-cols {
-      grid-template-columns: 1fr 2fr 1fr; /* 3 columns */
+      grid-template-columns: 450px 2fr 1fr; /* 3 columns */
       grid-template-rows: 1fr 1fr 1fr; /* 3 rows */
     }
 
@@ -54,7 +54,7 @@
   }
 </style>
 
-{#if classify && !finalChoice && !voteChoice}
+
   <!-- 3-column grid layout -->
   <div class="grid-layout grid-3-cols grid-rows-3">
     <!-- Preferences (full height, first column) -->
@@ -83,28 +83,6 @@
     </div>
   </div>
 
-{:else if !finalChoice && !voteChoice}
-  <!-- 2-column layout -->
-  <div class="grid-layout grid-2-cols">
-    <div class="flex flex-col gap-10 no-scroll">
-      <slot name="preferences" />
-    </div>
-    <div class="visualizations flex flex-col gap-10 scrollable">
-      <slot name="solutionSetChoice" />
-      <slot name="solutions" />
-      <slot name="visualizations" />
-    </div>
-  </div>
 
-{:else}
-  <!-- Another 2-column layout -->
-  <div class="grid-layout grid-2-cols">
-    <div class="visualizations flex flex-col gap-10 no-scroll">
-      <slot name="visualizations" />
-      <slot name="solutions" />
-    </div>
-    <div class="flex flex-col gap-10 no-scroll">
-      <slot name="Map" />
-    </div>
-  </div>
-{/if}
+
+

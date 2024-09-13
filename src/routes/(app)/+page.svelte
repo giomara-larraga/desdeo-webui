@@ -339,20 +339,7 @@ export function getObjectives(data: Solution[]):number[][]{
               <svelte:fragment slot="panel">
                 {#if tabSet === 0}
                   <div>
-                  
-              <Input
-                labelName="Maximum number of solutions to generate:"
-                bind:value={numSolutions}
-                onChange={() => {
-                  if (numSolutions < MIN_NUM_SOLUTIONS) {
-                    numSolutions = MIN_NUM_SOLUTIONS;
-                  }
-                  if (numSolutions > MAX_NUM_SOLUTIONS) {
-                    numSolutions = MAX_NUM_SOLUTIONS;
-                  }
-                }}
-              />
-              <br/>
+                
               <ClassificationPreference
               objective_long_names={problemInfo.objective_short_names}
               is_maximized={problemInfo.is_maximized}

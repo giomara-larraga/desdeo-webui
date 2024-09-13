@@ -36,10 +36,13 @@
   export let higherBound: number;
 
   /** The solution value to display on the chart. */
-  export let solutionValue: number | undefined = undefined;
+  export let solutionValues: number[]  = [];
 
   /** The value that the user has selected */
   export let selectedValue: number | undefined = undefined;
+
+  /** The solution that the user has selected */
+  export let selectedSolution: number[];
 
   /** The previous value to display on the chart. */
   export let previousValue: number | undefined = undefined;
@@ -50,7 +53,6 @@
   /** Whether a lower value is better. */
   export let lowerIsBetter = true;
 
-  export let showExplanations = true;
   /** The decimal precision to use for rounding values. */
   export let decimalPrecision: number | undefined = undefined;
 
@@ -65,13 +67,15 @@
     updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
   }
   // $: updateAspirationLine(selectedValue);
-  $: if (previousValue != null) {
+  $: if (previousValue != undefined) {
     updatePreviousLine(
       (previousValue = roundToDecimal(previousValue, decimalPrecision))
     );
   }
-  $: if (solutionValue != null) {
-    updateSolutionBar(solutionValue);
+  $: if (selectedSolution != null && solutionValues!=null) {
+    updateSolutionBar(solutionValues[selectedSolution[0]]);
+    //updateAspirationLine(roundToDecimal(solutionValues[selectedSolution[0]], decimalPrecision));
+
     //updateSolutionBar(Number.parseFloat(solutionValue.toFixed(decimalPrecision)));
   }
 
@@ -160,6 +164,49 @@
     addHorizontalBar(option);
   });
 
+  function drawTrianglesSolutions(){
+    let children = []
+    for (let index = 0; index < solutionValues.length; index++) {
+      let triangle =
+            {
+              id: "arrow"+ String(index),
+              type: "polygon",
+              // If the solution value is not defined, the arrow is invisible
+              x: solutionValues[index]
+                ? chart.convertToPixel({ seriesIndex: 0 }, [
+                    solutionValues[index],
+                    0,
+                  ])[0]
+                : 0,
+              invisible: solutionValues[index] ? false : true,
+              shape: {
+                points: [
+                  [-arrowSize, 0],
+                  [arrowSize, 0],
+                  [0, arrowSize],
+                ],
+              },
+              scaleY: 0.85,
+              scaleX: 0.85,
+              y: 2,
+              style: {
+                fill: index == selectedSolution[0]? "blue": "transparent",
+                // fillOpacity: 0,
+                stroke: arrowColor,
+                lineWidth: 1.25,
+              },
+
+              onclick: () => {
+                // console.log("click");
+                selectedValue = solutionValues[index];
+                selectedSolution[0] = index;
+              },
+            }
+            children.push(triangle);
+    }
+    console.log(children);
+    return children;
+  }
   // TODO: Better documentation. Also try to make this more understandable.
   function updateBarColor() {
     let originalBarColor = barColor.slice();
@@ -169,7 +216,7 @@
       higherBound < 0
         ? "transparent"
         : lowerBound < 0
-        ? (solutionValue as number) < 0
+        ? (solutionValues[selectedSolution[0]] as number) < 0
           ? "white"
           : originalBarColor
         : originalBarColor;
@@ -190,13 +237,13 @@
         higherBound < 0
           ? "transparent"
           : lowerBound < 0
-          ? (solutionValue as number) < 0
+          ? (solutionValues[selectedSolution[0]] as number) < 0
             ? oldBarColor
             : originalBarColor
           : originalBarColor;
     }
 
-    if (solutionValue != null) {
+    if (solutionValues[selectedSolution[0]] != null) {
       datalowerBar = higherBound < 0 ? [[lowerBound]] : [[lowerBound]];
     } else {
       datalowerBar = higherBound < 0 ? [[0]] : [[lowerBound]];
@@ -209,9 +256,9 @@
           stack: "negative",
           type: "bar",
           color: color,
-          showBackground: solutionValue !== undefined ? true : false,
+          showBackground: solutionValues[selectedSolution[0]] !== undefined ? true : false,
           backgroundStyle: backgroundStyle,
-          data: solutionValue ? [[solutionValue]] : [[0]],
+          data: solutionValues[selectedSolution[0]] ? [[solutionValues[selectedSolution[0]]]] : [[0]],
           barWidth: "100%",
           // opacity: lowerIsBetter ? 1 : 0.2,
           emphasis: {
@@ -230,7 +277,7 @@
             id: "lower",
             stack: "negative",
             type: "bar",
-            color: solutionValue ? originalBarColor : "transparent",
+            color: solutionValues[selectedSolution[0]] ? originalBarColor : "transparent",
             animation: false,
             data: datalowerBar,
             barWidth: "100%",
@@ -515,42 +562,7 @@
           id: "verticalGroup",
           type: "group",
           name: "interactiveButtons",
-          children: [
-            // Add a button (arrow) to reset the aspiration value to the solution value.
-            {
-              id: "arrow",
-              type: "polygon",
-              // If the solution value is not defined, the arrow is invisible
-              x: solutionValue
-                ? chart.convertToPixel({ seriesIndex: 0 }, [
-                    solutionValue,
-                    0,
-                  ])[0]
-                : 0,
-              invisible: solutionValue ? false : true,
-              shape: {
-                points: [
-                  [-arrowSize, 0],
-                  [arrowSize, 0],
-                  [0, arrowSize],
-                ],
-              },
-              scaleY: 0.85,
-              scaleX: 0.85,
-              y: 2,
-              style: {
-                fill: "transparent",
-                // fillOpacity: 0,
-                stroke: arrowColor,
-                lineWidth: 1.25,
-              },
-
-              onclick: () => {
-                // console.log("click");
-                selectedValue = solutionValue;
-              },
-            },
-          ],
+          children: drawTrianglesSolutions()
         },
         // Add arrows to move the aspiration value to the left or to the right
         {
@@ -594,11 +606,15 @@
       addOnMouseEffect("left");
       addOnMouseEffect("right");
     }
-    addOnMouseEffect("arrow");
+    for (let index = 0; index < solutionValues.length; index++) {
+      addOnMouseEffect("arrow"+String(index));
+      
+    }
+    
 
     addTooltipListeners("aspirationGroup");
     addTooltipListeners("leftRightGroup");
-    addTooltipListeners("verticalGroup");
+    /*addTooltipListeners("verticalGroup");*/
     addTooltipListeners("prevLine");
     // Add event listener which updates the aspiration line value.
     chart.getZr().on("click", function (params) {
@@ -631,6 +647,25 @@
   function updateAspirationLine(newValue: number) {
     selectedValue = newValue;
     updateLinePosition("aspirationGroup", newValue);
+  }
+
+  function updateSolutionArrows(){
+    let options = []
+    for (let index = 0; index < solutionValues.length; index++) {
+      let element = {
+          id: "arrow"+String(index),
+          style: {
+            fill: selectedSolution[0] == index? "blue": "transparent",
+            stroke: "black",
+            lineWidth: 1,
+          },
+      };
+      options.push(element)
+      
+    }
+    chart.setOption({
+      graphic: options,
+    });
   }
 
   /**
@@ -718,6 +753,8 @@
     chart.setOption(newOption);
   }
 
+
+
   /**
    * Updates the solution bar (the colored bar) to the chart according to the
    * newValue given
@@ -734,17 +771,18 @@
         ],
       });
       updateBarColor();
+      updateSolutionArrows();
       // Update the reset arrow position and make it visible
-      chart.setOption({
+      /*chart.setOption({
         graphic: [
           {
-            id: "arrow",
+            id: "arrow"+String(selectedSolution),
             invisible: false,
             transition: "all",
             x: chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0],
           },
         ],
-      });
+      });*/
     }
   }
 
@@ -853,7 +891,7 @@
         break;
       case "verticalGroup":
         tooltipHelpText = "Reset to the solution value";
-        tooltipValue = solutionValue?.toString();
+        tooltipValue = solutionValues[selectedSolution[0]]?.toString();
         break;
       case "leftRightGroup":
         if (targetId === "left") {
