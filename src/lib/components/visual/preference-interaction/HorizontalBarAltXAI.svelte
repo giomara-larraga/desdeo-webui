@@ -36,7 +36,11 @@
   export let higherBound: number;
 
   /** The solution value to display on the chart. */
-  export let solutionValue: number | undefined = undefined;
+  //export let solutionValue: number | undefined = undefined;
+
+  export let solutions: number [];
+
+  export let selected: number[] = [];
 
   /** The value that the user has selected */
   export let selectedValue: number | undefined = undefined;
@@ -70,8 +74,8 @@
       (previousValue = roundToDecimal(previousValue, decimalPrecision))
     );
   }
-  $: if (solutionValue != null) {
-    updateSolutionBar(solutionValue);
+  $: if (solutions[selected[0]] != null) {
+    updateSolutionBar(solutions[selected[0]]);
     //updateSolutionBar(Number.parseFloat(solutionValue.toFixed(decimalPrecision)));
   }
 
@@ -161,6 +165,79 @@
     addHorizontalBar(option);
   });
 
+  function generateSolutionLines(gridRect:any){
+    let children = [];
+    for (let index = 0; index < solutions.length; index++) {
+      //let value = solutions[index]
+    children.push({
+              id: "line-"+String(index),
+              type: "rect",
+              z:500,
+              // If the solution value is not defined, the arrow is invisible
+              x: solutions[index]
+                ? chart.convertToPixel({ seriesIndex: 0 }, [
+                  solutions[index],
+                    0,
+                  ])[0]
+                : 0,
+              y: gridRect.y,
+              invisible: solutions[index] ? false : true,
+              shape: {
+                height: gridRect.height,
+
+              },
+              style: {
+                //fill: "transparent",
+                // fillOpacity: 0,
+                stroke: selectedColor,
+                lineDash: [2],
+                lineWidth: 1,
+                
+              },            
+              onclick: () => {
+                console.log("click");
+                selected[0] = index;
+                //updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
+                //selectedValue = selectedValue;
+              },
+            },
+            {
+              id: "transparent-"+String(index),
+              type: "rect",
+              z:500,
+              // If the solution value is not defined, the arrow is invisible
+              x: solutions[index]
+                ? chart.convertToPixel({ seriesIndex: 0 }, [
+                  solutions[index],
+                    0,
+                  ])[0]
+                : 0,
+              y: gridRect.y,
+              invisible: solutions[index] ? false : true,
+              shape: {
+                height: gridRect.height,
+
+              },
+              style: {
+                fill: "transparent",
+                // fillOpacity: 0,
+                stroke: "transparent",
+                lineWidth: 3,
+                
+              },            
+              onclick: () => {
+                console.log("click");
+                selected[0] = index;
+                //updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
+                //selectedValue = selectedValue;
+              },
+            }
+            ,);
+      
+    }
+    return children;
+  }
+
   // TODO: Better documentation. Also try to make this more understandable.
   function updateBarColor() {
     let originalBarColor = barColor.slice();
@@ -170,7 +247,7 @@
       higherBound < 0
         ? "transparent"
         : lowerBound < 0
-        ? (solutionValue as number) < 0
+        ? (solutions[selected[0]] as number) < 0
           ? "white"
           : originalBarColor
         : originalBarColor;
@@ -191,13 +268,13 @@
         higherBound < 0
           ? "transparent"
           : lowerBound < 0
-          ? (solutionValue as number) < 0
+          ? (solutions[selected[0]] as number) < 0
             ? oldBarColor
             : originalBarColor
           : originalBarColor;
     }
 
-    if (solutionValue != null) {
+    if (solutions[selected[0]] != null) {
       datalowerBar = higherBound < 0 ? [[lowerBound]] : [[lowerBound]];
     } else {
       datalowerBar = higherBound < 0 ? [[0]] : [[lowerBound]];
@@ -210,9 +287,9 @@
           stack: "negative",
           type: "bar",
           color: color,
-          showBackground: solutionValue !== undefined ? true : false,
+          showBackground: solutions[selected[0]] !== undefined ? true : false,
           backgroundStyle: backgroundStyle,
-          data: solutionValue ? [[solutionValue]] : [[0]],
+          data: solutions[selected[0]] ? [[solutions[selected[0]]]] : [[0]],
           barWidth: "100%",
           // opacity: lowerIsBetter ? 1 : 0.2,
           emphasis: {
@@ -231,7 +308,7 @@
             id: "lower",
             stack: "negative",
             type: "bar",
-            color: solutionValue ? originalBarColor : "transparent",
+            color: solutions[selected[0]] ? originalBarColor : "transparent",
             animation: false,
             data: datalowerBar,
             barWidth: "100%",
@@ -274,27 +351,6 @@
           draggable: "horizontal",
           silent: selectedValue == null ? true : false,
           children: [
-            // Dragging circle with arrows
-            // {
-
-            // },
-
-            // Dragging image
-            // {
-            //   type: "image",
-            //   id: "dragImage",
-            //   z: 501,
-            //   left: -15,
-            //   invisible: selectedValue == null ? true : false,
-            //   style: {
-            //     image: "../src/lib/assets/Picture2.png",
-            //     width: arrowSize,
-            //     height: arrowSize,
-            //     y: chart.getHeight() / 2 - arrowSize/2,
-            //     fill: "blue",
-            //     stroke: "blue",
-            //   },
-            // },
             // Dragging circle
             {
               type: "group",
@@ -321,64 +377,7 @@
                     // opacity: 0.7,
                   },
                 },
-                /*{
-                  type: "polyline",
-                  id: "dragLeft",
-                  right: referencePointStyle.lineWidth / 10,
-                  invisible: selectedValue == null ? true : false,
-                  z: 499,
-                  // scale: [0.5, 0.5],
-                  style: {
-                    // fill: "black",
-                    stroke: dragArrowColor,
-                    lineWidth: 2,
-                  },
-                  shape: {
-                    points: [
-                      [0, scaleValue],
-                      [-scaleValue, 0],
-                      [0, -scaleValue],
-                    ],
-                  },
-                },
-                {
-                  type: "polyline",
-                  id: "dragRight",
-                  left: referencePointStyle.lineWidth / 10,
-                  scaleX: -1,
-                  z: 499,
-                  invisible: selectedValue == null ? true : false,
-                  // scale: [-0.5, 0.5],
-                  // scaleX: -1,
-                  style: {
-                    stroke: dragArrowColor,
-                    // fill: "black",
-                    lineWidth: 2,
-                  },
-                  shape: {
-                    points: [
-                      [0, scaleValue],
-                      [-scaleValue, 0],
-                      [0, -scaleValue],
-                    ],
-                  },
-                },*/
-                // {
-                //   type:"line",
-                //   z: 502,
-                //   style: {
-                //     stroke: "blue",
-                //     opacity: 0.2,
-                //     lineWidth: 2,
-                //   },
-                //   shape: {
-                //     x1: 0,
-                //     y1: scaleValue,
-                //     x2: 0,
-                //     y2: -scaleValue,
-                //   },
-
-                // },
+                
               ],
             },
             {
@@ -404,6 +403,7 @@
 
               // draggable: "horizontal",
             },
+            //generateSolutionLines(gridRect),
           ],
           ondragstart: () => {
             chart.setOption({
@@ -529,14 +529,14 @@
               type: "rect",
               z:500,
               // If the solution value is not defined, the arrow is invisible
-              x: solutionValue
+              x: solutions[selected[0]]
                 ? chart.convertToPixel({ seriesIndex: 0 }, [
-                    solutionValue,
+                  solutions[selected[0]],
                     0,
                   ])[0]
                 : 0,
               y: gridRect.y,
-              invisible: solutionValue ? false : true,
+              invisible: solutions[selected[0]] ? false : true,
               shape: {
                 height: gridRect.height,
 
@@ -550,9 +550,11 @@
 
               onclick: () => {
                 // console.log("click");
-                selectedValue = solutionValue;
+                
+                selectedValue = solutions[selected[0]];
               },
             },
+            //generateSolutionLines(gridRect),
           ],
         },
         // Add arrows to move the aspiration value to the left or to the right
@@ -574,6 +576,18 @@
             }
           },
         },
+        {
+            id: "solutionsGroup",
+            type: "group",
+            children: generateSolutionLines(gridRect),
+            onclick: () => {
+                console.log("click");
+                selectedValue = solutions[selected[0]];
+                //updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
+                //selectedValue = selectedValue;
+            },
+        },
+        
         // Invisible rectangle for the whole grid area, so that clicking on the grid area works correctly
         {
           id: "valueArea",
@@ -598,6 +612,11 @@
       addOnMouseEffect("right");
     }
     addOnMouseEffect("arrow");
+    for (let index = 0; index < solutions.length; index++) {
+      addOnMouseEffect("line-"+String(index));
+      
+    }
+    //addTooltipListeners("solutionsGroup");
 
     addTooltipListeners("aspirationGroup");
     addTooltipListeners("leftRightGroup");
@@ -856,7 +875,7 @@
         break;
       case "verticalGroup":
         tooltipHelpText = "Reset to the solution value";
-        tooltipValue = solutionValue?.toString();
+        tooltipValue = solutions[selected[0]]?.toString();
         break;
       case "leftRightGroup":
         if (targetId === "left") {

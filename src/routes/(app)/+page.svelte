@@ -345,8 +345,8 @@ export function getObjectives(data: Solution[]):number[][]{
               is_maximized={problemInfo.is_maximized}
               lower_bounds={problemInfo.lower_bounds}
               upper_bounds={problemInfo.upper_bounds}
-              solutionValue={reference_solution.objective_values}
-              previousValue={reference_solution.reference_point}
+              bind:selected={selected_solutions}
+              solutions={solutions_to_visualize}
               bind:preference
               decimalPrecision={3}
             />

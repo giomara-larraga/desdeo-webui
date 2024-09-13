@@ -23,7 +23,11 @@
   export let barName: string | undefined = undefined;
 
   /** The solution value to display on the chart. */
-  export let solutionValue: number | undefined = undefined;
+ // export let solutionValue: number | undefined = undefined;
+
+  export let selected: number[];
+  export let solutions: number[];
+  export let currentObjective: number;
 
   /** The value that the user has selected */
   export let selectedValue: number | undefined = undefined;
@@ -58,7 +62,7 @@
   $: {
     // Todo: This only works if lowerIsBetter is false, I think.
 
-    if (selectedValue === undefined || solutionValue === undefined) {
+    if (selectedValue === undefined || solutions[selected[0]] === undefined) {
       classificationValue = classification.ChangeFreely;
     } else if (
       Math.abs(selectedValue - lowerBound) < precision ||
@@ -70,11 +74,11 @@
       selectedValue > higherBound
     ) {
       classificationValue = classification.ImproveFreely;
-    } else if (Math.abs(selectedValue - solutionValue) < precision) {
+    } else if (Math.abs(selectedValue - solutions[selected[0]]) < precision) {
       classificationValue = classification.KeepContant;
-    } else if (selectedValue < solutionValue) {
+    } else if (selectedValue < solutions[selected[0]]) {
       classificationValue = classification.WorsenUntil;
-    } else if (selectedValue > solutionValue) {
+    } else if (selectedValue > solutions[selected[0]]) {
       classificationValue = classification.ImproveUntil;
     }
   }
@@ -115,7 +119,8 @@
     <SingleHorizontalBar
     {lowerBound}
     {higherBound}
-    {solutionValue}
+    bind:selected
+    {solutions}
     {showExplanations}
     bind:selectedValue
     {previousValue}

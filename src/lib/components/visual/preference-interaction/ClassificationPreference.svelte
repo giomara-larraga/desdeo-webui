@@ -11,6 +11,8 @@
 
   /** The names of the objectives. */
   export let objective_long_names: string[];
+  export let selected: number[];
+  export let solutions: Solution[];
 
   /**
    * Boolean to check if the objective is maximized or minimized. Must be the
@@ -28,13 +30,13 @@
    * The solution value to display on the chart. Must be the same length as
    * objective_names.
    */
-  export let solutionValue: number [];
+  //export let solutionValue: number [];
 
   /**
    * The previous preference value to display on the chart. Must be the same
    * length as objective_names.
    */
-  export let previousValue: number[];
+  //export let previousValue: number[];
   //export let selectedSolution: number[]; 
   /**
    * The value that the user has selected. Must be the same length as
@@ -70,8 +72,10 @@
     barName={objective_name + " (" + (is_maximized[j] ? "max" : "min") + ")"}
     lowerBound={lower_bounds[j]}
     higherBound={upper_bounds[j]}
-    previousValue={previousValue[j]}
-    solutionValue={solutionValue[j]}
+    bind:selected={selected}
+    solutions={getIthObjectiveValues(solutions, j)}
+    currentObjective={j}
+    previousValue={solutions[selected[0]].reference_point[j]}
     showExplanations={objectiveToImprove === j ? true : false}
     barColor={colors[j]}
     bind:selectedValue={preference[j]}
