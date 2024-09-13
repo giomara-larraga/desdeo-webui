@@ -13,7 +13,7 @@ length.
 <script lang="ts">
   import TabbedVisualizations from "./TabbedVisualizations.svelte";
 
-  export let names: string[] | undefined = undefined;
+  export let names: string[];
   export let solutions: Solution[];
   export let lower_bounds: number[];
   export let upper_bounds: number[];

@@ -419,9 +419,7 @@ export function getObjectives(data: Solution[]):number[][]{
       </div>
       <div slot="solutionSetChoice">
        <Card>
-        <ScatterPlot solutions={solutions_to_visualize}>
-
-        </ScatterPlot>
+        <ScatterPlot solutions={solutions_to_visualize}/>
       </Card>
       </div>
       <div slot="visualizations">
@@ -488,11 +486,6 @@ export function getObjectives(data: Solution[]):number[][]{
               {/if}
             </div>
           </div>
-        </Card>
-      </div>
-      <div slot="Map">
-        <Card>
-          <Histogram indicatorNames={problemInfo.objective_short_names} values={[0.5,0.1,0.8,0.1]} aspect={"aspect-[5/3]"}/>
         </Card>
       </div>
     </NimbusLayout>

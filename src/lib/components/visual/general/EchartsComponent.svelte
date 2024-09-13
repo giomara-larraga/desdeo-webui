@@ -127,7 +127,6 @@
 </script>
 
 <div
-  class={aspect}
-  style="height: 100%; width: 100%; {customStyle};"
+  style="height: 50vh; width: 30vw; {customStyle};"
   bind:this={chartDiv}
 />

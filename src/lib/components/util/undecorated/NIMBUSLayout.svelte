@@ -32,7 +32,7 @@
   @media (min-width: 1024px) {
     /* For larger screens */
     .grid-3-cols {
-      grid-template-columns: 450px 2fr 1fr; /* 3 columns */
+      grid-template-columns: 450px 2fr 2fr; /* 3 columns */
       grid-template-rows: 1fr 1fr 1fr; /* 3 rows */
     }
 
@@ -73,13 +73,8 @@
     </div>
 
     <!-- Solution Set Choice (top right) -->
-    <div class="col-start-3 row-start-1 no-scroll">
+    <div class="col-start-3 row-span-2 row-start-1 no-scroll">
       <slot name="solutionSetChoice" />
-    </div>
-
-    <!-- Map (middle right) -->
-    <div class="col-start-3 row-start-2 no-scroll">
-      <slot name="Map" />
     </div>
   </div>
 
