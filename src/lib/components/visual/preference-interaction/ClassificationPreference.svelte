@@ -54,13 +54,43 @@
 
   // Add a variable to keep track of which button is selected
   let objectiveToImprove: number | null = null;
-
+  let impactToImprove: string[] ;
+  let tradeoffToimprove: string[]| null = null;
+  
+  function getImpactColor(level: string){
+    if (level === "High"){
+      return "green";
+    }
+    else if (level === "Medium"){
+     return "yellow";
+    }
+    else{
+      return "red";
+    }
+  }
   // Function to handle button click
   function handleButtonClick(index: number) {
     if (objectiveToImprove === index) {
       objectiveToImprove = null;  // Toggle off if already selected
+      impactToImprove = [];
+      tradeoffToimprove = [];
+
     } else {
       objectiveToImprove = index;  // Set the selected button
+      impactToImprove = solutions[selected[0]].impact;
+     /* for (let index = 0; index < impactToImprove.length; index++) {
+          if (impactToImprove[index] == "High"){
+            impactToImprove[index] = "green";
+          }
+          else if (impactToImprove[index] == "Medium"){
+            impactToImprove[index] = "yellow";
+          }
+          else{
+            impactToImprove[index] = "red";
+          }
+        
+      }*/
+      tradeoffToimprove = solutions[selected[0]].tradeoff_matrix[index];
     }
   }
 </script>
@@ -76,14 +106,15 @@
     bind:solutions={solutions}
     currentObjective={j}
     previousValue={solutions[selected[0]].reference_point[j]}
-    showExplanations={objectiveToImprove === j ? true : false}
+    objectiveToImprove={objectiveToImprove}
     barColor={colors[j]}
     bind:selectedValue={preference[j]}
     {decimalPrecision}
     lowerIsBetter={!is_maximized[j]}
     arrowMode={true}
   />
-  <button
+  <div style="display: flex; flex-direction:column; align-items:center; justify-content:flex-end">
+    <button
     type="button"
     class="btn-icon btn-icon-sm"
     on:click={() => handleButtonClick(j)}
@@ -91,6 +122,10 @@
   >     
     <IconHeroiconsQuestionMarkCircle class="icon" />
   </button>
+  <span class="badge-icon" style="visibility: {objectiveToImprove === null ? "hidden" : "visible"}; background: {objectiveToImprove !== null? getImpactColor(impactToImprove[j]) : "white"}"></span>
+  </div>
+  
+
   </div>
     
   {/each}

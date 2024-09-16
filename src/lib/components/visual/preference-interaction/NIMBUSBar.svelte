@@ -40,7 +40,7 @@
   /** Whether a lower value is better. */
   export let lowerIsBetter = true;
 
-  export let showExplanations = true;
+  export let objectiveToImprove: number | null = null;
 
   /** The decimal precision to use for rounding values. */
   export let decimalPrecision: number | undefined = undefined;
@@ -123,7 +123,7 @@
     {higherBound}
     bind:selected
     bind:solutions={solutionsObjective}
-    {showExplanations}
+    bind:objectiveToImprove
     bind:selectedValue
     {previousValue}
     {lowerIsBetter}

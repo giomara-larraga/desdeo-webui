@@ -13,6 +13,8 @@ type Solution = {
   objective_values: number[];
   decision_variables: number[];
   reference_point: number[];
+  impact: string[];
+  tradeoff_matrix: string[][];
 };
 
 type problemInfoType = {

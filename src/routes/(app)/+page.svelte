@@ -39,6 +39,7 @@
  
   let tabSet: number = 0;
    
+  export let highlighted: number | undefined = undefined;
 
   // Enum to represent the state of the method.
   enum State {
@@ -86,6 +87,7 @@
   let is_save_solutions_valid = false;
 
   let max_multiplier: number[] | undefined = undefined;
+  let lower_is_better: boolean[];
   let classification_checker = false;
 
   let finalChoiceState = false;
@@ -97,6 +99,13 @@
           return -1;
         } else {
           return 1;
+        }
+      });
+      lower_is_better = problemInfo.is_maximized.map((value) => {
+        if (value) {
+          return false;
+        } else {
+          return true;
         }
       });
     }
@@ -419,24 +428,25 @@ export function getObjectives(data: Solution[]):number[][]{
       </div>
       <div slot="solutionSetChoice">
        <Card>
+        <h3>Decision Space</h3>
         <ScatterPlot solutions={solutions_to_visualize}/>
       </Card>
       </div>
       <div slot="visualizations">
         {#if state === State.ClassifySelected && !finalChoiceState}
           <Card>
+            <h3>Objective Space</h3>
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
-              <Visualizations
+              <ParallelCoordinatePlotBase
                 names={problemInfo.objective_short_names}
                 solutions={solutions_to_visualize}
-                lower_bounds={problemInfo.lower_bounds}
-                upper_bounds={problemInfo.upper_bounds}
-                lower_is_better={problemInfo.is_maximized.map(
-                  (value) => !value
-                )}
-                bind:selected={selected_solutions}
-                bind:tab={visualizations_tab}
-                max_selections={1}
+                ranges={transform_bounds(problemInfo.lower_bounds, problemInfo.upper_bounds)}
+                lowerIsBetter={lower_is_better}
+                showIndicators={true}
+                disableInteraction={true}
+                maxSelections={1}
+                bind:selectedIndices={selected_solutions}
+                bind:highlightedIndex={highlighted}
               />
             {:else}
               <GeneralError />
