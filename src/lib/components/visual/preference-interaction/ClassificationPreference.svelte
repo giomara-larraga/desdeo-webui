@@ -13,7 +13,7 @@
   export let objective_long_names: string[];
   export let selected: number[];
   export let solutions: Solution[];
-
+  export let variant: number;
   /**
    * Boolean to check if the objective is maximized or minimized. Must be the
    * same length as objective_names.
@@ -55,7 +55,7 @@
   // Add a variable to keep track of which button is selected
   let objectiveToImprove: number | null = null;
   let impactToImprove: string[] ;
-  let tradeoffToimprove: string[]| null = null;
+  let tradeoffSelectedSolution: string[][]| null = null;
   
   function getImpactColor(level: string){
     if (level === "High"){
@@ -73,11 +73,12 @@
     if (objectiveToImprove === index) {
       objectiveToImprove = null;  // Toggle off if already selected
       impactToImprove = [];
-      tradeoffToimprove = [];
+      tradeoffSelectedSolution = null;
 
     } else {
       objectiveToImprove = index;  // Set the selected button
       impactToImprove = solutions[selected[0]].impact;
+      tradeoffSelectedSolution = solutions[selected[0]].tradeoff_matrix;
      /* for (let index = 0; index < impactToImprove.length; index++) {
           if (impactToImprove[index] == "High"){
             impactToImprove[index] = "green";
@@ -90,7 +91,7 @@
           }
         
       }*/
-      tradeoffToimprove = solutions[selected[0]].tradeoff_matrix[index];
+      //tradeoffToimprove = solutions[selected[0]].tradeoff_matrix[index];
     }
   }
 </script>
@@ -100,13 +101,15 @@
   <div style="display:flex; flex-direction:row">
     <XnimbusBar
     barName={objective_name + " (" + (is_maximized[j] ? "max" : "min") + ")"}
+    variant={variant}
     lowerBound={lower_bounds[j]}
     higherBound={upper_bounds[j]}
     bind:selected={selected}
     bind:solutions={solutions}
+    tradeoffs={objectiveToImprove!==null&&tradeoffSelectedSolution!==null?tradeoffSelectedSolution[objectiveToImprove][j]:null}
     currentObjective={j}
     previousValue={solutions[selected[0]].reference_point[j]}
-    objectiveToImprove={objectiveToImprove}
+    bind:objectiveToImprove={objectiveToImprove}
     barColor={colors[j]}
     bind:selectedValue={preference[j]}
     {decimalPrecision}

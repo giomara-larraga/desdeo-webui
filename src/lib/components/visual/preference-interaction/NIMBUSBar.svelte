@@ -5,7 +5,9 @@
 <script lang="ts">
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import SingleHorizontalBar from "$lib/components/visual/preference-interaction/HorizontalBarAltXAI.svelte";
-    import { getIthObjectiveValues } from "../../../../helpers";
+  import SingleHorizontalBar2 from "$lib/components/visual/preference-interaction/HorizontalBarAltXAI2.svelte";
+
+  import { getIthObjectiveValues } from "../../../../helpers";
 
   enum classification {
     ChangeFreely = "Change freely",
@@ -29,11 +31,12 @@
   export let selected: number[];
   export let solutions: Solution[];
   export let currentObjective: number;
+  export let variant: number;
 
   let solutionsObjective = getIthObjectiveValues(solutions, currentObjective);
   /** The value that the user has selected */
   export let selectedValue: number | undefined = undefined;
-
+  export let tradeoffs: string | null = null;
   /** The previous value to display on the chart. */
   export let previousValue: number;
 
@@ -84,10 +87,7 @@
       classificationValue = classification.ImproveUntil;
     }
   }
-  //   export let barColor = "#a6b1e1";
-  //   // export let isMin = true;
-  //   // export let divId: string;
-  //   export let inputs = false;
+
 
   function moveToRange() {
     if (arrowMode && selectedValue != null) {
@@ -118,19 +118,37 @@
   </div>
 
   <div class="col-span-2 row-start-2">
-    <SingleHorizontalBar
-    {lowerBound}
-    {higherBound}
-    bind:selected
-    bind:solutions={solutionsObjective}
-    bind:objectiveToImprove
-    bind:selectedValue
-    {previousValue}
-    {lowerIsBetter}
-    {decimalPrecision}
-    {barColor}
-    {arrowMode}
-  />
+    {#if variant === 1}
+      <SingleHorizontalBar
+      {lowerBound}
+      {higherBound}
+      bind:selected
+      bind:solutions={solutionsObjective}
+      bind:tradeoffs
+      bind:objectiveToImprove
+      bind:selectedValue
+      {previousValue}
+      {lowerIsBetter}
+      {decimalPrecision}
+      {barColor}
+      {arrowMode}
+    />
+  {:else}
+  <SingleHorizontalBar2
+      {lowerBound}
+      {higherBound}
+      bind:selected
+      bind:solutions={solutionsObjective}
+      bind:tradeoffs
+      bind:objectiveToImprove
+      bind:selectedValue
+      {previousValue}
+      {lowerIsBetter}
+      {decimalPrecision}
+      {barColor}
+      {arrowMode}
+    />
+  {/if}
   </div>
 
   </div>

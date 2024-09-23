@@ -128,6 +128,7 @@
       id: "xAxis",
       min: lowerBound,
       max: higherBound,
+      position: "top",
       type: "value",
       axisPointer: {
         z: 1000,
@@ -166,7 +167,7 @@
       borderColor: "gray",
       left: arrowSize * 2,
       right: arrowSize * 2,
-      top: arrowSize + 2,
+      top: arrowSize + 6,
       bottom: arrowSize + 4,
     },
   };
@@ -346,7 +347,7 @@
     }
       return children;
   }
-  function generateSolutionArrows(){
+  function generateSolutionArrows(gridRect: { y: any; height:any}){
     let children = [];
     for (let index = 0; index < solutions.length; index++) {
       //let value = solutions[index]
@@ -364,14 +365,15 @@
               invisible: solutions[index] ? false : true,
               shape: {
                 points: [
+                  [0,-arrowSize],
                   [-arrowSize, 0],
                   [arrowSize, 0],
-                  [0, arrowSize],
+                  
                 ],
               },
               scaleY: 0.85,
               scaleX: 0.85,
-              y: 2,
+              y:  gridRect.height + gridRect.y+ arrowSize,
               z:900,
               style: {
                 fill: index == selected[0]? selectedColor: "transparent",
@@ -834,7 +836,7 @@
             id: "arrowsGroup",
             type: "group",
             name: "interactiveButtons",
-            children: generateSolutionArrows(),
+            children: generateSolutionArrows(gridRect),
         },
         {
           id: "tradeoffArrow",
