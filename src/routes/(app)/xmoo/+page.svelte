@@ -36,7 +36,7 @@
   import { getCurrentIteration } from "../../../helpers";
   import ScatterPlot from "$lib/components/visual/visualization/props-linking/ScatterPlot.svelte";
     import Histogram from "$lib/components/visual/visualization/props-linking/Histogram.svelte";
- 
+ import Viz from "./viz.svelte";
   let tabSet: number = 0;
    
   export let highlighted: number | undefined = undefined;
@@ -341,11 +341,10 @@ export function getObjectives(data: Solution[]):number[][]{
           <div class="preferences-bar">
             <TabGroup>
               <Tab bind:group={tabSet} name="tab1" value={0}  class="mb-0">
-                <svelte:fragment slot="lead">Variant 1</svelte:fragment>
+                <svelte:fragment slot="lead">Preferences</svelte:fragment>
               </Tab>
-              <Tab bind:group={tabSet} name="tab2" value={1} class="mb-0">Variant 2</Tab>
 
-              <Tab bind:group={tabSet} name="tab3" value={2} class="mb-0">Analysis</Tab>
+              <Tab bind:group={tabSet} name="tab3" value={2} class="mb-0">Settings</Tab>
               <!-- Tab Panels --->
               <svelte:fragment slot="panel">
                 {#if tabSet === 0}
@@ -353,7 +352,7 @@ export function getObjectives(data: Solution[]):number[][]{
                 
               <ClassificationPreference
               objective_long_names={problemInfo.objective_short_names}
-              variant={1}
+              variant={3}
               is_maximized={problemInfo.is_maximized}
               lower_bounds={problemInfo.lower_bounds}
               upper_bounds={problemInfo.upper_bounds}
@@ -386,43 +385,7 @@ export function getObjectives(data: Solution[]):number[][]{
             <GeneralError />
           {/if}
                   </div>
-                {:else if tabSet === 1}
-                <div>
-                  <ClassificationPreference
-                  objective_long_names={problemInfo.objective_short_names}
-                  variant={2}
-                  is_maximized={problemInfo.is_maximized}
-                  lower_bounds={problemInfo.lower_bounds}
-                  upper_bounds={problemInfo.upper_bounds}
-                  bind:selected={selected_solutions}
-                  bind:solutions={solutions_to_visualize}
-                  bind:preference
-                  decimalPrecision={3}
-                />
-                <br/>
-                {#if state === State.ClassifySelected}
-                <div class="flex gap-4">
-                  <button
-                    class="btn variant-filled inline"
-                    on:click={handle_iterate}
-                    disabled={!is_classification_valid}>Iterate</button
-                  >
-                  <button
-                    class="btn variant-filled inline"
-                    on:click={press_final_button}
-                    disabled={!(state === State.ClassifySelected)}
-                    >Finish with chosen solution</button
-                  >
-                </div>
-                {#if !is_classification_valid}
-                  <div class="text-error-500">
-                    Please give a valid classification for the objectives.
-                  </div>
-                {/if}
-              {:else}
-                <GeneralError />
-              {/if}
-                </div>
+                
                 {:else if tabSet === 2}
                
                 <div>
@@ -478,16 +441,14 @@ export function getObjectives(data: Solution[]):number[][]{
           <Card>
             <h3>Objective Space</h3>
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
-              <ParallelCoordinatePlotBase
+              <Viz
                 names={problemInfo.objective_short_names}
                 solutions={solutions_to_visualize}
                 ranges={transform_bounds(problemInfo.lower_bounds, problemInfo.upper_bounds)}
                 lowerIsBetter={lower_is_better}
                 showIndicators={true}
-                disableInteraction={true}
-                maxSelections={1}
                 bind:selectedIndices={selected_solutions}
-                bind:highlightedIndex={highlighted}
+                referencePoint={solutions_to_visualize[0].reference_point}
               />
             {:else}
               <GeneralError />

@@ -6,7 +6,7 @@
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import SingleHorizontalBar from "$lib/components/visual/preference-interaction/HorizontalBarAltXAI.svelte";
   import SingleHorizontalBar2 from "$lib/components/visual/preference-interaction/HorizontalBarAltXAI2.svelte";
-
+  import SingleHorizontalBar3 from "$lib/components/visual/preference-interaction/HorizontalBarAlt.svelte"
   import { getIthObjectiveValues } from "../../../../helpers";
 
   enum classification {
@@ -133,7 +133,7 @@
       {barColor}
       {arrowMode}
     />
-  {:else}
+  {:else if variant === 2}
   <SingleHorizontalBar2
       {lowerBound}
       {higherBound}
@@ -141,6 +141,18 @@
       bind:solutions={solutionsObjective}
       bind:tradeoffs
       bind:objectiveToImprove
+      bind:selectedValue
+      {previousValue}
+      {lowerIsBetter}
+      {decimalPrecision}
+      {barColor}
+      {arrowMode}
+    />
+  {:else if variant == 3}
+  <SingleHorizontalBar3
+      {lowerBound}
+      {higherBound}
+      bind:solutionValue={solutionsObjective[selected[0]]}
       bind:selectedValue
       {previousValue}
       {lowerIsBetter}
