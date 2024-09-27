@@ -2,6 +2,7 @@
     import * as d3 from "d3";
     import { onMount } from "svelte";
     import { colorPalette, selectedLineStyle } from "$lib/components/visual/constants";
+    import { scale } from "svelte/transition";
 
     export let solutions: Solution[] = [];
     export let lowerIsBetter: boolean[] = [];
@@ -18,11 +19,12 @@
 
         const width = 600;
         const height = 400;
-        const margin = { top: 20, right: 20, bottom: 20, left: 50 };
+        const margin = { top: 20, right: 30, bottom: 20, left: 30 };
         const barWidth = (width - margin.left - margin.right) / names.length;
         const ticknessBar = 20;
         const positionMarker = ticknessBar / 2;
-
+        const legendPositionX =  barWidth * (names.length - 1) + ticknessBar + 30
+        const legendPositionY = 0
         // Clear existing plot
         d3.select(svg).selectAll("*").remove();
 
@@ -41,8 +43,8 @@
             .attr("viewBox", "0 0 10 10")
             .attr("refX", 6) // Position of the arrow tip
             .attr("refY", 5)
-            .attr("markerWidth", 6)
-            .attr("markerHeight", 6)
+            .attr("markerWidth", 4)
+            .attr("markerHeight", 4)
             .attr("orient", "auto-start-reverse")
             .append("path")
             .attr("d", "M 0 0 L 10 5 L 0 10 Z") // Arrow shape
@@ -55,14 +57,15 @@
             .attr("viewBox", "0 0 10 10")
             .attr("refX", 6) // Position of the arrow tip
             .attr("refY", 5)
-            .attr("markerWidth", 6)
-            .attr("markerHeight", 6)
+            .attr("markerWidth", 4)
+            .attr("markerHeight", 4)
             .attr("orient", "auto-start-reverse")
             .append("path")
             .attr("d", "M 0 0 L 10 5 L 0 10 Z") // Arrow shape
             .attr("fill", "red"); // Arrow color
 
-        // Create scales for each axis
+
+            // Create scales for each axis
         const scales = names.map((_, i) =>
             d3.scaleLinear()
                 .domain([ranges[i].min, ranges[i].max])
@@ -86,7 +89,33 @@
                 .attr("fill", "#ddd");
                 //.attr("stroke-width", 5)
                 //.attr("stroke", colorPalette[i]);
+
+            //Draw color bar for the selected solution
+                      
+           
+            
         });
+
+        if (selectedIndices[0] !=null){
+            solutions[selectedIndices[0]].objective_values.forEach((value, i) => {
+                svgElement
+                    .append("rect")
+                    .attr("x", i * barWidth)
+                    .attr("width", ticknessBar)
+                    .attr("height", (height - margin.top - margin.bottom) - scales[i](value))
+                    .attr("y", function(d) { return scales[i](value); })
+                    .attr("fill", colorPalette[i]);
+
+                    /*svgElement
+                    .append("rect")
+                    .attr("x", i * barWidth)
+                    .attr("width", ticknessBar)
+                    .attr("height", Math.abs(scales[i](referencePoint[i]) - scales[i](value)))
+                    .attr("y", value < referencePoint[i]?scales[i](referencePoint[i]):scales[i](value))
+                    .attr("fill", value < referencePoint[i]?"red":"green")*/
+     
+            })
+        }
 
         // Plot solutions' objective values as markers and lines
         solutions.forEach((solution, solutionIndex) => {
@@ -128,6 +157,7 @@
             });
         });
 
+
         // Plot reference point markers and lines
         const refLine = d3
             .line<number>()
@@ -151,6 +181,11 @@
                 .attr("fill", "red");
         });
 
+        /*svgElement.append("circle").attr("cx", legendPositionX).attr("cy",0).attr("r", 6).style("fill", "green")
+        svgElement.append("circle").attr("cx",legendPositionX).attr("cy",30).attr("r", 6).style("fill", "#C00000")
+        svgElement.append("text").attr("x", legendPositionX + 10).attr("y", 0).text("Positive difference").style("font-size", "12px").attr("alignment-baseline","middle")
+        svgElement.append("text").attr("x", legendPositionX + 10).attr("y", 30).text("Negative difference").style("font-size", "12px").attr("alignment-baseline","middle")
+*/
         // If a line is selected, draw dashed line connecting to reference point
         if (selectedIndices[0] !== null) {
             const selectedSolution = solutions[selectedIndices[0]];
@@ -163,9 +198,17 @@
                     .attr("x2", i * barWidth + positionMarker)
                     .attr("y2", value < referencePoint[i]?scales[i](value)-10:scales[i](value)+10)
                     .attr("stroke", value < referencePoint[i]? "red":"green")
-                    .attr("stroke-width", 2)
-                    .attr("stroke-dasharray", "2,2")
+                    .attr("stroke-width", 2.5)
+                    .attr("stroke-dasharray", "6,2")
                     .attr("marker-end", value < referencePoint[i]?"url(#arrow-negative)":"url(#arrow-positive)"); // Attach arrow marker at the end;
+
+                /*svgElement
+                    .append("rect")
+                    .attr("x", i * barWidth)
+                    .attr("width", ticknessBar)
+                    .attr("height", Math.abs(scales[i](referencePoint[i]) - scales[i](value)))
+                    .attr("y", value < referencePoint[i]?scales[i](referencePoint[i]):scales[i](value))
+                    .attr("fill", value < referencePoint[i]?"red":"green");*/
             });
         }
     }
