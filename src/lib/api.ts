@@ -38,7 +38,7 @@ type OAuth2Response = {
 //
 // TODO: Move this to a configuration file.
 //
-export const baseURL = "http://localhost:8000";
+export const baseURL = "http://127.0.0.1:8000";
 
 /** A missing token is represented by `undefined`. */
 type Token = string | undefined;

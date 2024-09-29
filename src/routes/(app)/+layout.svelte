@@ -1,7 +1,7 @@
 <script lang="ts">
   import { AppShell } from "@skeletonlabs/skeleton";
-  import Navigation from "$lib/components/main/Navigation.svelte";
-  import Header from "$lib/components/main/Header.svelte";
+  import Navigation from "$lib/components/navigation/Navigation.svelte";
+  import Header from "$lib/components/navigation/Header.svelte";
   //import { drawerStore } from "@skeletonlabs/skeleton";
 </script>
 

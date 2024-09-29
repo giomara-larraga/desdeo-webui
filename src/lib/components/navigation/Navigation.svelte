@@ -28,8 +28,8 @@
   </svelte:fragment> -->
   <!-- --- -->
   <AppRailAnchor
-    href="/list_problems"
-    selected={$page.url.pathname === "/list_problems"}
+    href="/problems"
+    selected={$page.url.pathname === "/problems"}
     bind:group={currentTile}
     name="tile-1"
     value={0}

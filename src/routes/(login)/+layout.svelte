@@ -3,7 +3,7 @@
   import { setContext } from "svelte";
   import type { LoginContext } from "./types";
   import logo from "$lib/assets/logo.png";
-  import Citation from "$lib/components/main/Citation.svelte";
+  import Citation from "$lib/components/general/Citation.svelte";
 
   //
   // The `login` context is used to share the current values of the username

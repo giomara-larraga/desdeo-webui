@@ -1,5 +1,5 @@
 <script lang="ts">
-  import User from "$lib/components/main/User.svelte";
+  import User from "$lib/components/general/User.svelte";
   import { AppBar } from "@skeletonlabs/skeleton";
   import logo from "$lib/assets/logo.png";
 </script>

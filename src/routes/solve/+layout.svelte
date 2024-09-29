@@ -1,7 +1,7 @@
 <script lang="ts">
   import { methodHeaderText } from "$lib/api";
-  import Navigation from "$lib/components/main/Navigation.svelte";
-  import User from "$lib/components/main/User.svelte";
+  import Navigation from "$lib/components/navigation/Navigation.svelte";
+  import User from "$lib/components/general/User.svelte";
   import { AppShell } from "@skeletonlabs/skeleton";
 </script>
 

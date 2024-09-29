@@ -28,9 +28,9 @@
 
   import { Drawer, Modal, drawerStore } from "@skeletonlabs/skeleton";
   import { Toast } from "@skeletonlabs/skeleton";
-  import Citation from "$lib/components/main/Citation.svelte";
-  import CitationDownload from "$lib/components/main/CitationDownload.svelte";
-  import CloseButton from "$lib/components/main/CloseButton.svelte";
+  import Citation from "$lib/components/general/Citation.svelte";
+  import CitationDownload from "$lib/components/general/CitationDownload.svelte";
+  import CloseButton from "$lib/components/general/CloseButton.svelte";
 </script>
 
 <!--

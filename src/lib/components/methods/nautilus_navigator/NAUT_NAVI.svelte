@@ -14,7 +14,7 @@ A user interface for the NAUTILUS Navigator method.
   import NAUT_NAVI_LAYOUT from "$lib/components/methods/nautilus_navigator/naut_navi_layout.svelte";
   import { onMount } from "svelte";
 
-  import Card from "$lib/components/main/Card.svelte";
+  import Card from "$lib/components/general/Card.svelte";
   import { colorPalette } from "$lib/components/visual/constants";
   import { SyncLoader } from "svelte-loading-spinners";
   import type { ChartInput } from "./ReachableRangesFunc.svelte";

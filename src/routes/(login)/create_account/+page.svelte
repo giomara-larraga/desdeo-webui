@@ -1,5 +1,5 @@
 <script lang="ts">
-  import RegistrationForm from "$lib/components/main/RegistrationForm.svelte";
+  import RegistrationForm from "$lib/components/general/RegistrationForm.svelte";
   import { getContext } from "svelte";
   import type { LoginContext } from "../types";
 
