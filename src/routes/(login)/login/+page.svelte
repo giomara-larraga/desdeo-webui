@@ -1,5 +1,5 @@
 <script lang="ts">
-  import LoginForm from "$lib/components/general/LoginForm.svelte";
+  import LoginForm from "./LoginForm.svelte";
   import { getContext } from "svelte";
   import type { LoginContext } from "../types";
 

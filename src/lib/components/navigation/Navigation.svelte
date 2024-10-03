@@ -18,7 +18,7 @@
   TODO: Use the theme system instead of hardcoded colors?
 -->
 
-<AppRail class="nav-bar">
+<AppRail class="nav-bar" active="bg-secondary-active-token">
   <!--   <svelte:fragment slot="lead">
     <AppRailAnchor href="/dashboard" title="Account">
       <div class="icon-wrapper">

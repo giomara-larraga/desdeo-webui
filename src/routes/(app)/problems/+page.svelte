@@ -7,10 +7,15 @@
   import ProblemList from "$lib/components/problems/ProblemList.svelte";
   import ProblemDetails from "$lib/components/problems/ProblemDetails.svelte";
   import Card from "$lib/components/general/Card.svelte";
+  import { goto } from "$app/navigation";
 
   let selected_problem: Problem | undefined = undefined;
   let tab = 0;
   export let hide_saved = true;
+
+  function handleClick() {
+    goto("/methods");
+  }
 </script>
 
 <h4 class="h4">Optimization Problems</h4>
@@ -58,6 +63,7 @@
     <button class="variant-filled-primary btn mr-1">Add new problem</button>
     <button
       class="variant-filled-primary btn"
+      on:click={handleClick}
       disabled={(() => {
         return selected_problem?.id == undefined;
       })()}>Proceed to select a method</button

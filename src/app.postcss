@@ -15,13 +15,24 @@ body {
   align-items: center;
   height: 100%; /* Adjust as needed */
 }
+
 .icon {
   width: 18px; /* Adjust the size as needed */
   height: 18px; /* Adjust the size as needed */
 }
 
+.app-bar {
+  height: 48px;
+  padding: 1rem;
+  font-size: small;
+}
+
 .nav-bar {
-  @apply bg-primary-900 text-on-primary-token;
+  @apply bg-primary-500 text-on-primary-token;
+}
+
+.nav-bar .app-rail-label {
+  font-weight: 300;
 }
 
 .h4 {
@@ -34,15 +45,6 @@ body {
   color: rgba(var(--theme-font-color-dark));
 }
 
-.app-rail-label {
-  font-weight: 300 !important;
-  //font-size: 10px !important;
-}
-
 .w-20 {
   width: 4rem;
-}
-
-::selection {
-  background-color: rgba(var(--color-secondary-900)) !important;
 }
