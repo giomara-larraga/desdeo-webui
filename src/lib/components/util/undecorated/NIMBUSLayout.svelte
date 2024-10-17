@@ -4,6 +4,29 @@
   export let voteChoice = false;
 </script>
 
+<!-- 3-column grid layout -->
+<div class="grid-layout grid-2-cols grid-rows-3">
+  <!-- Preferences (full height, first column) -->
+  <div class="preferences no-scroll row-span-3">
+    <slot name="preferences" />
+  </div>
+
+  <!-- Visualizations (spans 2 rows in second column) -->
+  <div class="visualizations no-scroll row-span-2">
+    <slot name="visualizations" />
+  </div>
+
+  <!-- Solutions (scrollable, bottom of second column) -->
+  <div class="scrollable col-span-2 col-start-2 row-start-3">
+    <slot name="solutions" />
+  </div>
+
+  <!-- Solution Set Choice (top right) -->
+  <div class="no-scroll col-start-3 row-span-2 row-start-1">
+    <slot name="solutionSetChoice" />
+  </div>
+</div>
+
 <style>
   .preferences {
     background-color: rgba(9, 66, 119, 0.06);
@@ -11,7 +34,7 @@
     padding-left: 0.5rem;
     padding-right: 0.5rem;
   }
-  .visualizations{
+  .visualizations {
     padding-top: 0rem !important;
   }
   .grid-layout {
@@ -53,31 +76,3 @@
     }
   }
 </style>
-
-
-  <!-- 3-column grid layout -->
-  <div class="grid-layout grid-3-cols grid-rows-3">
-    <!-- Preferences (full height, first column) -->
-    <div class="preferences row-span-3 no-scroll">
-      <slot name="preferences" />
-    </div>
-
-    <!-- Visualizations (spans 2 rows in second column) -->
-    <div class="visualizations row-span-2 no-scroll">
-      <slot name="visualizations" />
-    </div>
-
-    <!-- Solutions (scrollable, bottom of second column) -->
-    <div class="col-span-2 col-start-2 row-start-3 scrollable">
-      <slot name="solutions" />
-    </div>
-
-    <!-- Solution Set Choice (top right) -->
-    <div class="col-start-3 row-span-2 row-start-1 no-scroll">
-      <slot name="solutionSetChoice" />
-    </div>
-  </div>
-
-
-
-
