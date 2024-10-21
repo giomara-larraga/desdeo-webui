@@ -439,6 +439,30 @@
         {#if state === State.ClassifySelected && !finalChoiceState}
           <Card>
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
+              <div class="flex gap-x-2" style="flex-direction:row">
+                <div class="flex items-center space-x-2">
+                  <p class="font-medium">Mode:</p>
+                </div>
+                <label class="flex items-center space-x-2">
+                  <input
+                    class="radio"
+                    type="radio"
+                    checked
+                    name="radio-direct"
+                    value="1"
+                  />
+                  <p>Explanation</p>
+                </label>
+                <label class="flex items-center space-x-2">
+                  <input
+                    class="radio"
+                    type="radio"
+                    name="radio-direct"
+                    value="2"
+                  />
+                  <p>Effect</p>
+                </label>
+              </div>
               <Viz
                 names={problemInfo.objective_short_names}
                 solutions={solutions_to_visualize}

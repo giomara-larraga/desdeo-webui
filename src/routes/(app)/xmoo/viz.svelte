@@ -16,8 +16,9 @@
   export let referencePoint: number[] = [];
   export let showArrows: boolean = false;
   export let objectiveImpacts: number[] = [0.1, 0.5, 0.1, 0.2, 0.3]; // Array representing the impact of each objective
-
+  let selectedObjective: number = -1;
   let svg: SVGSVGElement;
+  let tooltip: any; // Tooltip container
 
   function drawPlot() {
     if (!ranges || names.length === 0 || solutions.length === 0) return;
@@ -40,6 +41,17 @@
       .attr("height", height)
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    // Create a tooltip and hide it initially
+    tooltip = d3
+      .select("body")
+      .append("div")
+      .style("position", "absolute")
+      .style("background", "white")
+      .style("border", "1px solid black")
+      .style("padding", "5px")
+      .style("display", "none")
+      .attr("class", "tooltip");
 
     if (showArrows) {
       // Define the arrow marker
@@ -186,35 +198,7 @@
           .on("click", () => selectLine(solutionIndex));
       });
     });
-    //Rewrite selected markers
-    if (selectedIndices[0] !== null) {
-      const line = d3
-        .line<number>()
-        .x((_, i) => i * barWidth + positionMarker)
-        .y((_, i) =>
-          scales[i](solutions[selectedIndices[0]].objective_values[i])
-        );
 
-      svgElement
-        .append("path")
-        .datum(solutions[selectedIndices[0]].objective_values)
-        .attr("d", line)
-        .attr("fill", "none")
-        .attr("stroke", "blue")
-        .attr("stroke-width", 2)
-        .attr("class", "solution-line");
-
-      solutions[selectedIndices[0]].objective_values.forEach((value, i) => {
-        svgElement
-          .append("circle")
-          .attr("cx", i * barWidth + positionMarker)
-          .attr("cy", scales[i](value))
-          .attr("r", 4)
-          .attr("fill", "blue")
-          .attr("class", "solution-marker")
-          .on("click", () => selectLine(selectedIndices[0]));
-      });
-    }
     // Plot reference point markers and lines
     const refLine = d3
       .line<number>()
@@ -264,6 +248,43 @@
       .text("Solution")
       .style("font-size", "12px")
       .attr("alignment-baseline", "middle");
+
+    //Rewrite selected markers
+    if (selectedIndices[0] !== null) {
+      const line = d3
+        .line<number>()
+        .x((_, i) => i * barWidth + positionMarker)
+        .y((_, i) =>
+          scales[i](solutions[selectedIndices[0]].objective_values[i])
+        );
+
+      svgElement
+        .append("path")
+        .datum(solutions[selectedIndices[0]].objective_values)
+        .attr("d", line)
+        .attr("fill", "none")
+        .attr("stroke", "blue")
+        .attr("stroke-width", 2)
+        .attr("class", "solution-line");
+
+      solutions[selectedIndices[0]].objective_values.forEach((value, i) => {
+        //const max_impact = d3.maxIndex(objectiveImpacts);
+        svgElement
+          .append("circle")
+          .attr("cx", i * barWidth + positionMarker)
+          .attr("cy", scales[i](value))
+          .attr("r", 4)
+          .attr("fill", "blue")
+          .attr("stroke", i === selectedObjective ? "red" : "blue")
+          .attr("stroke-width", 3)
+          .attr("class", "solution-marker")
+          .on("click", () => selectMarker(i))
+          .on("mouseover", function (event) {
+            showTooltip(event, i); // Show the tooltip on hover
+          })
+          .on("mouseout", hideTooltip); // Hide the tooltip on mouse out
+      });
+    }
 
     if (selectedIndices[0] !== null) {
       svgElement
@@ -350,6 +371,11 @@
     }
   }
 
+  // Marker selection function
+  function selectMarker(index: number) {
+    selectedObjective = index;
+    drawPlot();
+  }
   // Line selection function
   function selectLine(index: number) {
     // Set selected index and force reactivity by reassigning the array
@@ -357,7 +383,55 @@
     selectedIndices[0] !== null
       ? (objectiveImpacts = solutions[selectedIndices[0]].impact)
       : (objectiveImpacts = [0, 0, 0, 0]);
+    selectedObjective = d3.maxIndex(objectiveImpacts);
     drawPlot();
+  }
+
+  // Function to display the tooltip
+  function showTooltip(event, solutionIndex) {
+    const solution = solutions[solutionIndex];
+
+    // Generate a simple bar chart inside the tooltip
+    const tooltipSvg = d3
+      .select(".tooltip")
+      .style("display", "block")
+      .style("left", event.pageX + 10 + "px")
+      .style("top", event.pageY - 50 + "px")
+      .html(""); // Clear existing content
+
+    const chartWidth = 100;
+    const chartHeight = 50;
+    const barPadding = 5;
+
+    // Ensure to find a valid maximum value to prevent negative heights
+    const maxObjectiveValue = d3.max(solution.objective_values) || 0; // Default to 0 if undefined
+
+    const barScale = d3
+      .scaleLinear()
+      .domain([0, maxObjectiveValue]) // Scale from 0 to max value
+      .range([0, chartHeight]);
+
+    tooltipSvg
+      .append("svg")
+      .attr("width", chartWidth)
+      .attr("height", chartHeight)
+      .selectAll("rect")
+      .data(solution.objective_values)
+      .enter()
+      .append("rect")
+      .attr("x", (_, i) => i * (chartWidth / solution.objective_values.length))
+      .attr("y", (d) => chartHeight - barScale(d)) // Prevent negative height
+      .attr("width", chartWidth / solution.objective_values.length - barPadding)
+      .attr("height", (d) => {
+        const heightValue = barScale(d);
+        return heightValue > 0 ? heightValue : 0; // Ensure height is non-negative
+      })
+      .attr("fill", (_, i) => colorPalette[i]);
+  }
+
+  // Function to hide the tooltip
+  function hideTooltip() {
+    d3.select(".tooltip").style("display", "none");
   }
 
   // Redraw plot if input data or selection changes
