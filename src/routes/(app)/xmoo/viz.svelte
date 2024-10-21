@@ -150,13 +150,10 @@
         .attr("fill", "none")
         .attr(
           "stroke",
-          selectedIndices[0] === solutionIndex
-            ? "blue"
-            : selectedIndices[0] === null
-            ? "blue"
-            : "#C5E3E6"
+
+          "#C5E3E6"
         )
-        .attr("stroke-width", selectedIndices[0] === solutionIndex ? 2 : 1)
+        .attr("stroke-width", 1)
         .attr("class", "solution-line");
 
       // Add an invisible larger "click area" path over the line
@@ -189,7 +186,35 @@
           .on("click", () => selectLine(solutionIndex));
       });
     });
+    //Rewrite selected markers
+    if (selectedIndices[0] !== null) {
+      const line = d3
+        .line<number>()
+        .x((_, i) => i * barWidth + positionMarker)
+        .y((_, i) =>
+          scales[i](solutions[selectedIndices[0]].objective_values[i])
+        );
 
+      svgElement
+        .append("path")
+        .datum(solutions[selectedIndices[0]].objective_values)
+        .attr("d", line)
+        .attr("fill", "none")
+        .attr("stroke", "blue")
+        .attr("stroke-width", 2)
+        .attr("class", "solution-line");
+
+      solutions[selectedIndices[0]].objective_values.forEach((value, i) => {
+        svgElement
+          .append("circle")
+          .attr("cx", i * barWidth + positionMarker)
+          .attr("cy", scales[i](value))
+          .attr("r", 4)
+          .attr("fill", "blue")
+          .attr("class", "solution-marker")
+          .on("click", () => selectLine(selectedIndices[0]));
+      });
+    }
     // Plot reference point markers and lines
     const refLine = d3
       .line<number>()
