@@ -240,65 +240,62 @@
       .style("font-size", "12px")
       .attr("alignment-baseline", "middle");
 
-    svgElement
-      .append("text")
-      .attr("x", legendPositionX)
-      .attr("y", 60)
-      .text("Impact overview")
-      .style("font-size", "12px")
-      .style("font-weight", "bold")
-      .attr("alignment-baseline", "middle");
-
-    // Calculate total impact for scaling
-    /*const totalImpact = 0;
-    solutions.forEach((solution) => {
-      totalImpact = totalImpact + solution.impact;
-    });*/
-    const totalImpact = d3.sum(objectiveImpacts);
-
-    // Add the impact plot to the legend
-    const impactBarWidth = 100; // Total width of the impact bar
-    const impactBarHeight = 20; // Height of the impact bar
-    let cumulativeWidth = 0; // Keep track of cumulative width to position each slot
-
-    objectiveImpacts.forEach((impact, i) => {
-      const impactProportion = impact / totalImpact;
-      const slotWidth = impactProportion * impactBarWidth; // Calculate width based on proportion
-
-      // Add a colored rectangle for each objective's impact
+    if (selectedIndices[0] !== null) {
       svgElement
-        .append("rect")
-        .attr("x", legendPositionX + cumulativeWidth) // Start after the previous slot
-        .attr("y", 80)
-        .attr("width", slotWidth)
-        .attr("height", impactBarHeight)
-        .attr("fill", colorPalette[i]); // Color for each objective
+        .append("text")
+        .attr("x", legendPositionX)
+        .attr("y", 60)
+        .text("Impact overview")
+        .style("font-size", "12px")
+        .style("font-weight", "bold")
+        .attr("alignment-baseline", "middle");
 
-      cumulativeWidth += slotWidth; // Update the cumulative width for the next slot
-    });
+      // Calculate total impact for scaling
+      const totalImpact = d3.sum(objectiveImpacts);
 
-    const maxImpactIndex = objectiveImpacts.indexOf(
-      Math.max(...objectiveImpacts)
-    );
-    const mostInfluentialObjectiveName = names[maxImpactIndex];
-    const mostInfluentialObjectiveColor = colorPalette[maxImpactIndex];
+      // Add the impact plot to the legend
+      const impactBarWidth = 100; // Total width of the impact bar
+      const impactBarHeight = 20; // Height of the impact bar
+      let cumulativeWidth = 0; // Keep track of cumulative width to position each slot
 
-    // Add the dynamic legend text
-    svgElement
-      .append("text")
-      .attr("x", legendPositionX)
-      .attr("y", 150) // Below the impact plot
-      .text("Objective ")
-      .style("fill", "black")
-      .style("font-size", "12px")
-      .append("tspan")
-      .text(mostInfluentialObjectiveName)
-      .style("fill", mostInfluentialObjectiveColor) // Use the color of the most influential objective
-      .style("font-weight", "bold")
-      .append("tspan")
-      .text(" has the most influence in the selected solution")
-      .style("fill", "black");
+      objectiveImpacts.forEach((impact, i) => {
+        const impactProportion = impact / totalImpact;
+        const slotWidth = impactProportion * impactBarWidth; // Calculate width based on proportion
 
+        // Add a colored rectangle for each objective's impact
+        svgElement
+          .append("rect")
+          .attr("x", legendPositionX + cumulativeWidth) // Start after the previous slot
+          .attr("y", 80)
+          .attr("width", slotWidth)
+          .attr("height", impactBarHeight)
+          .attr("fill", colorPalette[i]); // Color for each objective
+
+        cumulativeWidth += slotWidth; // Update the cumulative width for the next slot
+      });
+
+      const maxImpactIndex = objectiveImpacts.indexOf(
+        Math.max(...objectiveImpacts)
+      );
+      const mostInfluentialObjectiveName = names[maxImpactIndex];
+      const mostInfluentialObjectiveColor = colorPalette[maxImpactIndex];
+
+      // Add the dynamic legend text
+      svgElement
+        .append("text")
+        .attr("x", legendPositionX)
+        .attr("y", 150) // Below the impact plot
+        .text("Objective ")
+        .style("fill", "black")
+        .style("font-size", "12px")
+        .append("tspan")
+        .text(mostInfluentialObjectiveName)
+        .style("fill", mostInfluentialObjectiveColor) // Use the color of the most influential objective
+        .style("font-weight", "bold")
+        .append("tspan")
+        .text(" has the most influence in the selected solution")
+        .style("fill", "black");
+    }
     // If a line is selected, draw dashed line connecting to reference point
     if (selectedIndices[0] !== null && showArrows) {
       const selectedSolution = solutions[selectedIndices[0]];
@@ -324,14 +321,6 @@
               ? "url(#arrow-negative)"
               : "url(#arrow-positive)"
           ); // Attach arrow marker at the end;
-
-        /*svgElement
-                    .append("rect")
-                    .attr("x", i * barWidth)
-                    .attr("width", ticknessBar)
-                    .attr("height", Math.abs(scales[i](referencePoint[i]) - scales[i](value)))
-                    .attr("y", value < referencePoint[i]?scales[i](referencePoint[i]):scales[i](value))
-                    .attr("fill", value < referencePoint[i]?"red":"green");*/
       });
     }
   }
@@ -339,7 +328,10 @@
   // Line selection function
   function selectLine(index: number) {
     // Set selected index and force reactivity by reassigning the array
-    selectedIndices = [index === selectedIndices[0] ? null : index]; // Toggle selection
+    selectedIndices = [index]; // Toggle selection
+    selectedIndices[0] !== null
+      ? (objectiveImpacts = solutions[selectedIndices[0]].impact)
+      : (objectiveImpacts = [0, 0, 0, 0]);
     drawPlot();
   }
 

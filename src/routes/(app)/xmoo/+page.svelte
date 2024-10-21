@@ -185,7 +185,8 @@
   $: {
     if (
       solutions_to_visualize !== undefined &&
-      selected_solutions?.length >= 1
+      selected_solutions?.length >= 1 &&
+      selected_solutions[0] !== null
     ) {
       // if any selected solution index is larger than the number of solutions, set reference_solution to the last solution
       if (
@@ -437,7 +438,6 @@
       <div slot="visualizations">
         {#if state === State.ClassifySelected && !finalChoiceState}
           <Card>
-            <h3>Objective Space</h3>
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
               <Viz
                 names={problemInfo.objective_short_names}
