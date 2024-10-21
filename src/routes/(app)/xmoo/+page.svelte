@@ -37,7 +37,7 @@
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import { onMount } from "svelte";
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
-  import { RPP_Info, solution_process } from "../data";
+  import { RPP_Info, get_solutions } from "../data";
   import { getCurrentIteration } from "../../../helpers";
   import ScatterPlot from "$lib/components/visual/visualization/props-linking/ScatterPlot.svelte";
   import Histogram from "$lib/components/visual/visualization/props-linking/Histogram.svelte";
@@ -68,7 +68,8 @@
 
   // Preference input values.
   let preference: (number | undefined)[];
-  let solutionProcess: Solution[];
+  let allSolutions: Solution[][];
+  let solutionProcess: Solution[][];
   let currentIteration: number;
   let problemInfo: problemInfoType;
 
@@ -226,18 +227,15 @@
       if (
         visualizationChoiceState === VisualizationChoiceState.CurrentSolutions
       ) {
-        solutions_to_visualize = getCurrentIteration(
-          solutionProcess,
-          currentIteration
-        );
+        solutions_to_visualize = solutionProcess[currentIteration];
       } else if (
         visualizationChoiceState === VisualizationChoiceState.SavedSolutions
       ) {
-        solutions_to_visualize = solutionProcess;
+        solutions_to_visualize = solutionProcess[0]; //change to get all
       } else if (
         visualizationChoiceState === VisualizationChoiceState.AllSolutions
       ) {
-        solutions_to_visualize = solutionProcess;
+        solutions_to_visualize = solutionProcess[0]; //change to get all
       }
     }
   }
@@ -293,7 +291,7 @@
   //
   // TODO: Handle errors bettter.
   //
-  function handle_initialize() {
+  async function handle_initialize() {
     //
 
     // This is just a temporary solution to make it easier to test the UI
@@ -304,10 +302,11 @@
     // best to also reset the visualization mode to non-maximized.
     //
     visualizations_maximized = false;
-    solutionProcess = getCurrentIteration(solution_process, 0);
+    allSolutions = await get_solutions();
+    solutionProcess = [allSolutions[0]];
     problemInfo = RPP_Info;
     currentIteration = 0;
-    preference = solutionProcess[solutionProcess.length - 1].reference_point;
+    preference = solutionProcess[0][0].reference_point;
     state = State.ClassifySelected;
   }
 
@@ -316,17 +315,16 @@
   //
   onMount(async () => {
     await handle_initialize();
+    console.log(allSolutions);
   });
 
   function handle_iterate() {
     currentIteration = currentIteration + 1;
-    solutionProcess.push(
-      ...getCurrentIteration(solution_process, currentIteration)
-    );
-    preference = solutionProcess[solutionProcess.length - 1].reference_point;
+    solutionProcess.push(allSolutions[currentIteration]);
+    preference = solutionProcess[currentIteration][0].reference_point;
     state = State.ClassifySelected;
     visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
-    reference_solution = solutionProcess[solutionProcess.length - 1];
+    reference_solution = solutionProcess[currentIteration][0];
     selected_solutions = [0];
   }
 

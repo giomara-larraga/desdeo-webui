@@ -87,7 +87,7 @@
       svgElement
         .append("g")
         .attr("transform", `translate(${i * barWidth}, 0)`)
-        .call(d3.axisLeft(scale).ticks(5));
+        .call(d3.axisLeft(scale).ticks(10));
 
       // Draw vertical bar for each axis
       svgElement
@@ -250,6 +250,10 @@
       .attr("alignment-baseline", "middle");
 
     // Calculate total impact for scaling
+    /*const totalImpact = 0;
+    solutions.forEach((solution) => {
+      totalImpact = totalImpact + solution.impact;
+    });*/
     const totalImpact = d3.sum(objectiveImpacts);
 
     // Add the impact plot to the legend
