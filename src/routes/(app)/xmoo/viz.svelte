@@ -48,8 +48,8 @@
       .append("div")
       .style("position", "absolute")
       .style("background", "white")
-      .style("border", "1px solid black")
-      .style("padding", "5px")
+      .style("border", "1px solid #ddd")
+      .style("padding", "8px")
       .style("display", "none")
       .attr("class", "tooltip");
 
@@ -389,12 +389,14 @@
 
   // Function to display the tooltip
   function showTooltip(event, solutionIndex) {
-    const solution = solutions[solutionIndex];
+    const solution = solutions[selectedIndices[0]];
 
     // Generate a simple bar chart inside the tooltip
     const tooltipSvg = d3
       .select(".tooltip")
       .style("display", "block")
+      .style("width", "150px")
+      .style("word-wrap", "break-word")
       .style("left", event.pageX + 10 + "px")
       .style("top", event.pageY - 50 + "px")
       .html(""); // Clear existing content
@@ -412,6 +414,14 @@
       .range([0, chartHeight]);
 
     tooltipSvg
+      .append("text")
+      .text(
+        "Impairing efects of the rest of the objectives on the value of " +
+          names[solutionIndex]
+      )
+      .style("font-weight", "bold");
+
+    tooltipSvg
       .append("svg")
       .attr("width", chartWidth)
       .attr("height", chartHeight)
@@ -427,6 +437,8 @@
         return heightValue > 0 ? heightValue : 0; // Ensure height is non-negative
       })
       .attr("fill", (_, i) => colorPalette[i]);
+
+    tooltipSvg.append("text").text("Click to see how to improve this value");
   }
 
   // Function to hide the tooltip
