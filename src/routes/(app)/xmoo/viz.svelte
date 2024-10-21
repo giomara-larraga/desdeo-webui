@@ -389,8 +389,13 @@
 
   // Function to display the tooltip
   function showTooltip(event, solutionIndex) {
-    const solution = solutions[selectedIndices[0]];
-
+    const solution: Solution = solutions[selectedIndices[0]];
+    const tradeoffs = solution.tradeoff_matrix;
+    let selected_tradeoffs = [];
+    for (let index = 0; index < tradeoffs.length; index++) {
+      selected_tradeoffs.push(Math.abs(tradeoffs[index][solutionIndex]));
+    }
+    console.log(selected_tradeoffs);
     // Generate a simple bar chart inside the tooltip
     const tooltipSvg = d3
       .select(".tooltip")
@@ -406,11 +411,11 @@
     const barPadding = 5;
 
     // Ensure to find a valid maximum value to prevent negative heights
-    const maxObjectiveValue = d3.max(solution.objective_values) || 0; // Default to 0 if undefined
+    const maxTradeoffValue = d3.max(selected_tradeoffs) || 0; // Default to 0 if undefined
 
     const barScale = d3
       .scaleLinear()
-      .domain([0, maxObjectiveValue]) // Scale from 0 to max value
+      .domain([0, maxTradeoffValue]) // Scale from 0 to max value
       .range([0, chartHeight]);
 
     tooltipSvg
@@ -426,7 +431,7 @@
       .attr("width", chartWidth)
       .attr("height", chartHeight)
       .selectAll("rect")
-      .data(solution.objective_values)
+      .data(selected_tradeoffs)
       .enter()
       .append("rect")
       .attr("x", (_, i) => i * (chartWidth / solution.objective_values.length))
