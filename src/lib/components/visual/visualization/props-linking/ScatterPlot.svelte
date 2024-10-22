@@ -24,9 +24,7 @@
 
 <script lang="ts">
   import type * as echarts from "echarts";
-  import {
-    colorPalette,
-  } from "$lib/components/visual/constants";
+  import { colorPalette } from "$lib/components/visual/constants";
   import type { EChartOption } from "echarts";
   import {
     handleHighlightChange,
@@ -37,7 +35,6 @@
     handleSelectionChange,
   } from "$lib/components/visual/helperFunctions";
   import EchartsComponent from "../../general/EchartsComponent.svelte";
- 
 
   // Props for this component:
   /** The values to display on the plot. */
@@ -74,7 +71,6 @@
   export let chart: echarts.ECharts | undefined = undefined;
 
   let option: EChartOption;
-
 
   $: if (selectedIndices) {
     if (chart) {
@@ -116,7 +112,6 @@
     }
   }
 
-
   /**
    * Creates the option object for the chart.
    *
@@ -127,7 +122,10 @@
     // Creates the lines on the chart as series data.
     let seriesData: { value: number[]; name: string }[] = [];
     for (let i = 0; i < values.length; i++) {
-      seriesData.push({ value: values[i].decision_variables, name: "Alternative " + (i + 1) });
+      seriesData.push({
+        value: values[i].decision_variables,
+        name: "Alternative " + (i + 1),
+      });
     }
 
     // Create the option object for the whole chart.
@@ -149,8 +147,7 @@
           // @ts-ignore -- Error says that disabled doesn't exist in the echarts series type, but in the documentation it exists. Might be because it's a new property, so they have not updated the type yet. https://echarts.apache.org/en/option.html#series-bar.emphasis.disabled
           select: {
             itemStyle: {
-            color: "#000",
-            
+              color: "#000",
             },
           },
           emphasis: {

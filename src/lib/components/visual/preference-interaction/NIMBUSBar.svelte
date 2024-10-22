@@ -6,7 +6,7 @@
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import SingleHorizontalBar from "$lib/components/visual/preference-interaction/HorizontalBarAltXAI.svelte";
   import SingleHorizontalBar2 from "$lib/components/visual/preference-interaction/HorizontalBarAltXAI2.svelte";
-  import SingleHorizontalBar3 from "$lib/components/visual/preference-interaction/HorizontalBarAlt.svelte"
+  import SingleHorizontalBar3 from "$lib/components/visual/preference-interaction/HorizontalBarAlt.svelte";
   import { getIthObjectiveValues } from "../../../../helpers";
 
   enum classification {
@@ -26,7 +26,7 @@
   export let barName: string | undefined = undefined;
 
   /** The solution value to display on the chart. */
- // export let solutionValue: number | undefined = undefined;
+  // export let solutionValue: number | undefined = undefined;
 
   export let selected: number[];
   export let solutions: Solution[];
@@ -79,7 +79,9 @@
       selectedValue > higherBound
     ) {
       classificationValue = classification.ImproveFreely;
-    } else if (Math.abs(selectedValue - solutionsObjective[selected[0]]) < precision) {
+    } else if (
+      Math.abs(selectedValue - solutionsObjective[selected[0]]) < precision
+    ) {
       classificationValue = classification.KeepContant;
     } else if (selectedValue < solutionsObjective[selected[0]]) {
       classificationValue = classification.WorsenUntil;
@@ -87,7 +89,6 @@
       classificationValue = classification.ImproveUntil;
     }
   }
-
 
   function moveToRange() {
     if (arrowMode && selectedValue != null) {
@@ -103,7 +104,7 @@
 
 <!-- NIMBUS bar with inputs -->
 <!-- <div class="container" style="--barColor:{barColor ? barColor : '#c000'}"> -->
-<div class="grid grid-cols-3 gap-0 grid-flow-row auto-rows-min">
+<div class="grid grid-flow-row auto-rows-min grid-cols-3 gap-0">
   <div class="col-span-3">
     {#if barName}
       <span style="font-size: small; font-weight:500">{barName}</span>
@@ -120,54 +121,49 @@
   <div class="col-span-2 row-start-2">
     {#if variant === 1}
       <SingleHorizontalBar
-      {lowerBound}
-      {higherBound}
-      bind:selected
-      bind:solutions={solutionsObjective}
-      bind:tradeoffs
-      bind:objectiveToImprove
-      bind:selectedValue
-      {previousValue}
-      {lowerIsBetter}
-      {decimalPrecision}
-      {barColor}
-      {arrowMode}
-    />
-  {:else if variant === 2}
-  <SingleHorizontalBar2
-      {lowerBound}
-      {higherBound}
-      bind:selected
-      bind:solutions={solutionsObjective}
-      bind:tradeoffs
-      bind:objectiveToImprove
-      bind:selectedValue
-      {previousValue}
-      {lowerIsBetter}
-      {decimalPrecision}
-      {barColor}
-      {arrowMode}
-    />
-  {:else if variant == 3}
-  <SingleHorizontalBar3
-      {lowerBound}
-      {higherBound}
-      bind:solutionValue={solutionsObjective[selected[0]]}
-      bind:selectedValue
-      {previousValue}
-      {lowerIsBetter}
-      {decimalPrecision}
-      {barColor}
-      {arrowMode}
-    />
-  {/if}
+        {lowerBound}
+        {higherBound}
+        bind:selected
+        bind:solutions={solutionsObjective}
+        bind:tradeoffs
+        bind:objectiveToImprove
+        bind:selectedValue
+        {previousValue}
+        {lowerIsBetter}
+        {decimalPrecision}
+        {barColor}
+        {arrowMode}
+      />
+    {:else if variant === 2}
+      <SingleHorizontalBar2
+        {lowerBound}
+        {higherBound}
+        bind:selected
+        bind:solutions={solutionsObjective}
+        bind:tradeoffs
+        bind:objectiveToImprove
+        bind:selectedValue
+        {previousValue}
+        {lowerIsBetter}
+        {decimalPrecision}
+        {barColor}
+        {arrowMode}
+      />
+    {:else if variant == 3}
+      <SingleHorizontalBar3
+        {lowerBound}
+        {higherBound}
+        bind:solutionValue={solutionsObjective[selected[0]]}
+        bind:selectedValue
+        {previousValue}
+        {lowerIsBetter}
+        {decimalPrecision}
+        {barColor}
+        {arrowMode}
+      />
+    {/if}
   </div>
-
-  </div>
-  
-
-
-
+</div>
 
 <style>
   /* A scrollable div where height is the height of the screen*/

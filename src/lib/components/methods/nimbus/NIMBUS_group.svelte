@@ -1121,7 +1121,7 @@ A user interface for the NIMBUS method.
               <div class="flex gap-4">
                 {#if visualizationChoiceState === VisualizationChoiceState.CurrentSolutions}
                   <button
-                    class="btn variant-filled inline"
+                    class="variant-filled btn inline"
                     on:click={() => {
                       handle_caller("iterate");
                     }}
@@ -1143,7 +1143,7 @@ A user interface for the NIMBUS method.
             {:else if state === State.IntermediateSelected}
               <div class="flex gap-4">
                 <button
-                  class="btn variant-filled"
+                  class="variant-filled btn"
                   on:click={handle_intermediate}
                   disabled={!is_intermediate_selection_valid}>Iterate</button
                 >
@@ -1154,7 +1154,7 @@ A user interface for the NIMBUS method.
             {:else if state === State.SaveSolutionsSelected}
               <div class="flex gap-4">
                 <button
-                  class="btn variant-filled"
+                  class="variant-filled btn"
                   on:click={handle_save_solutions}
                   disabled={!is_save_solutions_valid}>Save</button
                 >
@@ -1294,7 +1294,7 @@ A user interface for the NIMBUS method.
           {#if voteChoiceState && (visualizationChoiceState === VisualizationChoiceState.NewSolutions || finalChoiceState)}
             {#if solutions_to_visualize.length > 1}
               <button
-                class="btn variant-filled inline"
+                class="variant-filled btn inline"
                 on:click={() => {
                   handle_caller("vote");
                 }}
@@ -1303,14 +1303,14 @@ A user interface for the NIMBUS method.
               </button>
             {:else}
               <button
-                class="btn variant-filled inline"
+                class="variant-filled btn inline"
                 on:click={() => {
                   handle_caller("vote_as_final", { chosen: true });
                 }}
                 >Vote as final solution
               </button>
               <button
-                class="btn variant-filled inline"
+                class="variant-filled btn inline"
                 on:click={() => {
                   handle_caller("vote_as_final", { chosen: false });
                 }}

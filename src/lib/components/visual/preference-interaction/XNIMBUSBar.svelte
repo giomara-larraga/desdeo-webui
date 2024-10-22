@@ -22,7 +22,6 @@
   /** The name to be shown on top of the component. */
   export let barName: string | undefined = undefined;
 
-
   /** The solution value to display on the chart. */
   export let solutionValues: number[] = [];
 
@@ -72,7 +71,9 @@
       selectedValue > higherBound
     ) {
       classificationValue = classification.ImproveFreely;
-    } else if (Math.abs(selectedValue - solutionValues[selectedSolution[0]]) < precision) {
+    } else if (
+      Math.abs(selectedValue - solutionValues[selectedSolution[0]]) < precision
+    ) {
       classificationValue = classification.KeepContant;
     } else if (selectedValue < solutionValues[selectedSolution[0]]) {
       classificationValue = classification.WorsenUntil;
@@ -95,7 +96,7 @@
 
 <!-- NIMBUS bar with inputs -->
 <!-- <div class="container" style="--barColor:{barColor ? barColor : '#c000'}"> -->
-<div class="grid grid-cols-3 gap-0 grid-flow-row auto-rows-min">
+<div class="grid grid-flow-row auto-rows-min grid-cols-3 gap-0">
   <div class="col-span-3">
     {#if barName}
       <span style="font-size: small; font-weight:500">{barName}</span>
@@ -111,19 +112,17 @@
 
   <div class="col-span-2 row-start-2">
     <SingleHorizontalBar
-    {lowerBound}
-    {higherBound}
-    {solutionValues}
-    bind:selectedValue
-    bind:selectedSolution
-    {previousValue}
-    {lowerIsBetter}
-    {decimalPrecision}
-    {barColor}
-    {arrowMode}
-  />
-  <div>
+      {lowerBound}
+      {higherBound}
+      {solutionValues}
+      bind:selectedValue
+      bind:selectedSolution
+      {previousValue}
+      {lowerIsBetter}
+      {decimalPrecision}
+      {barColor}
+      {arrowMode}
+    />
+    <div />
   </div>
-  </div>
-
-  </div>
+</div>

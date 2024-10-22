@@ -7,7 +7,7 @@
   import XnimbusBar from "./NIMBUSBar.svelte";
   import { colorPalette } from "$lib/components/visual/constants";
   import IconHeroiconsQuestionMarkCircle from "~icons/heroicons-solid/question-mark-circle";
-    import { getIthObjectiveValues } from "../../../../helpers";
+  import { getIthObjectiveValues } from "../../../../helpers";
 
   /** The names of the objectives. */
   export let objective_long_names: string[];
@@ -37,7 +37,7 @@
    * length as objective_names.
    */
   //export let previousValue: number[];
-  //export let selectedSolution: number[]; 
+  //export let selectedSolution: number[];
   /**
    * The value that the user has selected. Must be the same length as
    * objective_names.
@@ -54,32 +54,29 @@
 
   // Add a variable to keep track of which button is selected
   let objectiveToImprove: number | null = null;
-  let impactToImprove: string[] ;
-  let tradeoffSelectedSolution: string[][]| null = null;
-  
-  function getImpactColor(level: string){
-    if (level === "High"){
+  let impactToImprove: string[];
+  let tradeoffSelectedSolution: string[][] | null = null;
+
+  function getImpactColor(level: string) {
+    if (level === "High") {
       return "green";
-    }
-    else if (level === "Medium"){
-     return "yellow";
-    }
-    else{
+    } else if (level === "Medium") {
+      return "yellow";
+    } else {
       return "red";
     }
   }
   // Function to handle button click
   function handleButtonClick(index: number) {
     if (objectiveToImprove === index) {
-      objectiveToImprove = null;  // Toggle off if already selected
+      objectiveToImprove = null; // Toggle off if already selected
       impactToImprove = [];
       tradeoffSelectedSolution = null;
-
     } else {
-      objectiveToImprove = index;  // Set the selected button
+      objectiveToImprove = index; // Set the selected button
       impactToImprove = solutions[selected[0]].impact;
       tradeoffSelectedSolution = solutions[selected[0]].tradeoff_matrix;
-     /* for (let index = 0; index < impactToImprove.length; index++) {
+      /* for (let index = 0; index < impactToImprove.length; index++) {
           if (impactToImprove[index] == "High"){
             impactToImprove[index] = "green";
           }
@@ -98,38 +95,50 @@
 
 <div class="flex flex-col gap-4">
   {#each objective_long_names as objective_name, j}
-  <div style="display:flex; flex-direction:row">
-    <XnimbusBar
-    barName={objective_name + " (" + (is_maximized[j] ? "max" : "min") + ")"}
-    variant={variant}
-    lowerBound={lower_bounds[j]}
-    higherBound={upper_bounds[j]}
-    bind:selected={selected}
-    bind:solutions={solutions}
-    tradeoffs={objectiveToImprove!==null&&tradeoffSelectedSolution!==null?tradeoffSelectedSolution[objectiveToImprove][j]:null}
-    currentObjective={j}
-    previousValue={solutions[selected[0]].reference_point[j]}
-    bind:objectiveToImprove={objectiveToImprove}
-    barColor={colors[j]}
-    bind:selectedValue={preference[j]}
-    {decimalPrecision}
-    lowerIsBetter={!is_maximized[j]}
-    arrowMode={true}
-  />
-  <div style="display: flex; flex-direction:column; align-items:center; justify-content:flex-end">
-    <button
-    type="button"
-    class="btn-icon btn-icon-sm"
-    on:click={() => handleButtonClick(j)}
-    style="color: {objectiveToImprove === j ? 'blue' : 'black'}"
-  >     
-    <IconHeroiconsQuestionMarkCircle class="icon" />
-  </button>
-  <span class="badge-icon" style="visibility: {objectiveToImprove === null ? "hidden" : "visible"}; background: {objectiveToImprove !== null? getImpactColor(impactToImprove[j]) : "white"}"></span>
-  </div>
-  
-
-  </div>
-    
+    <div style="display:flex; flex-direction:row">
+      <XnimbusBar
+        barName={objective_name +
+          " (" +
+          (is_maximized[j] ? "max" : "min") +
+          ")"}
+        {variant}
+        lowerBound={lower_bounds[j]}
+        higherBound={upper_bounds[j]}
+        bind:selected
+        bind:solutions
+        tradeoffs={objectiveToImprove !== null &&
+        tradeoffSelectedSolution !== null
+          ? tradeoffSelectedSolution[objectiveToImprove][j]
+          : null}
+        currentObjective={j}
+        previousValue={solutions[selected[0]].reference_point[j]}
+        bind:objectiveToImprove
+        barColor={colors[j]}
+        bind:selectedValue={preference[j]}
+        {decimalPrecision}
+        lowerIsBetter={!is_maximized[j]}
+        arrowMode={true}
+      />
+      <div
+        style="display: flex; flex-direction:column; align-items:center; justify-content:flex-end"
+      >
+        <button
+          type="button"
+          class="btn-icon btn-icon-sm"
+          on:click={() => handleButtonClick(j)}
+          style="color: {objectiveToImprove === j ? 'blue' : 'black'}"
+        >
+          <IconHeroiconsQuestionMarkCircle class="icon" />
+        </button>
+        <span
+          class="badge-icon"
+          style="visibility: {objectiveToImprove === null
+            ? 'hidden'
+            : 'visible'}; background: {objectiveToImprove !== null
+            ? getImpactColor(impactToImprove[j])
+            : 'white'}"
+        />
+      </div>
+    </div>
   {/each}
 </div>

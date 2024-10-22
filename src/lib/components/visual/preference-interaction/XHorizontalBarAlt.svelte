@@ -36,7 +36,7 @@
   export let higherBound: number;
 
   /** The solution value to display on the chart. */
-  export let solutionValues: number[]  = [];
+  export let solutionValues: number[] = [];
 
   /** The value that the user has selected */
   export let selectedValue: number | undefined = undefined;
@@ -72,7 +72,7 @@
       (previousValue = roundToDecimal(previousValue, decimalPrecision))
     );
   }
-  $: if (selectedSolution != null && solutionValues!=null) {
+  $: if (selectedSolution != null && solutionValues != null) {
     updateSolutionBar(solutionValues[selectedSolution[0]]);
     //updateAspirationLine(roundToDecimal(solutionValues[selectedSolution[0]], decimalPrecision));
 
@@ -164,45 +164,44 @@
     addHorizontalBar(option);
   });
 
-  function drawTrianglesSolutions(){
-    let children = []
+  function drawTrianglesSolutions() {
+    let children = [];
     for (let index = 0; index < solutionValues.length; index++) {
-      let triangle =
-            {
-              id: "arrow"+ String(index),
-              type: "polygon",
-              // If the solution value is not defined, the arrow is invisible
-              x: solutionValues[index]
-                ? chart.convertToPixel({ seriesIndex: 0 }, [
-                    solutionValues[index],
-                    0,
-                  ])[0]
-                : 0,
-              invisible: solutionValues[index] ? false : true,
-              shape: {
-                points: [
-                  [-arrowSize, 0],
-                  [arrowSize, 0],
-                  [0, arrowSize],
-                ],
-              },
-              scaleY: 0.85,
-              scaleX: 0.85,
-              y: 2,
-              style: {
-                fill: index == selectedSolution[0]? "blue": "transparent",
-                // fillOpacity: 0,
-                stroke: arrowColor,
-                lineWidth: 1.25,
-              },
+      let triangle = {
+        id: "arrow" + String(index),
+        type: "polygon",
+        // If the solution value is not defined, the arrow is invisible
+        x: solutionValues[index]
+          ? chart.convertToPixel({ seriesIndex: 0 }, [
+              solutionValues[index],
+              0,
+            ])[0]
+          : 0,
+        invisible: solutionValues[index] ? false : true,
+        shape: {
+          points: [
+            [-arrowSize, 0],
+            [arrowSize, 0],
+            [0, arrowSize],
+          ],
+        },
+        scaleY: 0.85,
+        scaleX: 0.85,
+        y: 2,
+        style: {
+          fill: index == selectedSolution[0] ? "blue" : "transparent",
+          // fillOpacity: 0,
+          stroke: arrowColor,
+          lineWidth: 1.25,
+        },
 
-              onclick: () => {
-                // console.log("click");
-                selectedValue = solutionValues[index];
-                selectedSolution[0] = index;
-              },
-            }
-            children.push(triangle);
+        onclick: () => {
+          // console.log("click");
+          selectedValue = solutionValues[index];
+          selectedSolution[0] = index;
+        },
+      };
+      children.push(triangle);
     }
     console.log(children);
     return children;
@@ -256,9 +255,12 @@
           stack: "negative",
           type: "bar",
           color: color,
-          showBackground: solutionValues[selectedSolution[0]] !== undefined ? true : false,
+          showBackground:
+            solutionValues[selectedSolution[0]] !== undefined ? true : false,
           backgroundStyle: backgroundStyle,
-          data: solutionValues[selectedSolution[0]] ? [[solutionValues[selectedSolution[0]]]] : [[0]],
+          data: solutionValues[selectedSolution[0]]
+            ? [[solutionValues[selectedSolution[0]]]]
+            : [[0]],
           barWidth: "100%",
           // opacity: lowerIsBetter ? 1 : 0.2,
           emphasis: {
@@ -277,7 +279,9 @@
             id: "lower",
             stack: "negative",
             type: "bar",
-            color: solutionValues[selectedSolution[0]] ? originalBarColor : "transparent",
+            color: solutionValues[selectedSolution[0]]
+              ? originalBarColor
+              : "transparent",
             animation: false,
             data: datalowerBar,
             barWidth: "100%",
@@ -562,7 +566,7 @@
           id: "verticalGroup",
           type: "group",
           name: "interactiveButtons",
-          children: drawTrianglesSolutions()
+          children: drawTrianglesSolutions(),
         },
         // Add arrows to move the aspiration value to the left or to the right
         {
@@ -607,10 +611,8 @@
       addOnMouseEffect("right");
     }
     for (let index = 0; index < solutionValues.length; index++) {
-      addOnMouseEffect("arrow"+String(index));
-      
+      addOnMouseEffect("arrow" + String(index));
     }
-    
 
     addTooltipListeners("aspirationGroup");
     addTooltipListeners("leftRightGroup");
@@ -649,19 +651,18 @@
     updateLinePosition("aspirationGroup", newValue);
   }
 
-  function updateSolutionArrows(){
-    let options = []
+  function updateSolutionArrows() {
+    let options = [];
     for (let index = 0; index < solutionValues.length; index++) {
       let element = {
-          id: "arrow"+String(index),
-          style: {
-            fill: selectedSolution[0] == index? "blue": "transparent",
-            stroke: "black",
-            lineWidth: 1,
-          },
+        id: "arrow" + String(index),
+        style: {
+          fill: selectedSolution[0] == index ? "blue" : "transparent",
+          stroke: "black",
+          lineWidth: 1,
+        },
       };
-      options.push(element)
-      
+      options.push(element);
     }
     chart.setOption({
       graphic: options,
@@ -752,8 +753,6 @@
     };
     chart.setOption(newOption);
   }
-
-
 
   /**
    * Updates the solution bar (the colored bar) to the chart according to the
@@ -880,9 +879,8 @@
     let tooltipValue: string | undefined = undefined;
     switch (idToChek) {
       case "prevLine":
-        tooltipHelpText =
-          "Previous aspiration value";
-          tooltipValue = previousValue?.toString();
+        tooltipHelpText = "Previous aspiration value";
+        tooltipValue = previousValue?.toString();
         break;
       case "drag":
       case "aspirationGroup":
@@ -895,13 +893,11 @@
         break;
       case "leftRightGroup":
         if (targetId === "left") {
-          tooltipHelpText =
-            "Lowest possible value";
-            tooltipValue = lowerBound.toString();
+          tooltipHelpText = "Lowest possible value";
+          tooltipValue = lowerBound.toString();
         } else {
-          tooltipHelpText =
-            "Highest possible value";
-            tooltipValue= higherBound.toString();
+          tooltipHelpText = "Highest possible value";
+          tooltipValue = higherBound.toString();
         }
         break;
       default:
@@ -913,7 +909,7 @@
         show: true,
         trigger: "item",
         formatter: () => {
-          return tooltipHelpText + "<br/>"+ tooltipValue;
+          return tooltipHelpText + "<br/>" + tooltipValue;
         },
         position: idToChek == "verticalGroup" ? [20, -50] : [20, -30],
       },

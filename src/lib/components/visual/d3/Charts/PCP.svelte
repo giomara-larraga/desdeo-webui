@@ -23,159 +23,157 @@
 <!-- TODO: min/max text should show also when names given manually -->
 
 <script lang="ts">
-    import * as d3 from "d3";
-    import { onMount } from "svelte";
-  
-    import {
-      colorPalette,
-      selectedLineStyle,
-    } from "$lib/components/visual/constants";
+  import * as d3 from "d3";
+  import { onMount } from "svelte";
 
-    // Props for this component:
-    /** The values to display on the plot. */
-    export let solutions: Solution[] = [];
-  
-    /** Whether a lower value is better for each axis. */
-    export let lowerIsBetter: boolean[] = [];
-  
-    /** The names for each axis. */
-    export let names: string[];
-  
-    /** The indices of the selected values. */
-    export let selectedIndices: number[] = [];
-  
-      /** The lower bounds for each objective */
-    export let lowerBounds: number[] = [];
+  import {
+    colorPalette,
+    selectedLineStyle,
+  } from "$lib/components/visual/constants";
 
-    /** The upper bounds for each objective */
-    export let upperBounds: number[] = [];
-    /** The index of the highlighted value. */
-    export let highlightedIndex: number | undefined = undefined;
-  
-    /** The colors to use for the plot. */
-    export let colors: string[] = [colorPalette[0]];
-  
-    let svg: SVGSVGElement;
-    let margin = { top: 30, right: 50, bottom: 30, left: 50 };
-    let width = 800 - margin.left - margin.right;
-    let height = 400 - margin.top - margin.bottom;
-    // Scales for axes
-    let xScale: d3.ScalePoint<string>;
-    let yScales: d3.ScaleLinear<number, number>[];
-    let selectedPath: d3.Selection<SVGPathElement, any, SVGGElement, undefined> | null = null;
+  // Props for this component:
+  /** The values to display on the plot. */
+  export let solutions: Solution[] = [];
 
-    onMount(() => {
+  /** Whether a lower value is better for each axis. */
+  export let lowerIsBetter: boolean[] = [];
+
+  /** The names for each axis. */
+  export let names: string[];
+
+  /** The indices of the selected values. */
+  export let selectedIndices: number[] = [];
+
+  /** The lower bounds for each objective */
+  export let lowerBounds: number[] = [];
+
+  /** The upper bounds for each objective */
+  export let upperBounds: number[] = [];
+  /** The index of the highlighted value. */
+  export let highlightedIndex: number | undefined = undefined;
+
+  /** The colors to use for the plot. */
+  export let colors: string[] = [colorPalette[0]];
+
+  let svg: SVGSVGElement;
+  let margin = { top: 30, right: 50, bottom: 30, left: 50 };
+  let width = 800 - margin.left - margin.right;
+  let height = 400 - margin.top - margin.bottom;
+  // Scales for axes
+  let xScale: d3.ScalePoint<string>;
+  let yScales: d3.ScaleLinear<number, number>[];
+  let selectedPath: d3.Selection<
+    SVGPathElement,
+    any,
+    SVGGElement,
+    undefined
+  > | null = null;
+
+  onMount(() => {
+    generateChart();
+  });
+
+  // Reactive statement to update the chart when `values`, `names`, or `ranges` change
+  $: {
+    if (svg && solutions.length > 0 && names.length > 0) {
       generateChart();
-    });
-  
-     // Reactive statement to update the chart when `values`, `names`, or `ranges` change
-     $: {
-      if (svg && solutions.length > 0 && names.length > 0) {
-        generateChart();
-      }
     }
-    /**
-     * Initialize the parallel coordinates chart.
-     */
-    function generateChart() {
-      const container = d3.select(svg);
-      container.selectAll("*").remove(); // Clear previous content
-  
-      const g = container
-        .attr("width", width + margin.left + margin.right)
-        .attr("height", height + margin.top + margin.bottom)
-        .append("g")
-        .attr("transform", `translate(${margin.left},${margin.top})`);
-  
-      xScale = d3
-        .scalePoint()
-        .domain(names)
-        .range([0, width]);
-  
-      // Set y scales based on provided ranges or dynamically calculate them.
-      yScales = names.map((_, i) =>
-        d3
-          .scaleLinear()
-          .domain([lowerBounds[i], upperBounds[i]])
-          .range([height, 0])
-      );
-  
+  }
+  /** Initialize the parallel coordinates chart. */
+  function generateChart() {
+    const container = d3.select(svg);
+    container.selectAll("*").remove(); // Clear previous content
 
-  
-      // Draw the lines for the solutions
-      solutions.forEach((d, i) => {
-        const path = g.append("path")
-          .datum(d.objective_values)
-          .attr("d", lineGenerator(i))
-          .attr("fill", "none")
-          .attr("stroke", colors[i % colors.length])
-          .attr("stroke-width", i === highlightedIndex ? 2 : 1)
-          .attr("data-index", i); // Store the index as a custom attribute
+    const g = container
+      .attr("width", width + margin.left + margin.right)
+      .attr("height", height + margin.top + margin.bottom)
+      .append("g")
+      .attr("transform", `translate(${margin.left},${margin.top})`);
 
+    xScale = d3.scalePoint().domain(names).range([0, width]);
 
-        // Append a second, invisible path for easier clicking
-        const hitArea = g.append("path")
-            .datum(d.objective_values)
-            .attr("d", lineGenerator(i))
-            .attr("fill", "none")
-            .attr("stroke", "transparent")  // Invisible stroke
-            .attr("stroke-width", 10)       // Larger stroke width for the clickable area
-            .on("click", function(event, data) {
-                // Deselect the previously selected path if it exists
-                if (selectedPath) {
-                    const prevIndex = selectedPath.attr("data-index");
-                    selectedPath
-                    .attr("stroke-width", 1)  // Reset almost default stroke-width
-                    .attr("stroke", colors[prevIndex % colors.length]); // Reset to original color
-                }
+    // Set y scales based on provided ranges or dynamically calculate them.
+    yScales = names.map((_, i) =>
+      d3
+        .scaleLinear()
+        .domain([lowerBounds[i], upperBounds[i]])
+        .range([height, 0])
+    );
 
-                // Select the newly clicked path
-                selectedPath = path;
-              
+    // Draw the lines for the solutions
+    solutions.forEach((d, i) => {
+      const path = g
+        .append("path")
+        .datum(d.objective_values)
+        .attr("d", lineGenerator(i))
+        .attr("fill", "none")
+        .attr("stroke", colors[i % colors.length])
+        .attr("stroke-width", i === highlightedIndex ? 2 : 1)
+        .attr("data-index", i); // Store the index as a custom attribute
 
-                // Apply highlight to the selected path
-                selectedPath
-                    .attr("stroke", "#094277")     // Highlight the stroke color
-                    .attr("stroke-width", 3);  // Increase stroke width to highlight
+      // Append a second, invisible path for easier clicking
+      const hitArea = g
+        .append("path")
+        .datum(d.objective_values)
+        .attr("d", lineGenerator(i))
+        .attr("fill", "none")
+        .attr("stroke", "transparent") // Invisible stroke
+        .attr("stroke-width", 10) // Larger stroke width for the clickable area
+        .on("click", function (event, data) {
+          // Deselect the previously selected path if it exists
+          if (selectedPath) {
+            const prevIndex = selectedPath.attr("data-index");
+            selectedPath
+              .attr("stroke-width", 1) // Reset almost default stroke-width
+              .attr("stroke", colors[prevIndex % colors.length]); // Reset to original color
+          }
 
-                console.log("Path clicked:", i, data);
-                });
-      });
+          // Select the newly clicked path
+          selectedPath = path;
 
+          // Apply highlight to the selected path
+          selectedPath
+            .attr("stroke", "#094277") // Highlight the stroke color
+            .attr("stroke-width", 3); // Increase stroke width to highlight
 
+          console.log("Path clicked:", i, data);
+        });
+    });
 
-      // Draw lines for reference points
-      solutions.forEach((d, i) => {
-        const path = g.append("path")
-          .datum(d.reference_point)
-          .attr("d", lineGenerator(i))
-          .attr("fill", "none")
-          .attr("stroke", "#C00000")
-          .attr("stroke-width", i === highlightedIndex ? 4 : 2);
-      });
+    // Draw lines for reference points
+    solutions.forEach((d, i) => {
+      const path = g
+        .append("path")
+        .datum(d.reference_point)
+        .attr("d", lineGenerator(i))
+        .attr("fill", "none")
+        .attr("stroke", "#C00000")
+        .attr("stroke-width", i === highlightedIndex ? 4 : 2);
+    });
 
     // Draw the axes
     names.forEach((name, i) => {
-        const axisGroup = g.append("g").attr("transform", `translate(${xScale(name)}, 0)`);
-        const axis = d3.axisLeft(yScales[i]);
-        axisGroup.call(axis);
-        axisGroup.append("text")
-          .style("text-anchor", "middle")
-          .attr("y", -10)
-          .text(name += lowerIsBetter[i] ? "\n (min)" : "\n (max)")
-          .style("fill", "black");
-      });
-    }
-  
-    /**
-     * Generates the line path for each series.
-     */
-    function lineGenerator(i: number) {
-      return d3.line<number>()
-        .x((_: any, j: number) => xScale(names[j]) as number)
-        .y((d: any, j: number) => yScales[j](d) as number);
-    }
-  
-  </script>
-  <svg bind:this={svg}></svg>
-  
+      const axisGroup = g
+        .append("g")
+        .attr("transform", `translate(${xScale(name)}, 0)`);
+      const axis = d3.axisLeft(yScales[i]);
+      axisGroup.call(axis);
+      axisGroup
+        .append("text")
+        .style("text-anchor", "middle")
+        .attr("y", -10)
+        .text((name += lowerIsBetter[i] ? "\n (min)" : "\n (max)"))
+        .style("fill", "black");
+    });
+  }
+
+  /** Generates the line path for each series. */
+  function lineGenerator(i: number) {
+    return d3
+      .line<number>()
+      .x((_: any, j: number) => xScale(names[j]) as number)
+      .y((d: any, j: number) => yScales[j](d) as number);
+  }
+</script>
+
+<svg bind:this={svg} />

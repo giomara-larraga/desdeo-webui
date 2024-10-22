@@ -30,7 +30,7 @@ length.
   // Import the visualizations here.
   import ParallelCoordinatePlotBase from "$lib/components/visual/visualization/props-linking/ParallelCoordinatePlot.svelte";
   import MultiMiniBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniBarChart.svelte";
-    import Pcp from "$lib/components/visual/d3/Charts/PCP.svelte";
+  import Pcp from "$lib/components/visual/d3/Charts/PCP.svelte";
   // import Petals from "$lib/components/visual/visualization/props-linking/MultiplePetalCharts.svelte";
 </script>
 
@@ -54,23 +54,21 @@ length.
       />
     {:else if tab === 1}
       <MultiMiniBarChart
-        solutions={solutions}
+        {solutions}
         lowerBounds={lower_bounds}
         upperBounds={upper_bounds}
         lowerIsBetter={lower_is_better}
         bind:selectedIndices={selected}
       />
     {:else if tab === 2}
-      <Pcp 
-      names={names}
-      solutions={solutions}
-      lowerBounds={lower_bounds}
-      upperBounds={upper_bounds}
-      lowerIsBetter={lower_is_better}
-      bind:selectedIndices={selected}
+      <Pcp
+        {names}
+        {solutions}
+        lowerBounds={lower_bounds}
+        upperBounds={upper_bounds}
+        lowerIsBetter={lower_is_better}
+        bind:selectedIndices={selected}
       />
-        
-  
     {/if}
   </svelte:fragment>
 </TabGroup>

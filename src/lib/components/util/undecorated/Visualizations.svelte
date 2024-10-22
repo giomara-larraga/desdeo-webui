@@ -25,17 +25,15 @@ length.
   export let tab = 0;
 </script>
 
-
-  <TabbedVisualizations
-    {names}
-    {solutions}
-    {lower_bounds}
-    {upper_bounds}
-    {lower_is_better}
-    bind:selected
-    {max_selections}
-    bind:highlighted
-    bind:tab
-    {disabled}
-  />
-
+<TabbedVisualizations
+  {names}
+  {solutions}
+  {lower_bounds}
+  {upper_bounds}
+  {lower_is_better}
+  bind:selected
+  {max_selections}
+  bind:highlighted
+  bind:tab
+  {disabled}
+/>

@@ -36,7 +36,7 @@
   import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import { onMount } from "svelte";
-  import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
+  import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayoutXAI.svelte";
   import { RPP_Info, get_solutions } from "../data";
   import { getCurrentIteration } from "../../../helpers";
   import ScatterPlot from "$lib/components/visual/visualization/props-linking/ScatterPlot.svelte";
@@ -88,7 +88,7 @@
   let MAX_NUM_SOLUTIONS = 4;
 
   // Flags to check if the classification/intermediate/save selection are valid.
-  let is_classification_valid = false;
+  let is_classification_valid = true;
   let is_intermediate_selection_valid = false;
   let is_save_solutions_valid = false;
 
@@ -147,17 +147,6 @@
   /* eslint-enable */
 
   // Check if the classification is valid.
-  $: {
-    if (!(state === State.ClassifySelected)) {
-      is_classification_valid = false;
-    } else if (selected_solutions.length > 1) {
-      is_classification_valid = false;
-    } else if (!classification_checker) {
-      is_classification_valid = false;
-    } else {
-      is_classification_valid = true;
-    }
-  }
 
   // Check if the intermediate selection is valid. Exactly two solutions must be selected.
   $: {
@@ -255,6 +244,8 @@
 
   let visualizations_maximized = false;
   let visualizations_tab = 0;
+  let w;
+  let h;
 
   /** The number of decimals to show for numeric values. */
   const decimals = 3;
@@ -346,7 +337,7 @@
     >
       <div slot="preferences">
         {#if problemInfo !== undefined && reference_solution !== undefined}
-          <div class="preferences-bar">
+          <div>
             <TabGroup>
               <Tab bind:group={tabSet} name="tab1" value={0} class="mb-0">
                 <svelte:fragment slot="lead">Preferences</svelte:fragment>
@@ -373,12 +364,11 @@
                     {#if state === State.ClassifySelected}
                       <div class="flex gap-4">
                         <button
-                          class="btn variant-filled inline"
-                          on:click={handle_iterate}
-                          disabled={!is_classification_valid}>Iterate</button
+                          class="variant-filled btn inline"
+                          on:click={handle_iterate}>Iterate</button
                         >
                         <button
-                          class="btn variant-filled inline"
+                          class="variant-filled btn inline"
                           on:click={press_final_button}
                           disabled={!(state === State.ClassifySelected)}
                           >Finish with chosen solution</button
@@ -435,76 +425,73 @@
           </div>
         {/if}
       </div>
-      <div slot="visualizations">
+      <div
+        slot="visualizations"
+        class="card"
+        bind:clientWidth={w}
+        bind:clientHeight={h}
+      >
         {#if state === State.ClassifySelected && !finalChoiceState}
-          <Card>
-            {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
-              <div class="flex gap-x-2" style="flex-direction:row">
-                <div class="flex items-center space-x-2">
-                  <p class="font-medium">Mode:</p>
-                </div>
-                <label class="flex items-center space-x-2">
-                  <input
-                    class="radio"
-                    type="radio"
-                    checked
-                    name="radio-direct"
-                    value="1"
-                  />
-                  <p>Explanation</p>
-                </label>
-                <label class="flex items-center space-x-2">
-                  <input
-                    class="radio"
-                    type="radio"
-                    name="radio-direct"
-                    value="2"
-                  />
-                  <p>Effect</p>
-                </label>
-              </div>
-              <Viz
-                names={problemInfo.objective_short_names}
-                solutions={solutions_to_visualize}
-                ranges={transform_bounds(
-                  problemInfo.lower_bounds,
-                  problemInfo.upper_bounds
-                )}
-                lowerIsBetter={lower_is_better}
-                showIndicators={true}
-                bind:selectedIndices={selected_solutions}
-                referencePoint={solutions_to_visualize[0].reference_point}
-              />
-            {:else}
-              <GeneralError />
-            {/if}
-          </Card>
+          {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
+            <Viz
+              names={problemInfo.objective_short_names}
+              solutions={solutions_to_visualize}
+              ranges={transform_bounds(
+                problemInfo.lower_bounds,
+                problemInfo.upper_bounds
+              )}
+              lowerIsBetter={lower_is_better}
+              showIndicators={true}
+              bind:selectedIndices={selected_solutions}
+              referencePoint={solutions_to_visualize[0].reference_point}
+            />
+          {:else}
+            <GeneralError />
+          {/if}
         {/if}
       </div>
-      <div slot="solutions">
-        <Card>
-          <div class="flex flex-col gap-4">
-            <div class="overflow-x-auto">
-              {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
-                {#if !finalChoiceState}
-                  <Table
-                    problem_info={problemInfo}
-                    solution_list={solutions_to_visualize}
-                    bind:selected_rows={selected_solutions}
-                  />
-                {:else if reference_solution !== undefined}
-                  <Table
-                    problem_info={problemInfo}
-                    solution_list={solutions_to_visualize}
-                  />
-                {/if}
-              {:else}
-                <GeneralError />
-              {/if}
-            </div>
-          </div>
-        </Card>
+      <div slot="solutions" class="card">
+        {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
+          {#if !finalChoiceState}
+            <Table
+              problem_info={problemInfo}
+              solution_list={solutions_to_visualize}
+              bind:selected_rows={selected_solutions}
+            />
+          {:else if reference_solution !== undefined}
+            <Table
+              problem_info={problemInfo}
+              solution_list={solutions_to_visualize}
+            />
+          {/if}
+        {:else}
+          <GeneralError />
+        {/if}
       </div>
     </NimbusLayout>
   {/if}
 </div>
+
+<style>
+  .card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    height: 100%;
+  }
+  /* Ensure the slotted content (cards) take up the full width and height */
+  ::slotted(.card) {
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%; /* Full width */
+    height: 100%; /* Full height */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+</style>

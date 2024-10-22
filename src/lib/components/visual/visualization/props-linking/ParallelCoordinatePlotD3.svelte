@@ -30,7 +30,7 @@
     colorPalette,
     selectedLineStyle,
   } from "$lib/components/visual/constants";
-    type DataPoint = number[];
+  type DataPoint = number[];
 
   // Props for this component:
   /** The values to display on the plot. */
@@ -69,16 +69,14 @@
     initializeChart();
   });
 
-   // Reactive statement to update the chart when `values`, `names`, or `ranges` change
-   $: {
+  // Reactive statement to update the chart when `values`, `names`, or `ranges` change
+  $: {
     if (svg && values.length > 0 && names.length > 0) {
       initializeChart();
     }
   }
 
-  /**
-   * Initialize the parallel coordinates chart.
-   */
+  /** Initialize the parallel coordinates chart. */
   function initializeChart() {
     const container = d3.select(svg);
     container.selectAll("*").remove(); // Clear previous content
@@ -90,10 +88,7 @@
       .attr("transform", `translate(${margin.left},${margin.top})`);
 
     //const dimensions = names.length;
-    xScale = d3
-      .scalePoint()
-      .domain(names)
-      .range([0, width]);
+    xScale = d3.scalePoint().domain(names).range([0, width]);
 
     // Set y scales based on provided ranges or dynamically calculate them.
     yScales = names.map((_, i) =>
@@ -102,38 +97,42 @@
         .domain(
           ranges[i]
             ? [ranges[i].min, ranges[i].max]
-            : d3.extent(values.flatMap((d) => d[i])) as [number, number]
+            : (d3.extent(values.flatMap((d) => d[i])) as [number, number])
         )
         .range([height, 0])
     );
 
     // Draw the axes
     names.forEach((name, i) => {
-      const axisGroup = g.append("g").attr("transform", `translate(${xScale(name)}, 0)`);
+      const axisGroup = g
+        .append("g")
+        .attr("transform", `translate(${xScale(name)}, 0)`);
       const axis = d3.axisLeft(yScales[i]);
       axisGroup.call(axis);
-      axisGroup.append("text")
+      axisGroup
+        .append("text")
         .style("text-anchor", "middle")
         .attr("y", -10)
         .text(name)
         .style("fill", "black");
     });
 
-		let tooltip = d3
-			.select('body')
-			.append('div')
-			.attr('class', 'tooltip')
-			.style('position', 'absolute')
-			.style('padding', '5px')
-			.style('background-color', 'white')
-			.style('border', '1px solid #ccc')
-			.style('border-radius', '3px')
-			.style('pointer-events', 'none')
-			.style('opacity', 0);
-    
+    let tooltip = d3
+      .select("body")
+      .append("div")
+      .attr("class", "tooltip")
+      .style("position", "absolute")
+      .style("padding", "5px")
+      .style("background-color", "white")
+      .style("border", "1px solid #ccc")
+      .style("border-radius", "3px")
+      .style("pointer-events", "none")
+      .style("opacity", 0);
+
     // Draw the lines
     values.forEach((d, i) => {
-      const path = g.append("path")
+      const path = g
+        .append("path")
         .datum(d)
         .attr("d", lineGenerator(i))
         .attr("fill", "none")
@@ -147,36 +146,34 @@
           .attr("cy", yScales[j](d[j]))
           .attr("r", 4)
           .attr("fill", colors[i % colors.length])
-          .on('mouseover', (event) => {
-              tooltip.transition().duration(200).style('opacity', 0.9);
-              tooltip
-                .html(`<strong>${names[j]}</strong><br>Value: ${d[j]}`)
-                .style('left', `${event.pageX + 5}px`)
-                .style('top', `${event.pageY - 28}px`);
-            })
-            .on('mouseout', () => {
-              tooltip.transition().duration(500).style('opacity', 0);
-			});
+          .on("mouseover", (event) => {
+            tooltip.transition().duration(200).style("opacity", 0.9);
+            tooltip
+              .html(`<strong>${names[j]}</strong><br>Value: ${d[j]}`)
+              .style("left", `${event.pageX + 5}px`)
+              .style("top", `${event.pageY - 28}px`);
+          })
+          .on("mouseout", () => {
+            tooltip.transition().duration(500).style("opacity", 0);
+          });
       });
     });
   }
 
-
-  /**
-   * Generates the line path for each series.
-   */
+  /** Generates the line path for each series. */
   function lineGenerator(i: number) {
-    return d3.line<number>()
+    return d3
+      .line<number>()
       .x((_: any, j: number) => xScale(names[j]) as number)
       .y((d: any, j: number) => yScales[j](d) as number);
   }
-
 </script>
-<svg bind:this={svg}></svg>
+
+<svg bind:this={svg} />
 
 <style>
-  	.tooltip {
-		font-size: 12px;
-		color: #333;
-	}
+  .tooltip {
+    font-size: 12px;
+    color: #333;
+  }
 </style>

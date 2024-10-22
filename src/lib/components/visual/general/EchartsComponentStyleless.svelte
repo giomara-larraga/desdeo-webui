@@ -88,7 +88,4 @@
   }
 </script>
 
-<div
-  style="height: 50vh; width: 30vw;"
-  bind:this={chartDiv}
-/>
+<div style="height: 50vh; width: 30vw;" bind:this={chartDiv} />

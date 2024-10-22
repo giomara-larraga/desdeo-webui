@@ -842,9 +842,8 @@
     let tooltipValue: string | undefined = undefined;
     switch (idToChek) {
       case "prevLine":
-        tooltipHelpText =
-          "Previous aspiration value";
-          tooltipValue = previousValue?.toString();
+        tooltipHelpText = "Previous aspiration value";
+        tooltipValue = previousValue?.toString();
         break;
       case "drag":
       case "aspirationGroup":
@@ -857,13 +856,11 @@
         break;
       case "leftRightGroup":
         if (targetId === "left") {
-          tooltipHelpText =
-            "Lowest possible value";
-            tooltipValue = lowerBound.toString();
+          tooltipHelpText = "Lowest possible value";
+          tooltipValue = lowerBound.toString();
         } else {
-          tooltipHelpText =
-            "Highest possible value";
-            tooltipValue= higherBound.toString();
+          tooltipHelpText = "Highest possible value";
+          tooltipValue = higherBound.toString();
         }
         break;
       default:
@@ -875,7 +872,7 @@
         show: true,
         trigger: "item",
         formatter: () => {
-          return tooltipHelpText + "<br/>"+ tooltipValue;
+          return tooltipHelpText + "<br/>" + tooltipValue;
         },
         position: idToChek == "verticalGroup" ? [20, -50] : [20, -30],
       },

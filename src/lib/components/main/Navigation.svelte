@@ -10,10 +10,7 @@
   import IconHeroiconsQuestionMarkCircle from "~icons/heroicons-solid/question-mark-circle";
   import IconHeroiconsSolidUserCircle from "~icons/heroicons-solid/user-circle";
   import { AppRail, AppRailAnchor } from "@skeletonlabs/skeleton";
-
 </script>
-
-
 
 <!--
   TODO: Use the theme system instead of hardcoded colors?
@@ -22,8 +19,8 @@
 <AppRail class="nav-bar">
   <AppRailAnchor
     href="/saved_problems"
-    selected={$page.url.pathname === '/saved_problems'}
-    hover = "bg-gray-500-hover-token"
+    selected={$page.url.pathname === "/saved_problems"}
+    hover="bg-gray-500-hover-token"
     name="tile-1"
     value={0}
     title="tile-1"

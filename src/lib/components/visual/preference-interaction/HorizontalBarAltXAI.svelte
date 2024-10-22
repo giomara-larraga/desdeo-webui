@@ -38,9 +38,9 @@
   /** The solution value to display on the chart. */
   //export let solutionValue: number | undefined = undefined;
 
-  export let solutions: number [];
+  export let solutions: number[];
 
-  export let tradeoffs: string | null = null;;
+  export let tradeoffs: string | null = null;
 
   export let selected: number[] = [];
 
@@ -82,13 +82,17 @@
     //updateSolutionBar(Number.parseFloat(solutionValue.toFixed(decimalPrecision)));
   }
 
-  $: if(objectiveToImprove!=null && solutions[selected[0]] != null && tradeoffs !=null){
+  $: if (
+    objectiveToImprove != null &&
+    solutions[selected[0]] != null &&
+    tradeoffs != null
+  ) {
     //currentTradeoff= tradeoffs[selected[0]];
     ////arrowTradeoff= getShapeTradeoff(tradeoffs, arrowSize);
     updateTradeoffs();
   }
 
-  $: if(objectiveToImprove === null && chart!=undefined){
+  $: if (objectiveToImprove === null && chart != undefined) {
     tradeoffs = null;
     //arrowTradeoff= getShapeTradeoff(tradeoffs, arrowSize);
     console.log("tradeoff is null");
@@ -97,7 +101,7 @@
   }
 
   const arrowSize = 10;
-  const selectedColor= "navy"
+  const selectedColor = "navy";
   const arrowColor = "black";
   const shadowSize = 3;
   const shadowColor = "rgba(0,0,0,0.6)";
@@ -182,31 +186,28 @@
     addHorizontalBar(option);
   });
 
-  function getShapeTradeoff(value:string | null, scaleValue:number){
-    let points = null
+  function getShapeTradeoff(value: string | null, scaleValue: number) {
+    let points = null;
     console.log("the current tradeoff is", value);
-    if (value === "Improve")
-    {
+    if (value === "Improve") {
       points = [
         [0, scaleValue],
         [scaleValue, 0],
         [0, -scaleValue],
-      ]
-    }else if(value ==="Impair")
-    {
+      ];
+    } else if (value === "Impair") {
       points = [
         [0, scaleValue],
         [-scaleValue, 0],
         [0, -scaleValue],
-      ]
-    }
-    else{
+      ];
+    } else {
       points = [
         [0, scaleValue],
         [0, -scaleValue],
         [-scaleValue, 0],
-        [-scaleValue, scaleValue]
-      ]
+        [-scaleValue, scaleValue],
+      ];
     }
     return points;
   }
@@ -222,96 +223,92 @@
       graphic: options,
     });
   }*/
-  function updateTradeoffs(){
+  function updateTradeoffs() {
     console.log("updating tradeoffs");
     let options = null;
     let hideoptions = [];
     for (let index = 0; index < solutions.length; index++) {
       hideoptions.push({
-            id: "improve_arrow_"+String(index),
-            invisible: true,
-            transition: "all",
+        id: "improve_arrow_" + String(index),
+        invisible: true,
+        transition: "all",
       });
       hideoptions.push({
-            id: "impair_arrow_"+String(index),
-            invisible: true,
-            transition: "all",
+        id: "impair_arrow_" + String(index),
+        invisible: true,
+        transition: "all",
       });
     }
     chart.setOption({
       graphic: hideoptions,
     });
-    if (tradeoffs === "Improve"){
-      options= {
-            id: "improve_arrow_"+String(selected[0]),
-            invisible: false,
-            transition: "all",
-            //x: newValue!==null?chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]:[],
-      };
-    }
-    else if(tradeoffs ==="Impair"){
-      options= {
-        id: "impair_arrow_"+String(selected[0]),
+    if (tradeoffs === "Improve") {
+      options = {
+        id: "improve_arrow_" + String(selected[0]),
         invisible: false,
         transition: "all",
         //x: newValue!==null?chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]:[],
-        };
-    }
-    else{
-      options= [{
-        id: "impair_arrow_"+String(selected[0]),
-        invisible: true,
+      };
+    } else if (tradeoffs === "Impair") {
+      options = {
+        id: "impair_arrow_" + String(selected[0]),
+        invisible: false,
         transition: "all",
         //x: newValue!==null?chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]:[],
-      }, {
-        id: "improve_arrow_"+String(selected[0]),
-        invisible: true,
-        transition: "all",
-        //x: newValue!==null?chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]:[],
-      },];
+      };
+    } else {
+      options = [
+        {
+          id: "impair_arrow_" + String(selected[0]),
+          invisible: true,
+          transition: "all",
+          //x: newValue!==null?chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]:[],
+        },
+        {
+          id: "improve_arrow_" + String(selected[0]),
+          invisible: true,
+          transition: "all",
+          //x: newValue!==null?chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]:[],
+        },
+      ];
     }
 
     chart.setOption({
       graphic: options,
     });
   }
-  function updateSolutionArrows(){
-    let options = []
+  function updateSolutionArrows() {
+    let options = [];
     for (let index = 0; index < solutions.length; index++) {
       let element = {
-          id: "arrow"+String(index),
-          style: {
-            fill: selected[0] == index? selectedColor: "transparent",
-            stroke: "black",
-            lineWidth: 1,
-          },
+        id: "arrow" + String(index),
+        style: {
+          fill: selected[0] == index ? selectedColor : "transparent",
+          stroke: "black",
+          lineWidth: 1,
+        },
       };
-      options.push(element)
-      
+      options.push(element);
     }
     chart.setOption({
       graphic: options,
     });
   }
 
-  function generateTradeoffArrows(){
+  function generateTradeoffArrows() {
     let children = [];
     for (let index = 0; index < solutions.length; index++) {
-      children.push(            
-      {
+      children.push({
         type: "polygon",
-        id: "improve_arrow_"+String(index),
+        id: "improve_arrow_" + String(index),
         x: solutions[index]
-        ? chart.convertToPixel({ seriesIndex: 0 }, [
-          solutions[index],
-          0,
-        ])[0]
-        : 0,
+          ? chart.convertToPixel({ seriesIndex: 0 }, [solutions[index], 0])[0]
+          : 0,
         y: chart.getHeight() / 2,
         z: 498,
         invisible: true,
         shape: {
-          points: getShapeTradeoff("Improve", arrowSize)
+          points: getShapeTradeoff("Improve", arrowSize),
         },
         style: {
           fill: referencePointStyle.stroke,
@@ -320,21 +317,17 @@
           // opacity: 0.7,
         },
       });
-      children.push(            
-      {
+      children.push({
         type: "polygon",
-        id: "impair_arrow_"+String(index),
+        id: "impair_arrow_" + String(index),
         x: solutions[index]
-        ? chart.convertToPixel({ seriesIndex: 0 }, [
-          solutions[index],
-          0,
-        ])[0]
-        : 0,
+          ? chart.convertToPixel({ seriesIndex: 0 }, [solutions[index], 0])[0]
+          : 0,
         y: chart.getHeight() / 2,
         z: 498,
         invisible: true,
         shape: {
-          points: getShapeTradeoff("Impair", arrowSize)
+          points: getShapeTradeoff("Impair", arrowSize),
         },
         style: {
           fill: referencePointStyle.stroke,
@@ -344,133 +337,119 @@
         },
       });
     }
-      return children;
+    return children;
   }
-  function generateSolutionArrows(){
+  function generateSolutionArrows() {
     let children = [];
     for (let index = 0; index < solutions.length; index++) {
       //let value = solutions[index]
-    children.push(
-            {
-              id: "arrow"+ String(index),
-              type: "polygon",
-              // If the solution value is not defined, the arrow is invisible
-              x: solutions[index]
-                ? chart.convertToPixel({ seriesIndex: 0 }, [
-                  solutions[index],
-                    0,
-                  ])[0]
-                : 0,
-              invisible: solutions[index] ? false : true,
-              shape: {
-                points: [
-                  [-arrowSize, 0],
-                  [arrowSize, 0],
-                  [0, arrowSize],
-                ],
-              },
-              scaleY: 0.85,
-              scaleX: 0.85,
-              y: 2,
-              z:900,
-              style: {
-                fill: index == selected[0]? selectedColor: "transparent",
-                // fillOpacity: 0,
-                stroke: arrowColor,
-                lineWidth: 1.25,
-              },
+      children.push({
+        id: "arrow" + String(index),
+        type: "polygon",
+        // If the solution value is not defined, the arrow is invisible
+        x: solutions[index]
+          ? chart.convertToPixel({ seriesIndex: 0 }, [solutions[index], 0])[0]
+          : 0,
+        invisible: solutions[index] ? false : true,
+        shape: {
+          points: [
+            [-arrowSize, 0],
+            [arrowSize, 0],
+            [0, arrowSize],
+          ],
+        },
+        scaleY: 0.85,
+        scaleX: 0.85,
+        y: 2,
+        z: 900,
+        style: {
+          fill: index == selected[0] ? selectedColor : "transparent",
+          // fillOpacity: 0,
+          stroke: arrowColor,
+          lineWidth: 1.25,
+        },
 
-              onclick: () => {
-                // console.log("click");
-                selected[0] = index;
-                updateAspirationLine(roundToDecimal(solutions[index], decimalPrecision));
-                updateTradeoffs();
+        onclick: () => {
+          // console.log("click");
+          selected[0] = index;
+          updateAspirationLine(
+            roundToDecimal(solutions[index], decimalPrecision)
+          );
+          updateTradeoffs();
 
-                
-
-                //selectedValue = solutions[selected[0]];
-                //selected[0] = index;
-              },
-            }
-            );
-      
+          //selectedValue = solutions[selected[0]];
+          //selected[0] = index;
+        },
+      });
     }
     return children;
   }
 
-  function generateSolutionLines(gridRect:any){
+  function generateSolutionLines(gridRect: any) {
     let children = [];
     for (let index = 0; index < solutions.length; index++) {
       //let value = solutions[index]
-    children.push({
-              id: "line-"+String(index),
-              type: "rect",
-              z:500,
-              // If the solution value is not defined, the arrow is invisible
-              x: solutions[index]
-                ? chart.convertToPixel({ seriesIndex: 0 }, [
-                  solutions[index],
-                    0,
-                  ])[0]
-                : 0,
-              y: gridRect.y,
-              invisible: solutions[index] ? false : true,
-              shape: {
-                height: gridRect.height,
-
-              },
-              style: {
-                //fill: "transparent",
-                // fillOpacity: 0,
-                stroke: selectedColor,
-                lineDash: [2],
-                lineWidth: 1,
-                
-              },            
-              onclick: () => {
-                console.log("click");
-                //selectedValue = solutions[selected[0]];
-                //selected[0] = solutions[index];
-                updateAspirationLine(roundToDecimal( solutions[selected[0]], decimalPrecision));
-                //selectedValue = selectedValue;
-              },
-            },
-            {
-              id: "transparent-"+String(index),
-              type: "rect",
-              z:500,
-              // If the solution value is not defined, the arrow is invisible
-              x: solutions[index]
-                ? chart.convertToPixel({ seriesIndex: 0 }, [
-                  solutions[index],
-                    0,
-                  ])[0]
-                : 0,
-              y: gridRect.y,
-              invisible: solutions[index] ? false : true,
-              shape: {
-                height: gridRect.height,
-
-              },
-              style: {
-                fill: "transparent",
-                // fillOpacity: 0,
-                stroke: "transparent",
-                lineWidth: 3,
-                
-              },            
-              onclick: () => {
-                console.log("click");
-                //selectedValue = solutions[index];
-                //selected[0] = index;
-                updateAspirationLine(roundToDecimal(solutions[index], decimalPrecision));
-                //selectedValue = selectedValue;
-              },
-            },
-           
-            
+      children.push(
+        {
+          id: "line-" + String(index),
+          type: "rect",
+          z: 500,
+          // If the solution value is not defined, the arrow is invisible
+          x: solutions[index]
+            ? chart.convertToPixel({ seriesIndex: 0 }, [solutions[index], 0])[0]
+            : 0,
+          y: gridRect.y,
+          invisible: solutions[index] ? false : true,
+          shape: {
+            height: gridRect.height,
+          },
+          style: {
+            //fill: "transparent",
+            // fillOpacity: 0,
+            stroke: selectedColor,
+            lineDash: [2],
+            lineWidth: 1,
+          },
+          onclick: () => {
+            console.log("click");
+            //selectedValue = solutions[selected[0]];
+            //selected[0] = solutions[index];
+            updateAspirationLine(
+              roundToDecimal(solutions[selected[0]], decimalPrecision)
             );
-      
+            //selectedValue = selectedValue;
+          },
+        },
+        {
+          id: "transparent-" + String(index),
+          type: "rect",
+          z: 500,
+          // If the solution value is not defined, the arrow is invisible
+          x: solutions[index]
+            ? chart.convertToPixel({ seriesIndex: 0 }, [solutions[index], 0])[0]
+            : 0,
+          y: gridRect.y,
+          invisible: solutions[index] ? false : true,
+          shape: {
+            height: gridRect.height,
+          },
+          style: {
+            fill: "transparent",
+            // fillOpacity: 0,
+            stroke: "transparent",
+            lineWidth: 3,
+          },
+          onclick: () => {
+            console.log("click");
+            //selectedValue = solutions[index];
+            //selected[0] = index;
+            updateAspirationLine(
+              roundToDecimal(solutions[index], decimalPrecision)
+            );
+            //selectedValue = selectedValue;
+          },
+        }
+      );
     }
     return children;
   }
@@ -614,7 +593,6 @@
                     // opacity: 0.7,
                   },
                 },
-                
               ],
             },
             {
@@ -634,7 +612,7 @@
               style: {
                 stroke: referencePointStyle.stroke,
                 lineWidth: 1,
-                
+
                 opacity: 0.5,
               },
 
@@ -740,8 +718,7 @@
           z: 5,
           transition: "all",
           shape: {
-                height: gridRect.height,
-                
+            height: gridRect.height,
           },
           /*shape: {
             cy: chart.getHeight() / 2,
@@ -764,11 +741,11 @@
             {
               id: "arrow",
               type: "rect",
-              z:500,
+              z: 500,
               // If the solution value is not defined, the arrow is invisible
               x: solutions[selected[0]]
                 ? chart.convertToPixel({ seriesIndex: 0 }, [
-                  solutions[selected[0]],
+                    solutions[selected[0]],
                     0,
                   ])[0]
                 : 0,
@@ -776,7 +753,6 @@
               invisible: solutions[selected[0]] ? false : true,
               shape: {
                 height: gridRect.height,
-
               },
               style: {
                 //fill: "transparent",
@@ -819,27 +795,27 @@
            children: drawTrianglesSolutions(),
         },*/
         {
-            id: "solutionsGroup",
-            type: "group",
-            name: "interactiveButtons",
-            children: generateSolutionLines(gridRect),
-            onclick: () => {
-                console.log("click");
-                //selectedValue = solutions[selected[0]];
-                //updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
-                //selectedValue = selectedValue;
-            },
+          id: "solutionsGroup",
+          type: "group",
+          name: "interactiveButtons",
+          children: generateSolutionLines(gridRect),
+          onclick: () => {
+            console.log("click");
+            //selectedValue = solutions[selected[0]];
+            //updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
+            //selectedValue = selectedValue;
+          },
         },
         {
-            id: "arrowsGroup",
-            type: "group",
-            name: "interactiveButtons",
-            children: generateSolutionArrows(),
+          id: "arrowsGroup",
+          type: "group",
+          name: "interactiveButtons",
+          children: generateSolutionArrows(),
         },
         {
           id: "tradeoffArrow",
           type: "group",
-          name:"interactiveButtons",
+          name: "interactiveButtons",
           children: generateTradeoffArrows(),
         },
         // Invisible rectangle for the whole grid area, so that clicking on the grid area works correctly
@@ -849,7 +825,7 @@
           shape: {
             x: gridRect.x,
             y: gridRect.y,
-            z:400,
+            z: 400,
             width: gridRect.width,
             height: gridRect.height,
           },
@@ -868,8 +844,8 @@
     }
     addOnMouseEffect("arrow");
     for (let index = 0; index < solutions.length; index++) {
-      addOnMouseEffect("line-"+String(index));
-      addOnMouseEffect("arrow"+String(index));
+      addOnMouseEffect("line-" + String(index));
+      addOnMouseEffect("arrow" + String(index));
     }
     //addTooltipListeners("solutionsGroup");
 
@@ -1121,9 +1097,8 @@
     let tooltipValue: string | undefined = undefined;
     switch (idToChek) {
       case "prevLine":
-        tooltipHelpText =
-          "Previous aspiration value";
-          tooltipValue = previousValue?.toString();
+        tooltipHelpText = "Previous aspiration value";
+        tooltipValue = previousValue?.toString();
         break;
       case "drag":
       case "aspirationGroup":
@@ -1136,13 +1111,11 @@
         break;
       case "leftRightGroup":
         if (targetId === "left") {
-          tooltipHelpText =
-            "Lowest possible value";
-            tooltipValue = lowerBound.toString();
+          tooltipHelpText = "Lowest possible value";
+          tooltipValue = lowerBound.toString();
         } else {
-          tooltipHelpText =
-            "Highest possible value";
-            tooltipValue= higherBound.toString();
+          tooltipHelpText = "Highest possible value";
+          tooltipValue = higherBound.toString();
         }
         break;
       default:
@@ -1154,7 +1127,7 @@
         show: true,
         trigger: "item",
         formatter: () => {
-          return tooltipHelpText + "<br/>"+ tooltipValue;
+          return tooltipHelpText + "<br/>" + tooltipValue;
         },
         position: idToChek == "verticalGroup" ? [20, -50] : [20, -30],
       },

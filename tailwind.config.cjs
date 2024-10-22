@@ -1,7 +1,7 @@
-import { skeleton } from '@skeletonlabs/tw-plugin';
+import { skeleton } from "@skeletonlabs/tw-plugin";
 //import forms from '@tailwindcss/forms';
 //import { join } from 'path';
-import { desdeo } from './src/desdeo';
+import { desdeo } from "./src/desdeo";
 
 const { join } = require("path");
 const forms = require("@tailwindcss/forms");

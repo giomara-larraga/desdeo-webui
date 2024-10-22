@@ -571,7 +571,7 @@ A user interface for the NAUTILUS Navigator method.
     <div>
       {#if state === State.InitialLoad}
         <button
-          class="btn variant-filled-primary"
+          class="variant-filled-primary btn"
           on:click={async () => {
             await handle_iterate();
             state = State.Playing;
@@ -584,7 +584,7 @@ A user interface for the NAUTILUS Navigator method.
       {/if}
       {#if state === State.Playing}
         <button
-          class="btn variant-filled-primary"
+          class="variant-filled-primary btn"
           on:click={() => {
             state = State.Paused;
           }}
@@ -595,7 +595,7 @@ A user interface for the NAUTILUS Navigator method.
       {/if}
       {#if state === State.Paused && !preferenceChanged}
         <button
-          class="btn variant-filled-primary"
+          class="variant-filled-primary btn"
           on:click={async () => {
             state = State.Playing;
             await run_steps();
@@ -607,7 +607,7 @@ A user interface for the NAUTILUS Navigator method.
       {/if}
       {#if state === State.Paused && preferenceChanged}
         <button
-          class="btn variant-filled-primary"
+          class="variant-filled-primary btn"
           on:click={async () => {
             await handle_iterate();
             state = State.Playing;
@@ -619,7 +619,7 @@ A user interface for the NAUTILUS Navigator method.
         </button>
       {/if}
       {#if state === State.AtBackend}
-        <div class="btn variant-filled-primary flex-row">
+        <div class="variant-filled-primary btn flex-row">
           <SyncLoader size="20" />
           <p>Conducting calculations...</p>
         </div>
@@ -653,7 +653,7 @@ A user interface for the NAUTILUS Navigator method.
         </table>
 
         <button
-          class="btn variant-filled-primary mt-4"
+          class="variant-filled-primary btn mt-4"
           on:click={handle_save_solutions}
           disabled={state !== State.ReachedPareto}
         >

@@ -3,15 +3,13 @@
 A simple table.
 -->
 <script lang="ts">
-    import Header from "$lib/components/main/Header.svelte";
-    import ProblemDetails from "$lib/components/main/ProblemDetails.svelte";
+  import Header from "$lib/components/main/Header.svelte";
+  import ProblemDetails from "$lib/components/main/ProblemDetails.svelte";
 
   /** Heading values. */
 
   export let problem_info: problemInfoType;
   export let solution_list: Solution[];
-
-
 
   /** Indexes of the selected rows. */
   export let selected_rows: number[] = [];
@@ -44,15 +42,15 @@ A simple table.
     return is_in(arr, e) ? remove(arr, e) : add(arr, e);
   }
 
-  function createHeader(problem_info:problemInfoType){
+  function createHeader(problem_info: problemInfoType) {
     let header_table = ["Id", "Iteration"];
     header_table.push(...problem_info.objective_short_names);
     header_table.push(...problem_info.variable_names);
     return header_table;
   }
 
-  function createBody(solutions_to_visualize: Solution[]){
-    let body_table: number[][] = []
+  function createBody(solutions_to_visualize: Solution[]) {
+    let body_table: number[][] = [];
     for (let index = 0; index < solutions_to_visualize.length; index++) {
       let element = solutions_to_visualize[index];
       let row_data = [];
@@ -61,9 +59,9 @@ A simple table.
       row_data.push(...element.decision_variables);
       body_table.push(row_data);
     }
-    return body_table
+    return body_table;
   }
- // Reactive re-computation of table head and body
+  // Reactive re-computation of table head and body
   $: head = createHeader(problem_info);
   $: body = createBody(solution_list);
   console.log(body);

@@ -23,7 +23,7 @@
 <!-- TODO: min/max text should show also when names given manually -->
 
 <script lang="ts">
-  import * as echarts from 'echarts';
+  import * as echarts from "echarts";
   import {
     colorPalette,
     selectedLineStyle,
@@ -40,8 +40,8 @@
     handleSelectionChange,
   } from "$lib/components/visual/helperFunctions";
   import EchartsComponent from "../../general/EchartsComponent.svelte";
-    import { symbol } from "d3";
-    import { onMount } from "svelte";
+  import { symbol } from "d3";
+  import { onMount } from "svelte";
 
   // Props for this component:
   /** The values to display on the plot. */
@@ -102,13 +102,13 @@
   ];
 
   // Y-axis names and ranges
-  let yAxisNames = ['Axis 1', 'Axis 2', 'Axis 3', 'Axis 4', 'Axis 5'];
+  let yAxisNames = ["Axis 1", "Axis 2", "Axis 3", "Axis 4", "Axis 5"];
   let yAxisRanges = [
-    [0, 100],  // Range for Axis 1
-    [0, 200],  // Range for Axis 2
-    [0, 300],  // Range for Axis 3
+    [0, 100], // Range for Axis 1
+    [0, 200], // Range for Axis 2
+    [0, 300], // Range for Axis 3
     [100, 300], // Range for Axis 4
-    [0, 150]   // Range for Axis 5
+    [0, 150], // Range for Axis 5
   ];
 
   // Rectangle heights (these will create vertical rectangles)
@@ -121,51 +121,49 @@
     // Using a non-strictly typed option object
     let option = {
       colors: colors,
-  parallelAxis: [
-    { dim: 0, name: 'Axis 1', min: 0, max: 100 },
-    { dim: 1, name: 'Axis 2', min: 0, max: 200 },
-    { dim: 2, name: 'Axis 3', min: 0, max: 300 },
-    { dim: 3, name: 'Axis 4', min: 100, max: 300 },
-    { dim: 4, name: 'Axis 5', min: 0, max: 150 }
-  ],
-  parallel: {
-    left: '5%',
-    right: '5%',
-    bottom: '10%',
-    top: '30%',
-    parallelAxisDefault: {
-      type: 'value'
-    }
-  },
-  series: [
-    {
-      type: 'parallel',
-      lineStyle: {
-        width: 2,
-        opacity: 0.8
+      parallelAxis: [
+        { dim: 0, name: "Axis 1", min: 0, max: 100 },
+        { dim: 1, name: "Axis 2", min: 0, max: 200 },
+        { dim: 2, name: "Axis 3", min: 0, max: 300 },
+        { dim: 3, name: "Axis 4", min: 100, max: 300 },
+        { dim: 4, name: "Axis 5", min: 0, max: 150 },
+      ],
+      parallel: {
+        left: "5%",
+        right: "5%",
+        bottom: "10%",
+        top: "30%",
+        parallelAxisDefault: {
+          type: "value",
+        },
       },
-      data: lineData
-    }
-  ],
-  graphic: rectangleHeights.map((height, index) => ({
-      type: 'rect',
-      shape: {
-        x: 0, // Position next to the chart
-        y: 300 - height, // Adjust based on height
-        width: 20, // Rectangle width
-        height: height,
-      },
-      style: {
-        fill: "red", // Color from the array
-      },
-      z: 900, // Ensure rectangles are on top
-    })),
-};
+      series: [
+        {
+          type: "parallel",
+          lineStyle: {
+            width: 2,
+            opacity: 0.8,
+          },
+          data: lineData,
+        },
+      ],
+      graphic: rectangleHeights.map((height, index) => ({
+        type: "rect",
+        shape: {
+          x: 0, // Position next to the chart
+          y: 300 - height, // Adjust based on height
+          width: 20, // Rectangle width
+          height: height,
+        },
+        style: {
+          fill: "red", // Color from the array
+        },
+        z: 900, // Ensure rectangles are on top
+      })),
+    };
 
     // Use the chart's `setOption` method with the option object
     chart.setOption(option);
-
-
 
     // Cleanup function to dispose of chart instance
     return () => {
@@ -174,6 +172,9 @@
   });
 </script>
 
+<!-- Chart container -->
+<div id="chart-container" bind:this={chartContainer} />
+
 <style>
   /* Style the chart container */
   #chart-container {
@@ -181,6 +182,3 @@
     height: 600px;
   }
 </style>
-
-<!-- Chart container -->
-<div id="chart-container" bind:this={chartContainer}></div>

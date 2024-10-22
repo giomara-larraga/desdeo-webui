@@ -10,7 +10,12 @@ A user interface for the NIMBUS method.
   // messages.
   //
 
-  import { modalStore, Tab, TabGroup, type ModalSettings } from "@skeletonlabs/skeleton";
+  import {
+    modalStore,
+    Tab,
+    TabGroup,
+    type ModalSettings,
+  } from "@skeletonlabs/skeleton";
 
   import type { Token } from "$lib/api";
   import { toastStore } from "@skeletonlabs/skeleton";
@@ -30,16 +35,16 @@ A user interface for the NIMBUS method.
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
   import { RPP_Info, solution_process } from "./data";
   let tabSet: number = 0;
-   type Solution = {
+  type Solution = {
     iteration: number;
     index: number;
     objective_values: number[];
     decision_variables: number[];
   };
 
-   type Iteration ={
-      solutions: Solution[];
-      reference_point: number[];
+  type Iteration = {
+    solutions: Solution[];
+    reference_point: number[];
   };
   /** The problem to solve. */
   export let problem_id: number;
@@ -73,10 +78,6 @@ A user interface for the NIMBUS method.
     lower_bounds: number[];
     upper_bounds: number[];
   };
-
-
-
- 
 
   // The current state of the method.
   let state: State = State.InitialLoad;
@@ -281,20 +282,20 @@ A user interface for the NIMBUS method.
 
   /** The number of decimals to show for numeric values. */
   const decimals = 3;
-  export function getAllSolutions(){
-    const solution_list: Solution[] = []
+  export function getAllSolutions() {
+    const solution_list: Solution[] = [];
     for (let i = 0; i < solution_process.length; i++) {
-        const element = solution_process[i];
-        solution_list.push(...element.solutions);
+      const element = solution_process[i];
+      solution_list.push(...element.solutions);
     }
-    return solution_list
-};
+    return solution_list;
+  }
 
-export function getObjectives(data: Solution[]):number[][]{
+  export function getObjectives(data: Solution[]): number[][] {
     const objective_values: number[][] = [];
     for (let index = 0; index < data.length; index++) {
-        const element = data[index];
-        objective_values.push(element.objective_values);   
+      const element = data[index];
+      objective_values.push(element.objective_values);
     }
     return objective_values;
   }
@@ -324,31 +325,31 @@ export function getObjectives(data: Solution[]):number[][]{
   // TODO: Handle errors bettter.
   //
   function handle_initialize() {
-      //
-    
-      // This is just a temporary solution to make it easier to test the UI
-      // without having to run the backend. It should be removed later.
+    //
 
-      //
-      // This handler can be used to restart the solution process. It is probably
-      // best to also reset the visualization mode to non-maximized.
-      //
-      visualizations_maximized = false;
-      solutionProcess = solution_process
-      problemInfo = RPP_Info;
-      currentIteration = 0;
-      preference = solutionProcess[currentIteration].reference_point;
-      state = State.ClassifySelected;
+    // This is just a temporary solution to make it easier to test the UI
+    // without having to run the backend. It should be removed later.
 
-      // TODO: Uncomment this when the backend is ready.
-      //
-      /*toastStore.trigger({
+    //
+    // This handler can be used to restart the solution process. It is probably
+    // best to also reset the visualization mode to non-maximized.
+    //
+    visualizations_maximized = false;
+    solutionProcess = solution_process;
+    problemInfo = RPP_Info;
+    currentIteration = 0;
+    preference = solutionProcess[currentIteration].reference_point;
+    state = State.ClassifySelected;
+
+    // TODO: Uncomment this when the backend is ready.
+    //
+    /*toastStore.trigger({
         // prettier-ignore
         message: "Oops! Something went wrong.",
         background: "variant-filled-error",
         timeout: 5000,
       });*/
-      //console.error(err);
+    //console.error(err);
   }
 
   //
@@ -359,12 +360,12 @@ export function getObjectives(data: Solution[]):number[][]{
   });
 
   function handle_iterate() {
-        currentIteration = currentIteration + 1;
-        preference = solutionProcess[currentIteration].reference_point;
-        state = State.ClassifySelected;
-        visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
-        reference_solution = solutionProcess[currentIteration].solutions[0];
-        selected_solutions = [0];
+    currentIteration = currentIteration + 1;
+    preference = solutionProcess[currentIteration].reference_point;
+    state = State.ClassifySelected;
+    visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
+    reference_solution = solutionProcess[currentIteration].solutions[0];
+    selected_solutions = [0];
   }
 
   function handle_final_choice() {
@@ -386,105 +387,106 @@ export function getObjectives(data: Solution[]):number[][]{
         {#if problemInfo !== undefined && reference_solution !== undefined}
           <div class="preferences-bar">
             <TabGroup>
-              <Tab bind:group={tabSet} name="tab1" value={0}  class="mb-0">
+              <Tab bind:group={tabSet} name="tab1" value={0} class="mb-0">
                 <svelte:fragment slot="lead">Preferences</svelte:fragment>
               </Tab>
-              <Tab bind:group={tabSet} name="tab2" value={1} class="mb-0">Analysis</Tab>
+              <Tab bind:group={tabSet} name="tab2" value={1} class="mb-0"
+                >Analysis</Tab
+              >
               <!-- Tab Panels --->
               <svelte:fragment slot="panel">
                 {#if tabSet === 0}
                   <div>
-                  
-              <Input
-                labelName="Maximum number of solutions to generate:"
-                bind:value={numSolutions}
-                onChange={() => {
-                  if (numSolutions < MIN_NUM_SOLUTIONS) {
-                    numSolutions = MIN_NUM_SOLUTIONS;
-                  }
-                  if (numSolutions > MAX_NUM_SOLUTIONS) {
-                    numSolutions = MAX_NUM_SOLUTIONS;
-                  }
-                }}
-              />
-              <ClassificationPreference
-              objective_long_names={problemInfo.objective_short_names}
-              is_maximized={problemInfo.is_maximized}
-              lower_bounds={problemInfo.lower_bounds}
-              upper_bounds={problemInfo.upper_bounds}
-              solutionValue={reference_solution.objective_values}
-              previousValue={solutionProcess[currentIteration].reference_point}
-              bind:preference
-              decimalPrecision={3}
-            />
-            {#if state === State.ClassifySelected}
-            <div class="flex gap-4">
-              <button
-                class="btn variant-filled inline"
-                on:click={handle_iterate}
-                disabled={!is_classification_valid}>Iterate</button
-              >
-              <button
-                class="btn variant-filled inline"
-                on:click={press_final_button}
-                disabled={!(state === State.ClassifySelected)}
-                >Finish with chosen solution</button
-              >
-            </div>
-            {#if !is_classification_valid}
-              <div class="text-error-500">
-                Please give a valid classification for the objectives.
-              </div>
-            {/if}
-          {:else}
-            <GeneralError />
-          {/if}
+                    <Input
+                      labelName="Maximum number of solutions to generate:"
+                      bind:value={numSolutions}
+                      onChange={() => {
+                        if (numSolutions < MIN_NUM_SOLUTIONS) {
+                          numSolutions = MIN_NUM_SOLUTIONS;
+                        }
+                        if (numSolutions > MAX_NUM_SOLUTIONS) {
+                          numSolutions = MAX_NUM_SOLUTIONS;
+                        }
+                      }}
+                    />
+                    <ClassificationPreference
+                      objective_long_names={problemInfo.objective_short_names}
+                      is_maximized={problemInfo.is_maximized}
+                      lower_bounds={problemInfo.lower_bounds}
+                      upper_bounds={problemInfo.upper_bounds}
+                      solutionValue={reference_solution.objective_values}
+                      previousValue={solutionProcess[currentIteration]
+                        .reference_point}
+                      bind:preference
+                      decimalPrecision={3}
+                    />
+                    {#if state === State.ClassifySelected}
+                      <div class="flex gap-4">
+                        <button
+                          class="variant-filled btn inline"
+                          on:click={handle_iterate}
+                          disabled={!is_classification_valid}>Iterate</button
+                        >
+                        <button
+                          class="variant-filled btn inline"
+                          on:click={press_final_button}
+                          disabled={!(state === State.ClassifySelected)}
+                          >Finish with chosen solution</button
+                        >
+                      </div>
+                      {#if !is_classification_valid}
+                        <div class="text-error-500">
+                          Please give a valid classification for the objectives.
+                        </div>
+                      {/if}
+                    {:else}
+                      <GeneralError />
+                    {/if}
                   </div>
                 {:else if tabSet === 1}
-                <div>
-                  <RadioGroup>
-                    <RadioItem
-                      bind:group={visualizationChoiceState}
-                      name="justify"
-                      value={VisualizationChoiceState.CurrentSolutions}
-                      >Current solutions</RadioItem
-                    >
-                    <RadioItem
-                      bind:group={visualizationChoiceState}
-                      name="justify"
-                      value={VisualizationChoiceState.SavedSolutions}
-                      >Best candidate solutions</RadioItem
-                    >
-                    <RadioItem
-                      bind:group={visualizationChoiceState}
-                      name="justify"
-                      value={VisualizationChoiceState.AllSolutions}
-                      >All solutions</RadioItem
-                    >
-                  </RadioGroup>
-        
-                  {#if visualizationChoiceState === VisualizationChoiceState.CurrentSolutions}
-                    <div>
-                      Visualize solutions generated by NIMBUS in the latest iteration.
-                    </div>
-                  {:else if visualizationChoiceState === VisualizationChoiceState.SavedSolutions}
-                    <div>Visualize best candidate solutions saved by you.</div>
-                  {:else if visualizationChoiceState === VisualizationChoiceState.AllSolutions}
-                    <div>Visualize all solutions generated by NIMBUS.</div>
-                  {/if}
+                  <div>
+                    <RadioGroup>
+                      <RadioItem
+                        bind:group={visualizationChoiceState}
+                        name="justify"
+                        value={VisualizationChoiceState.CurrentSolutions}
+                        >Current solutions</RadioItem
+                      >
+                      <RadioItem
+                        bind:group={visualizationChoiceState}
+                        name="justify"
+                        value={VisualizationChoiceState.SavedSolutions}
+                        >Best candidate solutions</RadioItem
+                      >
+                      <RadioItem
+                        bind:group={visualizationChoiceState}
+                        name="justify"
+                        value={VisualizationChoiceState.AllSolutions}
+                        >All solutions</RadioItem
+                      >
+                    </RadioGroup>
+
+                    {#if visualizationChoiceState === VisualizationChoiceState.CurrentSolutions}
+                      <div>
+                        Visualize solutions generated by NIMBUS in the latest
+                        iteration.
+                      </div>
+                    {:else if visualizationChoiceState === VisualizationChoiceState.SavedSolutions}
+                      <div>
+                        Visualize best candidate solutions saved by you.
+                      </div>
+                    {:else if visualizationChoiceState === VisualizationChoiceState.AllSolutions}
+                      <div>Visualize all solutions generated by NIMBUS.</div>
+                    {/if}
                   </div>
                 {/if}
               </svelte:fragment>
             </TabGroup>
-            
-
-          
-
-              </div>
+          </div>
         {/if}
       </div>
       <div slot="solutionSetChoice">
-       <p>to be added</p>
+        <p>to be added</p>
       </div>
       <div slot="visualizations">
         {#if state === State.ClassifySelected && !finalChoiceState}
@@ -541,7 +543,9 @@ export function getObjectives(data: Solution[]):number[][]{
                   <Table
                     head={problemInfo.objective_short_names}
                     body={solutions_to_visualize.map((solution) => {
-                      return solution.objective_values.map((value) => value.toFixed(decimals));
+                      return solution.objective_values.map((value) =>
+                        value.toFixed(decimals)
+                      );
                     })}
                     bind:selected_rows={selected_solutions}
                   />
@@ -549,7 +553,9 @@ export function getObjectives(data: Solution[]):number[][]{
                   <Table
                     head={problemInfo.objective_short_names}
                     body={[reference_solution].map((solution) => {
-                      return solution.objective_values.map((value) => value.toFixed(decimals));
+                      return solution.objective_values.map((value) =>
+                        value.toFixed(decimals)
+                      );
                     })}
                   />
                 {/if}
@@ -562,9 +568,7 @@ export function getObjectives(data: Solution[]):number[][]{
       </div>
       <div slot="Map">
         <Card>
-          <svelte:fragment slot="header"
-            >Impact Overview</svelte:fragment
-          >
+          <svelte:fragment slot="header">Impact Overview</svelte:fragment>
           Impact plot
         </Card>
       </div>

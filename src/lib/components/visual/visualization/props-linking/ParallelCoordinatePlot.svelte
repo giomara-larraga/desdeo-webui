@@ -39,7 +39,7 @@
     handleSelectionChange,
   } from "$lib/components/visual/helperFunctions";
   import EchartsComponent from "../../general/EchartsComponent.svelte";
-    import { symbol } from "d3";
+  import { symbol } from "d3";
 
   // Props for this component:
   /** The values to display on the plot. */
@@ -95,10 +95,10 @@
 
   let option: EChartOption;
 
-    // Utility to group solutions by iteration number
+  // Utility to group solutions by iteration number
   function groupSolutionsByIteration(solutions: Solution[]) {
     const grouped = new Map<number, Solution[]>();
-    const reference_points: number[][] = []
+    const reference_points: number[][] = [];
     for (let sol of solutions) {
       if (!grouped.has(sol.iteration)) {
         grouped.set(sol.iteration, []);
@@ -267,14 +267,19 @@
     // Creates the lines on the chart as series data.
     let seriesData: { value: number[]; name: string }[] = [];
     for (let i = 0; i < values.length; i++) {
-      seriesData.push({ value: values[i].objective_values, name: "Alternative " + (i + 1) });
+      seriesData.push({
+        value: values[i].objective_values,
+        name: "Alternative " + (i + 1),
+      });
     }
 
-    let seriesRP: {value: number[]; name: string}[] = [];
+    let seriesRP: { value: number[]; name: string }[] = [];
     for (let index = 0; index < reference_points.length; index++) {
-      seriesRP.push({ value: reference_points[index], name: "Reference point " + (index + 1)});      
+      seriesRP.push({
+        value: reference_points[index],
+        name: "Reference point " + (index + 1),
+      });
     }
-
 
     // Create the option object for the whole chart.
     return {
@@ -329,9 +334,9 @@
           data: seriesRP,
           lineStyle: {
             width: 4,
-            color: "#C00000"
-          }
-        }
+            color: "#C00000",
+          },
+        },
       ],
       // graphic: createGraphicData(),
     };

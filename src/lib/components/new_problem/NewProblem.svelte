@@ -154,7 +154,7 @@
 
   <div class="flex gap-4">
     <button
-      class="btn variant-filled-primary"
+      class="variant-filled-primary btn"
       on:click={() => save_to_file(problem)}
     >
       <span><DownloadIcon /></span>

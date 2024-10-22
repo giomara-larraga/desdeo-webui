@@ -14,8 +14,10 @@
   export let names: string[] = [];
   export let selectedIndices: (number | null)[] = []; // Allow null values
   export let referencePoint: number[] = [];
-  export let showArrows: boolean = false;
+  export let showArrows: boolean = true;
   export let objectiveImpacts: number[] = [0.1, 0.5, 0.1, 0.2, 0.3]; // Array representing the impact of each objective
+  export let width = 1200;
+  export let height = 600;
   let selectedObjective: number = -1;
   let svg: SVGSVGElement;
   let tooltip: any; // Tooltip container
@@ -23,8 +25,8 @@
   function drawPlot() {
     if (!ranges || names.length === 0 || solutions.length === 0) return;
 
-    const width = 800;
-    const height = 400;
+    //const width = 800;
+    //const height = 600;
     const margin = { top: 20, right: 250, bottom: 20, left: 30 };
     const barWidth = (width - margin.left - margin.right) / names.length;
     const ticknessBar = 20;
@@ -374,6 +376,7 @@
   // Marker selection function
   function selectMarker(index: number) {
     selectedObjective = index;
+    showArrows = true;
     drawPlot();
   }
   // Line selection function
@@ -400,14 +403,14 @@
     const tooltipSvg = d3
       .select(".tooltip")
       .style("display", "block")
-      .style("width", "150px")
+      .style("width", "200px")
       .style("word-wrap", "break-word")
       .style("left", event.pageX + 10 + "px")
       .style("top", event.pageY - 50 + "px")
       .html(""); // Clear existing content
 
-    const chartWidth = 100;
-    const chartHeight = 50;
+    const chartWidth = 150;
+    const chartHeight = 100;
     const barPadding = 5;
 
     // Ensure to find a valid maximum value to prevent negative heights
@@ -443,7 +446,11 @@
       })
       .attr("fill", (_, i) => colorPalette[i]);
 
-    tooltipSvg.append("text").text("Click to see how to improve this value");
+    tooltipSvg
+      .append("text")
+      .text(
+        "To imporve this value, impair the objectives that affect it the most"
+      );
   }
 
   // Function to hide the tooltip
