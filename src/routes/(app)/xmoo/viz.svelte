@@ -16,8 +16,8 @@
   export let referencePoint: number[] = [];
   export let showArrows: boolean = true;
   export let objectiveImpacts: number[] = [0.1, 0.5, 0.1, 0.2, 0.3]; // Array representing the impact of each objective
-  export let width = 1200;
-  export let height = 600;
+  export let width = 800;
+  export let height = 400;
   let selectedObjective: number = -1;
   let svg: SVGSVGElement;
   let tooltip: any; // Tooltip container
@@ -293,7 +293,7 @@
         .append("text")
         .attr("x", legendPositionX)
         .attr("y", 60)
-        .text("Impact overview")
+        .text("Sensitivenes to changes in each objective")
         .style("font-size", "12px")
         .style("font-weight", "bold")
         .attr("alignment-baseline", "middle");
@@ -302,7 +302,7 @@
       const totalImpact = d3.sum(objectiveImpacts);
 
       // Add the impact plot to the legend
-      const impactBarWidth = 100; // Total width of the impact bar
+      const impactBarWidth = 200; // Total width of the impact bar
       const impactBarHeight = 20; // Height of the impact bar
       let cumulativeWidth = 0; // Keep track of cumulative width to position each slot
 
@@ -332,17 +332,26 @@
       svgElement
         .append("text")
         .attr("x", legendPositionX)
-        .attr("y", 150) // Below the impact plot
-        .text("Objective ")
+        .attr("y", 150) // Position the text element
         .style("fill", "black")
         .style("font-size", "12px")
         .append("tspan")
-        .text(mostInfluentialObjectiveName)
-        .style("fill", mostInfluentialObjectiveColor) // Use the color of the most influential objective
-        .style("font-weight", "bold")
+        .text("The selected solution is most sensitive ")
+        .attr("x", legendPositionX) // Keep the x position the same for alignment
+        .attr("dy", 0) // First line
         .append("tspan")
-        .text(" has the most influence in the selected solution")
-        .style("fill", "black");
+        .attr("x", legendPositionX)
+        .attr("dy", "1.2em")
+        .text("to changes in Objective ")
+        .append("tspan")
+        //.attr("x", legendPositionX) // Same x to align with the previous line
+        //.attr("dy", "1.2em") // Offset vertically to create a line break
+        .text(mostInfluentialObjectiveName)
+        .style("fill", mostInfluentialObjectiveColor) // Color for the most influential objective
+        .style("font-weight", "bold");
+      //.append("tspan")
+      //.text(" has the most influence in the selected solution")
+      //.style("fill", "black");
     }
     // If a line is selected, draw dashed line connecting to reference point
     if (selectedIndices[0] !== null && showArrows) {

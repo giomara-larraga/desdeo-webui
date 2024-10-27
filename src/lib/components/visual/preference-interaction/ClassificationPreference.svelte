@@ -119,7 +119,7 @@
         lowerIsBetter={!is_maximized[j]}
         arrowMode={true}
       />
-      <div
+      <!--       <div
         style="display: flex; flex-direction:column; align-items:center; justify-content:flex-end"
       >
         <button
@@ -138,7 +138,7 @@
             ? getImpactColor(impactToImprove[j])
             : 'white'}"
         />
-      </div>
+      </div> -->
     </div>
   {/each}
 </div>

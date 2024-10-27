@@ -1,7 +1,7 @@
 <script lang="ts">
   import { baseURL, get_access_token } from "$lib/api";
 
-  async function fetchUserDetails() {
+  /*async function fetchUserDetails() {
     try {
       const res = await fetch(`${baseURL}/test/userdetails`, {
         method: "GET",
@@ -15,9 +15,9 @@
     } catch (error) {
       console.error("Error:", error);
     }
-  }
+  }*/
 
-  fetchUserDetails();
+  //fetchUserDetails();
   import {
     modalStore,
     Tab,

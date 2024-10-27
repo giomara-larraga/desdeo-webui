@@ -31,6 +31,7 @@
     padding: 0rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
+    min-width: 370px;
   }
   .visualizations {
     padding: 1rem;
