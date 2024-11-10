@@ -36,6 +36,8 @@
       methodHeaderText.set("NAUTILUS Navigator");
     } else if (selected_method === "nimbus_group") {
       methodHeaderText.set("NIMBUS Group");
+    } else if (selected_method === "reference_point_method") {
+      methodHeaderText.set("Reference point method");
     } else if (selected_method === "nautnavi_group") {
       methodHeaderText.set("NAUTILUS Navigator Group");
     } else {

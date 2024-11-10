@@ -1,78 +1,273 @@
 <!--
 @component
-A user interface for the reference point method.
+A user interface for the NIMBUS method.
 -->
 <script lang="ts">
   //
-  // TODO: Add support for problems that don't have finite ideal and nadir
-  // points as part of the problem description.
-  //
-  // TODO: Create a reusable visualization component with the control buttons.
-  //
-  // TODO: Add a feature to stop the solution process and view and visualize
-  // the obtained solution (both objectives and variables). There should also
-  // be an option to save the final solution to an archive. Something else?
+  // TODO: Fix the way maximization/minimization is presented in the NIMBUS visualization
   //
   // TODO: Improve error handling. Currently we show very general error
   // messages.
   //
 
-  import * as _ from "$lib/methods/reference_point_method/functional_api";
-  import { backend } from "$lib/api";
-  import type { Problem, Point } from "$lib/api";
+  import { modalStore, type ModalSettings } from "@skeletonlabs/skeleton";
+
+  import type { Token } from "$lib/api";
   import { toastStore } from "@skeletonlabs/skeleton";
 
-  import ReferencePointSelect from "$lib/components/util/undecorated/ReferencePointSelect.svelte";
-  import ProblemDetails from "$lib/components/main/ProblemDetails.svelte";
   import Visualizations from "$lib/components/util/undecorated/Visualizations.svelte";
-  import MethodLayout from "$lib/components/util/undecorated/MethodLayout.svelte";
   import Card from "$lib/components/main/Card.svelte";
   import GeneralError from "$lib/components/util/undecorated/GeneralError.svelte";
   import Table from "$lib/components/util/undecorated/Table.svelte";
+  import ParallelCoordinatePlotBase from "$lib/components/visual/visualization/props-linking/ParallelCoordinatePlot.svelte";
+  import { transform_bounds } from "$lib/components/util/util";
+
+  import ClassificationPreference from "$lib/components/visual/preference-interaction/ClassificationPreference.svelte";
+  import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
+  import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
+  import { onMount } from "svelte";
+  import EchartsComponent from "$lib/components/visual/general/EchartsComponent.svelte";
+  import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
+  import { get_access_token, selectedProblem } from "$lib/api";
 
   /** The problem to solve. */
-  export let problem: Problem;
+  let problem_id = $selectedProblem;
+  //export let problem_id: number;
+  // Link to the backend.
+  export let API_URL: string;
+  // The authentication token.
+  let AUTH_TOKEN: Token = get_access_token();
+  // Flag to visualize the decision space. Useful for UTOPIA maybe? Unused for now.
+  //export let visualize_decision_space: boolean = false;
 
-  //
-  // TODO: It could be useful to save the method state and the UI state
-  // outside the component. These could be used to restore the state instead
-  // of always restarting the method on mount.
-  //
-  let method: _.Method;
-  $: method = _.reference_point_method(backend, problem);
+  // Enum to represent the state of the method.
+  enum State {
+    InitialLoad,
+    ClassifySelected,
+    IntermediateSelected,
+    SaveSolutionsSelected,
+  }
 
-  //
-  // The UI state
-  //
-  // The following variables store the current state of the UI. They are updated
-  // in the handlers and through user interaction.
-  //
+  // Enum to represent which solutions the DM wants to visualize.
+  enum VisualizationChoiceState {
+    CurrentSolutions,
+    SavedSolutions,
+    AllSolutions,
+  }
+
+  // The type of the problem info object returned by the backend.
+  type problemInfoType = {
+    objective_long_names: string[];
+    is_maximized: boolean[];
+    lower_bounds: number[];
+    upper_bounds: number[];
+    previous_preference: number[];
+    current_solutions: number[][];
+    saved_solutions: number[][];
+    all_solutions: number[][];
+  };
+
+  // The current state of the method.
+  let state: State = State.InitialLoad;
+  let visualizationChoiceState: VisualizationChoiceState =
+    VisualizationChoiceState.CurrentSolutions;
 
   // Preference input values.
   let preference: (number | undefined)[];
 
-  //
-  // When available, the first solution is the "current solution" as returned
-  // by the method, and the rest are the "additional solutions".
-  //
-  let solutions: Point[];
+  let problemInfo: problemInfoType;
 
   // Indexes of currently selected solutions.
   let selected_solutions: number[];
 
-  //
-  // TODO: We currently allow selecting multiple solutions but set the reference
-  // solution of the preference input component only when precisely one solution
-  // is selected. This seemed to provide a nicer UI than only allowing one
-  // selection. Do we want to change this behaviour?
-  //
-  let reference_solution: Point | undefined;
+  // The reference solution to be used in the classification preference input component.
+  let reference_solution: number[] | undefined;
 
-  $: if (
-    selected_solutions?.length === 1 &&
-    solutions?.length > selected_solutions[0]
-  ) {
-    reference_solution = solutions[selected_solutions[0]];
+  // The objective values of the solutions to be visualized.
+  let solutions_to_visualize: number[][];
+
+  // The number of intermediate solutions to generate.
+  let numIntermediates = 5;
+  let MIN_NUM_INTERMEDIATES = 1;
+  let MAX_NUM_INTERMEDIATES = 10;
+
+  // The number of solutions NIMBUS should generate.
+  let numSolutions = 1;
+  let MIN_NUM_SOLUTIONS = 1;
+  let MAX_NUM_SOLUTIONS = 4;
+
+  // Flags to check if the classification/intermediate/save selection are valid.
+  let is_classification_valid = false;
+  let is_intermediate_selection_valid = false;
+  let is_save_solutions_valid = false;
+
+  let max_multiplier: number[] | undefined = undefined;
+  let classification_checker = false;
+
+  type mapOptionsType = {
+    one: object;
+    two: object;
+    three: object;
+  };
+  let mapOptions: mapOptionsType = {
+    one: Object,
+    two: Object,
+    three: Object,
+  };
+
+  let yearlist: string[] = ["2025", "2030", "2035"];
+
+  enum PeriodChoice {
+    one = "one",
+    two = "two",
+    three = "three",
+  }
+
+  let periodChoice: PeriodChoice = PeriodChoice.one;
+  let geoJSON: object | undefined = undefined;
+  let mapName: string | undefined = undefined;
+  let mapDescription: string | undefined = undefined;
+
+  let finalChoiceState = false;
+
+  $: {
+    if (problemInfo !== undefined) {
+      max_multiplier = problemInfo.is_maximized.map((value) => {
+        if (value) {
+          return -1;
+        } else {
+          return 1;
+        }
+      });
+    }
+  }
+
+  /* eslint-disable */
+  // Had to disable this rule because it was giving an error for the following code
+  // and it was too annoying for me to fix it.
+  $: {
+    if (max_multiplier === undefined || preference === undefined) {
+      classification_checker = false;
+    } else {
+      const pref_less_ref = preference.some(
+        (value, index) =>
+          value! * max_multiplier![index] * 1.001 ** max_multiplier![index] <
+          reference_solution![index] * max_multiplier![index]
+      );
+
+      const pref_greater_ref = preference.some(
+        (value, index) =>
+          value! * max_multiplier![index] >
+          reference_solution![index] *
+            max_multiplier![index] *
+            1.001 ** max_multiplier![index]
+      );
+
+      if (pref_less_ref && pref_greater_ref) {
+        classification_checker = true;
+      } else {
+        classification_checker = false;
+      }
+    }
+  }
+
+  /* eslint-enable */
+
+  // Check if the classification is valid.
+  $: {
+    if (!(state === State.ClassifySelected)) {
+      is_classification_valid = false;
+    } else if (selected_solutions.length > 1) {
+      is_classification_valid = false;
+    } else if (!classification_checker) {
+      is_classification_valid = false;
+    } else {
+      is_classification_valid = true;
+    }
+  }
+
+  // Check if the intermediate selection is valid. Exactly two solutions must be selected.
+  $: {
+    if (!(state === State.IntermediateSelected)) {
+      is_intermediate_selection_valid = false;
+    } else if (selected_solutions?.length !== 2) {
+      is_intermediate_selection_valid = false;
+    } else {
+      is_intermediate_selection_valid = true;
+    }
+  }
+
+  // Check if the save solutions selection is valid. At least one solution must be selected.
+  $: {
+    if (!(state === State.SaveSolutionsSelected)) {
+      is_save_solutions_valid = false;
+    } else if (selected_solutions?.length === 0) {
+      is_save_solutions_valid = false;
+    } else {
+      is_save_solutions_valid = true;
+    }
+  }
+
+  // Get the reference solution to be used in the classification preference input component.
+  $: {
+    if (
+      solutions_to_visualize !== undefined &&
+      selected_solutions?.length >= 1
+    ) {
+      // if any selected solution index is larger than the number of solutions, set reference_solution to the last solution
+      if (
+        selected_solutions.some(
+          (index) => index >= solutions_to_visualize.length
+        )
+      ) {
+        reference_solution =
+          solutions_to_visualize[solutions_to_visualize.length - 1];
+        selected_solutions = [solutions_to_visualize.length - 1];
+      } else {
+        reference_solution =
+          solutions_to_visualize[
+            selected_solutions[selected_solutions.length - 1]
+          ];
+      }
+    }
+  }
+
+  $: {
+    if (selected_solutions?.length === 0 || selected_solutions === undefined) {
+      selected_solutions = [0];
+    } else if (
+      selected_solutions.length === 1 &&
+      selected_solutions[0] === undefined
+    ) {
+      selected_solutions = [0];
+    } else if (
+      state === State.ClassifySelected &&
+      selected_solutions.length !== 1
+    ) {
+      selected_solutions = [selected_solutions[selected_solutions.length - 1]];
+      selected_solutions = selected_solutions;
+    }
+  }
+
+  $: {
+    if (problemInfo !== undefined) {
+      if (
+        visualizationChoiceState === VisualizationChoiceState.CurrentSolutions
+      ) {
+        solutions_to_visualize = problemInfo.current_solutions;
+      } else if (
+        visualizationChoiceState === VisualizationChoiceState.SavedSolutions
+      ) {
+        solutions_to_visualize = problemInfo.saved_solutions;
+        if (solutions_to_visualize.length === 0) {
+          solutions_to_visualize = problemInfo.current_solutions;
+        }
+      } else if (
+        visualizationChoiceState === VisualizationChoiceState.AllSolutions
+      ) {
+        solutions_to_visualize = problemInfo.all_solutions;
+      }
+    }
   }
 
   //
@@ -86,7 +281,6 @@ A user interface for the reference point method.
   // would require changes to the components.
   //
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  let highlighted_solution: number | undefined;
 
   let visualizations_maximized = false;
   let visualizations_tab = 0;
@@ -98,7 +292,25 @@ A user interface for the reference point method.
   }
 
   /** The number of decimals to show for numeric values. */
-  const decimals = 4;
+  const decimals = 0;
+
+  function press_final_button() {
+    const modal: ModalSettings = {
+      type: "confirm",
+      // Data
+      title: "Please Confirm",
+      body: "Are you sure you wish to proceed?",
+      // TRUE if confirm pressed, FALSE if cancel pressed
+      response: (r: boolean) => {
+        if (r) {
+          handle_final_choice();
+        } else {
+          console.log("Cancelled");
+        }
+      },
+    };
+    modalStore.trigger(modal);
+  }
 
   //
   // The handlers
@@ -109,20 +321,48 @@ A user interface for the reference point method.
   //
   async function handle_initialize() {
     try {
-      method = await _.initialize(method);
-      preference = problem.objectives.map(() => undefined);
-      solutions = [];
-      selected_solutions = [];
-      reference_solution = undefined;
-      highlighted_solution = undefined;
+      let endpoint = API_URL + "/nimbus/initialize";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + AUTH_TOKEN,
+        },
+        body: JSON.stringify({
+          problem_id: problem_id, // TODO: This should be the id in the database.
+          method_id: 1, // Backend technically supports this, but we need to add support for it in the UI.
+        }),
+      });
+
+      if (response.ok) {
+        console.log("Initialized RPM.");
+        //let body: initResponse = await response.json();
+
+        const data: problemInfoType = await response.json();
+        problemInfo = data;
+        preference = problemInfo.previous_preference;
+        state = State.ClassifySelected;
+        reference_solution = problemInfo.current_solutions[0];
+        selected_solutions = [0];
+
+        state = State.ClassifySelected;
+      } else {
+        throw new Error("Failed to initialize NIMBUS method.");
+      }
+
+      //
+    } catch (err) {
+      // This is just a temporary solution to make it easier to test the UI
+      // without having to run the backend. It should be removed later.
 
       //
       // This handler can be used to restart the solution process. It is probably
       // best to also reset the visualization mode to non-maximized.
       //
-      visualizations_maximized = false;
+
+      // TODO: Uncomment this when the backend is ready.
       //
-    } catch (err) {
       toastStore.trigger({
         // prettier-ignore
         message: "Oops! Something went wrong.",
@@ -136,179 +376,503 @@ A user interface for the reference point method.
   //
   // TODO: Handle errors better.
   //
-  async function handle_iterate() {
-    if (
-      _.can_iterate(method) &&
-      _.is_valid_reference_point(method, preference)
-    ) {
-      try {
-        method = await _.iterate(method, preference);
-        preference = method.current_solution;
-        solutions = _.all_solutions(method);
-        selected_solutions = [];
-        reference_solution = method.current_solution;
-        highlighted_solution = undefined;
-        //
-      } catch (err) {
-        toastStore.trigger({
-          // prettier-ignore
-          message: "Oops! Something went wrong.",
-          background: "variant-filled-error",
-          timeout: 5000,
-        });
-        console.error(err);
+  onMount(async () => {
+    await handle_initialize();
+  });
 
-        //
-        // TODO: We really should do something better. The correct behaviour
-        // should depend on the reason for failing and should probably involve
-        // adding new states to the state machine. Now we can't really leave
-        // the method in the previous state because we don't know the reason
-        // for the failure.
-        //
-        method = _.reference_point_method(backend, problem);
+  async function handle_iterate() {
+    if (!is_classification_valid) {
+      const err = Error("`handle_iterate` called in wrong state.");
+      toastStore.trigger({
+        // prettier-ignore
+        message: "Oops! Something went wrong. Iteration called with invalid classification.",
+        background: "variant-filled-error",
+        timeout: 5000,
+      });
+      console.error(err);
+    }
+    try {
+      let endpoint = API_URL + "/nimbus/iterate";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + AUTH_TOKEN,
+        },
+        body: JSON.stringify({
+          problem_id: problem_id, // The problem is reconstructed from the database each time we iterate.
+          method_id: 1,
+          preference: preference, // Technically sent as a reference point, the classification is generated in the backend.
+          reference_solution: reference_solution, // The reference solution is needed to generate the classification.
+          num_solutions: numSolutions,
+        }),
+      });
+
+      if (response.ok) {
+        const data: problemInfoType = await response.json();
+        problemInfo = data;
+        preference = problemInfo.previous_preference;
+        state = State.ClassifySelected;
+        visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
+        reference_solution = problemInfo.current_solutions[0];
+        selected_solutions = [0];
+      } else {
+        throw new Error("Failed to iterate NIMBUS method.");
       }
-    } else {
-      throw new Error("`handle_iterate` called in wrong state.");
+    } catch (err) {
+      toastStore.trigger({
+        // prettier-ignore
+        message: "Oops! Something went wrong. Iteration failed at the backend.",
+        background: "variant-filled-error",
+        timeout: 5000,
+      });
+      console.error(err);
+
+      //
+      // TODO: We really should do something better. The correct behaviour
+      // should depend on the reason for failing and should probably involve
+      // adding new states to the state machine. Now we can't really leave
+      // the method in the previous state because we don't know the reason
+      // for the failure.
+    }
+  }
+
+  async function handle_intermediate() {
+    if (
+      !is_intermediate_selection_valid ||
+      solutions_to_visualize === undefined
+    ) {
+      throw new Error("`handle_intermediate` called in wrong state.");
+    }
+
+    try {
+      // This feature should be available for all methods, not just NIMBUS.
+      // However, each method endpoint should return the response in the
+      // necessary format. In this case, the problemInfoType is returned.
+      // The "previousPreference" field is set to be the preference used
+      // in the previous classification.
+      let endpoint = API_URL + "/nimbus/intermediate";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + AUTH_TOKEN,
+        },
+        body: JSON.stringify({
+          problemID: problem_id, // The problem is reconstructed from the database each time we iterate.
+          solution1: solutions_to_visualize[selected_solutions[0]],
+          solution2: solutions_to_visualize[selected_solutions[1]],
+          numIntermediates: numIntermediates,
+        }),
+      });
+
+      if (response.ok) {
+        const data: problemInfoType = await response.json();
+        problemInfo = data;
+        preference = problemInfo.previous_preference;
+        state = State.ClassifySelected; // TODO: Should this be IntermediateSelected? Or should we always return to ClassifySelected?
+        visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
+        reference_solution = problemInfo.current_solutions[0];
+        selected_solutions = [0];
+      } else {
+        // Iteration failed somehow.
+        throw new Error("Failed to generate intermediate solutions.");
+      }
+    } catch (err) {
+      // Network error. Authentication error. Server error. etc.
+      toastStore.trigger({
+        // prettier-ignore
+        message: "Oops! Something went wrong.",
+        background: "variant-filled-error",
+        timeout: 5000,
+      });
+      console.error(err);
+
+      //
+    }
+  }
+  async function handle_save_solutions() {
+    if (!is_save_solutions_valid || solutions_to_visualize === undefined) {
+      throw new Error("`handle_save_solutions` called in wrong state.");
+    }
+
+    try {
+      // Same comment about endpoints as in `handle_intermediate`.
+      let endpoint = API_URL + "/nimbus/save";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + AUTH_TOKEN,
+        },
+        body: JSON.stringify({
+          problem_id: problem_id, // The problem is reconstructed from the database each time we iterate.
+          method_id: 1,
+          previousPreference: problemInfo.previous_preference,
+          solutions: selected_solutions.map(
+            (index) => solutions_to_visualize[index]
+          ),
+        }),
+      });
+
+      if (response.ok) {
+        const data: problemInfoType = await response.json();
+        problemInfo.saved_solutions = data.saved_solutions;
+        //preference = problemInfo.previous_preference;
+        state = State.ClassifySelected; // TODO: Should this be SaveSolutionsSelected? Or should we always return to ClassifySelected?
+        visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
+        reference_solution = problemInfo.current_solutions[0];
+        selected_solutions = [0];
+      } else {
+        // Iteration failed somehow.
+        throw new Error("Failed to save solutions.");
+      }
+    } catch (err) {
+      // Network error. Authentication error. Server error. etc.
+      toastStore.trigger({
+        // prettier-ignore
+        message: "Oops! Something went wrong while saving solutions.",
+        background: "variant-filled-error",
+        timeout: 5000,
+      });
+      console.error(err);
+
+      //
+    }
+  }
+
+  async function handle_final_choice() {
+    if (!is_classification_valid) {
+      const err = Error("`handle_iterate` called in wrong state.");
+      toastStore.trigger({
+        // prettier-ignore
+        message: "Oops! Something went wrong while saving final choice.",
+        background: "variant-filled-error",
+        timeout: 5000,
+      });
+      console.error(err);
+    }
+    try {
+      let endpoint = API_URL + "/nimbus/choose";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + AUTH_TOKEN,
+        },
+        body: JSON.stringify({
+          problem_id: problem_id, // The problem is reconstructed from the database each time we iterate.
+          method_id: 1,
+          solution: reference_solution,
+        }),
+      });
+      if (response.ok) {
+        finalChoiceState = true;
+      } else {
+        throw new Error("Failed to save final choice.");
+      }
+    } catch (err) {
+      toastStore.trigger({
+        // prettier-ignore
+        message: "Oops! Something went wrong.",
+        background: "variant-filled-error",
+        timeout: 5000,
+      });
+      console.error(err);
     }
   }
 </script>
 
 <div class="flex flex-col gap-10">
-  <div class="flex flex-col items-start gap-4">
-    <h1 class="font-bold">Reference point method</h1>
-    {#if _.is_uninitialized(method)}
-      <div>
-        Please click "start" to start solving the problem with the method.
-      </div>
-      <button class="btn variant-filled" on:click={handle_initialize}
-        >Start</button
-      >
-    {:else if _.is_initialized(method)}
-      <div>Please select a reference point and then click "iterate".</div>
-      <div class="flex gap-4">
-        <button
-          class="btn variant-filled"
-          on:click={handle_iterate}
-          disabled={!_.is_valid_reference_point(method, preference)}
-          >Iterate</button
-        >
-      </div>
-      {#if !_.is_valid_reference_point(method, preference)}
-        <div class="text-error-500">
-          Please give each of the aspiration levels a valid numeric value.
-        </div>
-      {/if}
-    {:else if _.is_iterated(method)}
-      <div>
-        Please select a new reference point and then click "iterate", if you
-        wish to continue.
-      </div>
-      <div class="flex gap-4">
-        <button
-          class="btn variant-filled"
-          on:click={handle_iterate}
-          disabled={!_.is_valid_reference_point(method, preference)}
-          >Iterate</button
-        >
-      </div>
-      {#if !_.is_valid_reference_point(method, preference)}
-        <div class="text-error-500">
-          Please give each of the aspiration levels a valid numeric value.
-        </div>
-      {/if}
-    {:else}
-      <GeneralError />
-    {/if}
-  </div>
-
-  {#if _.is_uninitialized(method)}
+  {#if state === State.InitialLoad}
     <div class="grid grid-cols-2 items-start gap-10">
-      <ProblemDetails {problem} />
+      <!-- <ProblemDetails {problem} /> -->
     </div>
-  {:else if _.is_initialized(method)}
-    <div class="grid grid-cols-2 items-start gap-10">
-      <Card>
-        <svelte:fragment slot="header">Preference information</svelte:fragment>
-        <ReferencePointSelect
-          objective_names={_.objective_names_with_goals(method)}
-          lower_bounds={_.lower_bounds(method)}
-          upper_bounds={_.upper_bounds(method)}
-          bind:preference
-        />
-      </Card>
-      <ProblemDetails {problem} />
-    </div>
-  {:else if _.is_iterated(method)}
-    <MethodLayout {visualizations_maximized}>
+  {:else}
+    <NimbusLayout
+      classify={state === State.ClassifySelected ? true : false}
+      finalChoice={finalChoiceState}
+    >
       <div slot="preferences">
+        {#if problemInfo !== undefined && reference_solution !== undefined}
+          <Card>
+            <svelte:fragment slot="header"
+              >Preference information</svelte:fragment
+            >
+            <RadioGroup>
+              <RadioItem
+                bind:group={state}
+                name="justify"
+                value={State.ClassifySelected}>Provide classification</RadioItem
+              >
+              <RadioItem
+                bind:group={state}
+                name="justify"
+                value={State.SaveSolutionsSelected}
+                >Save best candidate solutions</RadioItem
+              >
+            </RadioGroup>
+            {#if state === State.ClassifySelected}
+              <div>
+                Provide your preferences by classifying the objectives by either
+                clicking on the bars or using the input boxes. You must give a
+                preference for each objective. You must improve and impair at
+                least one objective. You can choose the maximum number of new
+                solutions to generate.
+              </div>
+              <Input
+                labelName="Maximum number of solutions to generate using NIMBUS:"
+                bind:value={numSolutions}
+                onChange={() => {
+                  if (numSolutions < MIN_NUM_SOLUTIONS) {
+                    numSolutions = MIN_NUM_SOLUTIONS;
+                  }
+                  if (numSolutions > MAX_NUM_SOLUTIONS) {
+                    numSolutions = MAX_NUM_SOLUTIONS;
+                  }
+                }}
+              />
+              <ClassificationPreference
+                objective_long_names={problemInfo.objective_long_names}
+                is_maximized={problemInfo.is_maximized}
+                lower_bounds={problemInfo.lower_bounds}
+                upper_bounds={problemInfo.upper_bounds}
+                solutionValue={reference_solution}
+                previousValue={problemInfo.previous_preference}
+                bind:preference
+                decimalPrecision={0}
+              />
+            {:else if state === State.IntermediateSelected}
+              <div>
+                Select two solutions and then click "Iterate" to generate
+                intermediate solutions.
+              </div>
+              <Input
+                labelName="Number of intermediate solutions:"
+                bind:value={numIntermediates}
+                onChange={() => {
+                  if (numIntermediates < MIN_NUM_INTERMEDIATES) {
+                    numIntermediates = MIN_NUM_INTERMEDIATES;
+                  }
+                  if (numIntermediates > MAX_NUM_INTERMEDIATES) {
+                    numIntermediates = MAX_NUM_INTERMEDIATES;
+                  }
+                }}
+              />
+              {#if solutions_to_visualize !== undefined}
+                <ParallelCoordinatePlotBase
+                  names={problemInfo.objective_long_names}
+                  values={solutions_to_visualize}
+                  ranges={transform_bounds(
+                    problemInfo.lower_bounds,
+                    problemInfo.upper_bounds
+                  )}
+                  lowerIsBetter={problemInfo.is_maximized.map(
+                    (value) => !value
+                  )}
+                  showIndicators={true}
+                  disableInteraction={false}
+                  maxSelections={2}
+                  bind:selectedIndices={selected_solutions}
+                />
+              {/if}
+            {:else if state === State.SaveSolutionsSelected}
+              <div>
+                Select any number of solutions and then click "Save" to save
+                solutions of interest to the database.
+              </div>
+              {#if solutions_to_visualize !== undefined}
+                <ParallelCoordinatePlotBase
+                  names={problemInfo.objective_long_names}
+                  values={solutions_to_visualize}
+                  ranges={transform_bounds(
+                    problemInfo.lower_bounds,
+                    problemInfo.upper_bounds
+                  )}
+                  lowerIsBetter={problemInfo.is_maximized.map(
+                    (value) => !value
+                  )}
+                  showIndicators={true}
+                  disableInteraction={false}
+                  maxSelections={solutions_to_visualize.length}
+                  bind:selectedIndices={selected_solutions}
+                />
+              {/if}
+            {/if}
+            {#if state === State.ClassifySelected}
+              <div class="flex gap-4">
+                <button
+                  class="btn variant-filled inline"
+                  on:click={handle_iterate}
+                  disabled={!is_classification_valid}>Iterate</button
+                >
+                <button
+                  class="btn variant-filled inline"
+                  on:click={press_final_button}
+                  disabled={!(state === State.ClassifySelected)}
+                  >Finish with chosen solution</button
+                >
+              </div>
+              {#if !is_classification_valid}
+                <div class="text-error-500">
+                  Please give a valid classification for the objectives.
+                </div>
+              {/if}
+            {:else if state === State.IntermediateSelected}
+              <div class="flex gap-4">
+                <button
+                  class="btn variant-filled"
+                  on:click={handle_intermediate}
+                  disabled={!is_intermediate_selection_valid}>Iterate</button
+                >
+              </div>
+              {#if !is_intermediate_selection_valid}
+                <div class="text-error-500">Please select two solutions.</div>
+              {/if}
+            {:else if state === State.SaveSolutionsSelected}
+              <div class="flex gap-4">
+                <button
+                  class="btn variant-filled"
+                  on:click={handle_save_solutions}
+                  disabled={!is_save_solutions_valid}>Save</button
+                >
+              </div>
+              {#if !is_save_solutions_valid}
+                <div class="text-error-500">
+                  Please select at least one solution.
+                </div>
+              {/if}
+            {:else}
+              <GeneralError />
+            {/if}
+          </Card>
+        {/if}
+      </div>
+      <div slot="solutionSetChoice">
         <Card>
-          <svelte:fragment slot="header">Preference information</svelte:fragment
+          <svelte:fragment slot="header"
+            >Choose which solution set to visualize</svelte:fragment
           >
-          <ReferencePointSelect
-            objective_names={_.objective_names_with_goals(method)}
-            lower_bounds={_.lower_bounds(method)}
-            upper_bounds={_.upper_bounds(method)}
-            bind:preference
-            previous_preference={method.previous_preference}
-            {reference_solution}
-          />
+          <RadioGroup>
+            <RadioItem
+              bind:group={visualizationChoiceState}
+              name="justify"
+              value={VisualizationChoiceState.CurrentSolutions}
+              >Current solutions</RadioItem
+            >
+            <RadioItem
+              bind:group={visualizationChoiceState}
+              name="justify"
+              value={VisualizationChoiceState.SavedSolutions}
+              >Best candidate solutions</RadioItem
+            >
+            <RadioItem
+              bind:group={visualizationChoiceState}
+              name="justify"
+              value={VisualizationChoiceState.AllSolutions}
+              >All solutions</RadioItem
+            >
+          </RadioGroup>
+
+          {#if visualizationChoiceState === VisualizationChoiceState.CurrentSolutions}
+            <div>
+              Visualize solutions generated by NIMBUS in the latest iteration.
+            </div>
+          {:else if visualizationChoiceState === VisualizationChoiceState.SavedSolutions && problemInfo.saved_solutions.length}
+            <div>Visualize best candidate solutions saved by you.</div>
+          {:else if visualizationChoiceState === VisualizationChoiceState.SavedSolutions}
+            <div>
+              No saved solutions. Showing solutions from the latest iterations
+              instead.
+            </div>
+          {:else if visualizationChoiceState === VisualizationChoiceState.AllSolutions}
+            <div>Visualize all solutions generated by NIMBUS.</div>
+          {/if}
         </Card>
       </div>
       <div slot="visualizations">
-        <Card>
-          <svelte:fragment slot="header"
-            >Solution visualizations</svelte:fragment
-          >
-          <svelte:fragment slot="buttons">
-            <button
-              class="anchor"
-              on:click={() => {
-                gridded_visualizations = !gridded_visualizations;
-              }}
-              disabled={!visualizations_maximized}>Grid</button
-            >
-            <button
-              class="anchor"
-              on:click={() => {
-                visualizations_maximized = !visualizations_maximized;
-              }}
-              >{#if visualizations_maximized}Minimize{:else}Maximize{/if}
-            </button>
-          </svelte:fragment>
-          <Visualizations
-            names={_.objective_names_with_goals(method)}
-            values={solutions}
-            lower_bounds={_.lower_bounds(method)}
-            upper_bounds={_.upper_bounds(method)}
-            lower_is_better={method.problem.objectives.map(
-              ({ minimize }) => minimize
-            )}
-            grid_mode={gridded_visualizations}
-            bind:selected={selected_solutions}
-            bind:tab={visualizations_tab}
-          />
-        </Card>
+        {#if state === State.ClassifySelected && !finalChoiceState}
+          <Card>
+            <svelte:fragment slot="header">Solution Explorer</svelte:fragment>
+
+            {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
+              <Visualizations
+                names={problemInfo.objective_long_names}
+                values={solutions_to_visualize}
+                lower_bounds={problemInfo.lower_bounds}
+                upper_bounds={problemInfo.upper_bounds}
+                lower_is_better={problemInfo.is_maximized.map(
+                  (value) => !value
+                )}
+                grid_mode={gridded_visualizations}
+                bind:selected={selected_solutions}
+                bind:tab={visualizations_tab}
+                max_selections={1}
+              />
+            {:else}
+              <GeneralError />
+            {/if}
+          </Card>
+        {:else if finalChoiceState}
+          <Card>
+            <svelte:fragment slot="header">Solution Explorer</svelte:fragment>
+
+            {#if problemInfo !== undefined && reference_solution !== undefined}
+              <ParallelCoordinatePlotBase
+                names={problemInfo.objective_long_names}
+                values={[reference_solution]}
+                ranges={transform_bounds(
+                  problemInfo.lower_bounds,
+                  problemInfo.upper_bounds
+                )}
+                lowerIsBetter={problemInfo.is_maximized.map((value) => !value)}
+                showIndicators={true}
+                disableInteraction={true}
+              />
+            {:else}
+              <GeneralError />
+            {/if}
+          </Card>
+        {/if}
       </div>
       <div slot="solutions">
         <Card>
           <svelte:fragment slot="header">Solutions</svelte:fragment>
           <div class="flex flex-col gap-4">
             <p>
-              The first solution is the "current solution" as returned by the
-              method. The other solutions are the "additional solutions".
+              Objective values of solutions generated by NIMBUS. Click on a row
+              to select a solution.
             </p>
             <div class="overflow-x-auto">
-              <Table
-                head={_.objective_names_with_goals(method)}
-                body={solutions.map((solution) => {
-                  return solution.map((value) => value.toFixed(decimals));
-                })}
-                bind:selected_rows={selected_solutions}
-              />
+              {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
+                {#if !finalChoiceState}
+                  <Table
+                    head={problemInfo.objective_long_names}
+                    body={solutions_to_visualize.map((solution) => {
+                      return solution.map((value) => value.toFixed(decimals));
+                    })}
+                    bind:selected_rows={selected_solutions}
+                  />
+                {:else if reference_solution !== undefined}
+                  <Table
+                    head={problemInfo.objective_long_names}
+                    body={[reference_solution].map((solution) => {
+                      return solution.map((value) => value.toFixed(decimals));
+                    })}
+                  />
+                {/if}
+              {:else}
+                <GeneralError />
+              {/if}
             </div>
           </div>
         </Card>
       </div>
-    </MethodLayout>
+      <div slot="Map" />
+    </NimbusLayout>
   {/if}
 </div>

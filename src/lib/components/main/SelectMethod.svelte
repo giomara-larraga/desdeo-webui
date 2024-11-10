@@ -17,10 +17,10 @@
       id: "nautnavi",
       display: "NAUTILUS Navigator",
     },
-    /* {
+    {
       id: "reference_point_method",
       display: "Reference Point Method",
-    }, */
+    },
   ];
 
   let group_methods = [

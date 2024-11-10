@@ -8,7 +8,7 @@
   import NIMBUS from "$lib/components/methods/nimbus/NIMBUS.svelte";
   //import GNIMBUS from "$lib/components/methods/nimbus/NIMBUS_group.svelte";
   import GeneralError from "$lib/components/util/undecorated/GeneralError.svelte";
-
+  import ReferencePointMethod from "$lib/components/methods/reference_point_method/ReferencePointMethod.svelte";
   /* This god-awful thing shouldn't be around for all the problems
   //import { socket } from "$lib/stores";
   //import type { Socket } from "socket.io-client";
@@ -39,7 +39,7 @@
 
 <!-- TODO: Unify styles. Until then, comment studd out -->
 {#if $selectedMethod === "reference_point_method"}
-  <!-- <ReferencePointMethod {problem} /> -->
+  <ReferencePointMethod API_URL={baseURL} />
 {:else if $selectedMethod === "nimbus"}
   <NIMBUS
     problem_id={$selectedProblem}
