@@ -321,7 +321,7 @@ A user interface for the NIMBUS method.
   //
   async function handle_initialize() {
     try {
-      let endpoint = API_URL + "/nimbus/initialize";
+      let endpoint = API_URL + "/reference_point_method/initialize";
 
       const response = await fetch(endpoint, {
         method: "POST",
