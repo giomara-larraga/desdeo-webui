@@ -28,6 +28,7 @@ A user interface for the NIMBUS method.
   import { onMount } from "svelte";
   import EchartsComponent from "$lib/components/visual/general/EchartsComponent.svelte";
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
+  import { roundToDecimal } from "$lib/components/visual/helperFunctions";
 
   /** The problem to solve. */
   export let problem_id: number;
@@ -94,6 +95,9 @@ A user interface for the NIMBUS method.
   let MIN_NUM_SOLUTIONS = 1;
   let MAX_NUM_SOLUTIONS = 4;
 
+  // The number of decimals to show for numeric values.
+  let decimals = 2;
+
   // Flags to check if the classification/intermediate/save selection are valid.
   let is_classification_valid = false;
   let is_intermediate_selection_valid = false;
@@ -101,6 +105,8 @@ A user interface for the NIMBUS method.
 
   let max_multiplier: number[] | undefined = undefined;
   let classification_checker = false;
+
+  let draw_map = true;
 
   type mapOptionsType = {
     one: object;
@@ -149,16 +155,20 @@ A user interface for the NIMBUS method.
     } else {
       const pref_less_ref = preference.some(
         (value, index) =>
-          value! * max_multiplier![index] * 1.001 ** max_multiplier![index] <
-          reference_solution![index] * max_multiplier![index]
+          roundToDecimal(value! * max_multiplier![index], decimals) <
+          roundToDecimal(
+            reference_solution![index] * max_multiplier![index],
+            decimals
+          )
       );
 
       const pref_greater_ref = preference.some(
         (value, index) =>
-          value! * max_multiplier![index] >
-          reference_solution![index] *
-            max_multiplier![index] *
-            1.001 ** max_multiplier![index]
+          roundToDecimal(value! * max_multiplier![index], decimals) >
+          roundToDecimal(
+            reference_solution![index] * max_multiplier![index],
+            decimals
+          )
       );
 
       if (pref_less_ref && pref_greater_ref) {
@@ -289,13 +299,14 @@ A user interface for the NIMBUS method.
     gridded_visualizations = false;
   }
 
-  $: if (reference_solution !== undefined && state === State.ClassifySelected) {
+  $: if (
+    draw_map &&
+    reference_solution !== undefined &&
+    state === State.ClassifySelected
+  ) {
     // we don't need maps for the base version of NIMBUS, but in Utopia we do
     get_maps(reference_solution);
   }
-
-  /** The number of decimals to show for numeric values. */
-  const decimals = 0;
 
   function press_final_button() {
     const modal: ModalSettings = {
@@ -347,6 +358,18 @@ A user interface for the NIMBUS method.
         selected_solutions = [0];
 
         state = State.ClassifySelected;
+
+        const differences = data.upper_bounds.map(
+          (upper, index) => upper - data.lower_bounds[index]
+        );
+        const objective_magnitude = Math.floor(
+          Math.log10(Math.min(...differences))
+        );
+        if (objective_magnitude >= 3) {
+          decimals = 0;
+        } else if (objective_magnitude < 0) {
+          decimals = 2 - objective_magnitude;
+        }
       } else {
         throw new Error("Failed to initialize NIMBUS method.");
       }
@@ -505,23 +528,28 @@ A user interface for the NIMBUS method.
 
   async function get_maps(mapped_solution: number[]) {
     const data = await actually_get_maps(mapped_solution);
-    yearlist = data.years;
+    if (data.is_utopia) {
+      yearlist = data.years;
 
-    for (let year of yearlist) {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      data.options[year].tooltip.formatter = function (params: any) {
-        return `${params.name}`;
-      };
+      for (let year of yearlist) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data.options[year].tooltip.formatter = function (params: any) {
+          return `${params.name}`;
+        };
+      }
+      mapOptions["one"] = data.options[yearlist[0]];
+      mapOptions["two"] = data.options[yearlist[1]];
+      mapOptions["three"] = data.options[yearlist[2]];
+      geoJSON = data.map_json;
+      mapName = data.map_name;
+      mapDescription = data.description;
+      decimals = 0;
+      //console.log(mapOptions);
+      //console.log(geoJSON);
+      //console.log(mapName);
+    } else {
+      draw_map = false;
     }
-    mapOptions["one"] = data.options[yearlist[0]];
-    mapOptions["two"] = data.options[yearlist[1]];
-    mapOptions["three"] = data.options[yearlist[2]];
-    geoJSON = data.map_json;
-    mapName = data.map_name;
-    mapDescription = data.description;
-    //console.log(mapOptions);
-    //console.log(geoJSON);
-    //console.log(mapName);
   }
 
   async function handle_intermediate() {
@@ -686,6 +714,7 @@ A user interface for the NIMBUS method.
     <NimbusLayout
       classify={state === State.ClassifySelected ? true : false}
       finalChoice={finalChoiceState}
+      drawMap={draw_map}
     >
       <div slot="preferences">
         {#if problemInfo !== undefined && reference_solution !== undefined}
@@ -734,7 +763,7 @@ A user interface for the NIMBUS method.
                 solutionValue={reference_solution}
                 previousValue={problemInfo.previous_preference}
                 bind:preference
-                decimalPrecision={0}
+                decimalPrecision={decimals}
               />
             {:else if state === State.IntermediateSelected}
               <div>
