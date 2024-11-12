@@ -39,7 +39,10 @@
 
 <!-- TODO: Unify styles. Until then, comment studd out -->
 {#if $selectedMethod === "reference_point_method"}
-  <ReferencePointMethod API_URL={baseURL} />
+  <ReferencePointMethod     
+  problem_id={$selectedProblem}
+  API_URL={baseURL}
+  AUTH_TOKEN={get_access_token()} />
 {:else if $selectedMethod === "nimbus"}
   <NIMBUS
     problem_id={$selectedProblem}

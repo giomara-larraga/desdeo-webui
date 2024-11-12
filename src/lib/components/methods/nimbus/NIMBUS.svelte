@@ -106,7 +106,7 @@ A user interface for the NIMBUS method.
   let max_multiplier: number[] | undefined = undefined;
   let classification_checker = false;
 
-  let draw_map = true;
+  let draw_map = false;
 
   type mapOptionsType = {
     one: object;

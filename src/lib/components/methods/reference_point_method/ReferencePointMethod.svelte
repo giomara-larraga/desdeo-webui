@@ -28,15 +28,14 @@ A user interface for the NIMBUS method.
   import { onMount } from "svelte";
   import EchartsComponent from "$lib/components/visual/general/EchartsComponent.svelte";
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
-  import { get_access_token, selectedProblem } from "$lib/api";
+  import { roundToDecimal } from "$lib/components/visual/helperFunctions";
 
   /** The problem to solve. */
-  let problem_id = $selectedProblem;
-  //export let problem_id: number;
+  export let problem_id: number;
   // Link to the backend.
   export let API_URL: string;
   // The authentication token.
-  let AUTH_TOKEN: Token = get_access_token();
+  export let AUTH_TOKEN: Token;
   // Flag to visualize the decision space. Useful for UTOPIA maybe? Unused for now.
   //export let visualize_decision_space: boolean = false;
 
@@ -65,6 +64,9 @@ A user interface for the NIMBUS method.
     current_solutions: number[][];
     saved_solutions: number[][];
     all_solutions: number[][];
+    current_multipliers: number[][];
+    saved_multipliers: number[][];
+    all_multipliers: number[][];
   };
 
   // The current state of the method.
@@ -96,6 +98,9 @@ A user interface for the NIMBUS method.
   let MIN_NUM_SOLUTIONS = 1;
   let MAX_NUM_SOLUTIONS = 4;
 
+  // The number of decimals to show for numeric values.
+  let decimals = 2;
+
   // Flags to check if the classification/intermediate/save selection are valid.
   let is_classification_valid = false;
   let is_intermediate_selection_valid = false;
@@ -103,6 +108,8 @@ A user interface for the NIMBUS method.
 
   let max_multiplier: number[] | undefined = undefined;
   let classification_checker = false;
+
+  let draw_map = false;
 
   type mapOptionsType = {
     one: object;
@@ -151,16 +158,20 @@ A user interface for the NIMBUS method.
     } else {
       const pref_less_ref = preference.some(
         (value, index) =>
-          value! * max_multiplier![index] * 1.001 ** max_multiplier![index] <
-          reference_solution![index] * max_multiplier![index]
+          roundToDecimal(value! * max_multiplier![index], decimals) <
+          roundToDecimal(
+            reference_solution![index] * max_multiplier![index],
+            decimals
+          )
       );
 
       const pref_greater_ref = preference.some(
         (value, index) =>
-          value! * max_multiplier![index] >
-          reference_solution![index] *
-            max_multiplier![index] *
-            1.001 ** max_multiplier![index]
+          roundToDecimal(value! * max_multiplier![index], decimals) >
+          roundToDecimal(
+            reference_solution![index] * max_multiplier![index],
+            decimals
+          )
       );
 
       if (pref_less_ref && pref_greater_ref) {
@@ -291,8 +302,14 @@ A user interface for the NIMBUS method.
     gridded_visualizations = false;
   }
 
-  /** The number of decimals to show for numeric values. */
-  const decimals = 0;
+  $: if (
+    draw_map &&
+    reference_solution !== undefined &&
+    state === State.ClassifySelected
+  ) {
+    // we don't need maps for the base version of NIMBUS, but in Utopia we do
+    get_maps(reference_solution);
+  }
 
   function press_final_button() {
     const modal: ModalSettings = {
@@ -336,9 +353,6 @@ A user interface for the NIMBUS method.
       });
 
       if (response.ok) {
-        console.log("Initialized RPM.");
-        //let body: initResponse = await response.json();
-
         const data: problemInfoType = await response.json();
         problemInfo = data;
         preference = problemInfo.previous_preference;
@@ -347,28 +361,24 @@ A user interface for the NIMBUS method.
         selected_solutions = [0];
 
         state = State.ClassifySelected;
+
+        const differences = data.upper_bounds.map(
+          (upper, index) => upper - data.lower_bounds[index]
+        );
+        const objective_magnitude = Math.floor(
+          Math.log10(Math.min(...differences))
+        );
+        if (objective_magnitude >= 3) {
+          decimals = 0;
+        } else if (objective_magnitude < 0) {
+          decimals = 2 - objective_magnitude;
+        }
       } else {
         throw new Error("Failed to initialize NIMBUS method.");
       }
 
       //
     } catch (err) {
-      // This is just a temporary solution to make it easier to test the UI
-      // without having to run the backend. It should be removed later.
-
-      //
-      // This handler can be used to restart the solution process. It is probably
-      // best to also reset the visualization mode to non-maximized.
-      //
-
-      // TODO: Uncomment this when the backend is ready.
-      //
-      toastStore.trigger({
-        // prettier-ignore
-        message: "Oops! Something went wrong.",
-        background: "variant-filled-error",
-        timeout: 5000,
-      });
       console.error(err);
     }
   }
@@ -392,7 +402,7 @@ A user interface for the NIMBUS method.
       console.error(err);
     }
     try {
-      let endpoint = API_URL + "/nimbus/iterate";
+      let endpoint = API_URL + "/reference_point_method/iterate";
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -402,15 +412,15 @@ A user interface for the NIMBUS method.
         },
         body: JSON.stringify({
           problem_id: problem_id, // The problem is reconstructed from the database each time we iterate.
-          method_id: 1,
+          method_id: 2,
+          kkt_multipliers: true,
           preference: preference, // Technically sent as a reference point, the classification is generated in the backend.
-          reference_solution: reference_solution, // The reference solution is needed to generate the classification.
-          num_solutions: numSolutions,
         }),
       });
 
       if (response.ok) {
         const data: problemInfoType = await response.json();
+        console.log(data);
         problemInfo = data;
         preference = problemInfo.previous_preference;
         state = State.ClassifySelected;
@@ -435,6 +445,69 @@ A user interface for the NIMBUS method.
       // adding new states to the state machine. Now we can't really leave
       // the method in the previous state because we don't know the reason
       // for the failure.
+    }
+  }
+
+  async function actually_get_maps(mapped_solution: number[]) {
+    if (!(state === State.ClassifySelected)) {
+      throw new Error("`get_maps` called in wrong state.");
+    }
+
+    try {
+      let endpoint = API_URL + "/nimbus/utopia";
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + AUTH_TOKEN,
+        },
+        body: JSON.stringify({
+          problem_id: problem_id, // The problem is reconstructed from the database each time we iterate.
+          solution: mapped_solution,
+        }),
+      });
+      if (response.ok) {
+        return await response.json();
+      } else {
+        throw new Error("Failed to get maps.");
+      }
+    } catch (err) {
+      toastStore.trigger({
+        // prettier-ignore
+        message: "Oops! Something went wrong with map visualization.",
+        background: "variant-filled-error",
+        timeout: 5000,
+      });
+      console.error(err);
+
+      //
+    }
+  }
+
+  async function get_maps(mapped_solution: number[]) {
+    const data = await actually_get_maps(mapped_solution);
+    if (data.is_utopia) {
+      yearlist = data.years;
+
+      for (let year of yearlist) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        data.options[year].tooltip.formatter = function (params: any) {
+          return `${params.name}`;
+        };
+      }
+      mapOptions["one"] = data.options[yearlist[0]];
+      mapOptions["two"] = data.options[yearlist[1]];
+      mapOptions["three"] = data.options[yearlist[2]];
+      geoJSON = data.map_json;
+      mapName = data.map_name;
+      mapDescription = data.description;
+      decimals = 0;
+      //console.log(mapOptions);
+      //console.log(geoJSON);
+      //console.log(mapName);
+    } else {
+      draw_map = false;
     }
   }
 
@@ -588,6 +661,7 @@ A user interface for the NIMBUS method.
 </script>
 
 <div class="flex flex-col gap-10">
+
   {#if state === State.InitialLoad}
     <div class="grid grid-cols-2 items-start gap-10">
       <!-- <ProblemDetails {problem} /> -->
@@ -596,6 +670,7 @@ A user interface for the NIMBUS method.
     <NimbusLayout
       classify={state === State.ClassifySelected ? true : false}
       finalChoice={finalChoiceState}
+      drawMap={draw_map}
     >
       <div slot="preferences">
         {#if problemInfo !== undefined && reference_solution !== undefined}
@@ -621,21 +696,8 @@ A user interface for the NIMBUS method.
                 Provide your preferences by classifying the objectives by either
                 clicking on the bars or using the input boxes. You must give a
                 preference for each objective. You must improve and impair at
-                least one objective. You can choose the maximum number of new
-                solutions to generate.
+                least one objective. 
               </div>
-              <Input
-                labelName="Maximum number of solutions to generate using NIMBUS:"
-                bind:value={numSolutions}
-                onChange={() => {
-                  if (numSolutions < MIN_NUM_SOLUTIONS) {
-                    numSolutions = MIN_NUM_SOLUTIONS;
-                  }
-                  if (numSolutions > MAX_NUM_SOLUTIONS) {
-                    numSolutions = MAX_NUM_SOLUTIONS;
-                  }
-                }}
-              />
               <ClassificationPreference
                 objective_long_names={problemInfo.objective_long_names}
                 is_maximized={problemInfo.is_maximized}
@@ -644,7 +706,7 @@ A user interface for the NIMBUS method.
                 solutionValue={reference_solution}
                 previousValue={problemInfo.previous_preference}
                 bind:preference
-                decimalPrecision={0}
+                decimalPrecision={decimals}
               />
             {:else if state === State.IntermediateSelected}
               <div>
@@ -780,7 +842,7 @@ A user interface for the NIMBUS method.
 
           {#if visualizationChoiceState === VisualizationChoiceState.CurrentSolutions}
             <div>
-              Visualize solutions generated by NIMBUS in the latest iteration.
+              Visualize solutions generated by the method in the latest iteration.
             </div>
           {:else if visualizationChoiceState === VisualizationChoiceState.SavedSolutions && problemInfo.saved_solutions.length}
             <div>Visualize best candidate solutions saved by you.</div>
@@ -872,7 +934,39 @@ A user interface for the NIMBUS method.
           </div>
         </Card>
       </div>
-      <div slot="Map" />
+      <div slot="Map">
+        <Card>
+          <svelte:fragment slot="header"
+            >Treatment options visualized on a map</svelte:fragment
+          >
+          {#if mapOptions[periodChoice] !== undefined && geoJSON !== undefined}
+            <div style="white-space: pre-wrap;">{mapDescription}</div>
+            <EchartsComponent
+              option={mapOptions[periodChoice]}
+              {geoJSON}
+              {mapName}
+              customStyle="height: 500px; width: 100%;"
+            />
+          {/if}
+          <RadioGroup>
+            <RadioItem
+              bind:group={periodChoice}
+              name="justify"
+              value={PeriodChoice.one}>{yearlist[0]}</RadioItem
+            >
+            <RadioItem
+              bind:group={periodChoice}
+              name="justify"
+              value={PeriodChoice.two}>{yearlist[1]}</RadioItem
+            >
+            <RadioItem
+              bind:group={periodChoice}
+              name="justify"
+              value={PeriodChoice.three}>{yearlist[2]}</RadioItem
+            >
+          </RadioGroup>
+        </Card>
+      </div>
     </NimbusLayout>
   {/if}
 </div>
