@@ -10,7 +10,13 @@ A user interface for the NIMBUS method.
   // messages.
   //
 
-  import { modalStore, type ModalSettings } from "@skeletonlabs/skeleton";
+  import {
+    ListBox,
+    ListBoxItem,
+    modalStore,
+    popup,
+    type ModalSettings,
+  } from "@skeletonlabs/skeleton";
 
   import type { Token } from "$lib/api";
   import { toastStore } from "@skeletonlabs/skeleton";
@@ -673,198 +679,172 @@ A user interface for the NIMBUS method.
     >
       <div slot="preferences">
         {#if problemInfo !== undefined && reference_solution !== undefined}
-          <Card>
-            <svelte:fragment slot="header"
-              >Preference information</svelte:fragment
-            >
-            <RadioGroup>
-              <RadioItem
-                bind:group={state}
-                name="justify"
-                value={State.ClassifySelected}>Provide classification</RadioItem
-              >
-              <RadioItem
-                bind:group={state}
-                name="justify"
-                value={State.SaveSolutionsSelected}
-                >Save best candidate solutions</RadioItem
-              >
-            </RadioGroup>
-            {#if state === State.ClassifySelected}
-              <div>
-                Provide your preferences by classifying the objectives by either
-                clicking on the bars or using the input boxes. You must give a
-                preference for each objective. You must improve and impair at
-                least one objective.
-              </div>
-              <ClassificationPreference
-                objective_long_names={problemInfo.objective_long_names}
-                is_maximized={problemInfo.is_maximized}
-                lower_bounds={problemInfo.lower_bounds}
-                upper_bounds={problemInfo.upper_bounds}
-                solutionValue={reference_solution}
-                previousValue={problemInfo.previous_preference}
-                bind:preference
-                decimalPrecision={decimals}
-              />
-            {:else if state === State.IntermediateSelected}
-              <div>
-                Select two solutions and then click "Iterate" to generate
-                intermediate solutions.
-              </div>
-              <Input
-                labelName="Number of intermediate solutions:"
-                bind:value={numIntermediates}
-                onChange={() => {
-                  if (numIntermediates < MIN_NUM_INTERMEDIATES) {
-                    numIntermediates = MIN_NUM_INTERMEDIATES;
-                  }
-                  if (numIntermediates > MAX_NUM_INTERMEDIATES) {
-                    numIntermediates = MAX_NUM_INTERMEDIATES;
-                  }
-                }}
-              />
-              {#if solutions_to_visualize !== undefined}
-                <ParallelCoordinatePlotBase
-                  names={problemInfo.objective_long_names}
-                  values={solutions_to_visualize}
-                  ranges={transform_bounds(
-                    problemInfo.lower_bounds,
-                    problemInfo.upper_bounds
-                  )}
-                  lowerIsBetter={problemInfo.is_maximized.map(
-                    (value) => !value
-                  )}
-                  showIndicators={true}
-                  disableInteraction={false}
-                  maxSelections={2}
-                  bind:selectedIndices={selected_solutions}
-                />
-              {/if}
-            {:else if state === State.SaveSolutionsSelected}
-              <div>
-                Select any number of solutions and then click "Save" to save
-                solutions of interest to the database.
-              </div>
-              {#if solutions_to_visualize !== undefined}
-                <ParallelCoordinatePlotBase
-                  names={problemInfo.objective_long_names}
-                  values={solutions_to_visualize}
-                  ranges={transform_bounds(
-                    problemInfo.lower_bounds,
-                    problemInfo.upper_bounds
-                  )}
-                  lowerIsBetter={problemInfo.is_maximized.map(
-                    (value) => !value
-                  )}
-                  showIndicators={true}
-                  disableInteraction={false}
-                  maxSelections={solutions_to_visualize.length}
-                  bind:selectedIndices={selected_solutions}
-                />
-              {/if}
-            {/if}
-            {#if state === State.ClassifySelected}
-              <div class="flex gap-4">
-                <button
-                  class="btn variant-filled inline"
-                  on:click={handle_iterate}
-                  disabled={!is_classification_valid}>Iterate</button
-                >
-                <button
-                  class="btn variant-filled inline"
-                  on:click={press_final_button}
-                  disabled={!(state === State.ClassifySelected)}
-                  >Finish with chosen solution</button
-                >
-              </div>
-              {#if !is_classification_valid}
-                <div class="text-error-500">
-                  Please give a valid classification for the objectives.
-                </div>
-              {/if}
-            {:else if state === State.IntermediateSelected}
-              <div class="flex gap-4">
-                <button
-                  class="btn variant-filled"
-                  on:click={handle_intermediate}
-                  disabled={!is_intermediate_selection_valid}>Iterate</button
-                >
-              </div>
-              {#if !is_intermediate_selection_valid}
-                <div class="text-error-500">Please select two solutions.</div>
-              {/if}
-            {:else if state === State.SaveSolutionsSelected}
-              <div class="flex gap-4">
-                <button
-                  class="btn variant-filled"
-                  on:click={handle_save_solutions}
-                  disabled={!is_save_solutions_valid}>Save</button
-                >
-              </div>
-              {#if !is_save_solutions_valid}
-                <div class="text-error-500">
-                  Please select at least one solution.
-                </div>
-              {/if}
-            {:else}
-              <GeneralError />
-            {/if}
-          </Card>
-        {/if}
-      </div>
-      <div slot="solutionSetChoice">
-        <Card>
-          <svelte:fragment slot="header"
-            >Choose which solution set to visualize</svelte:fragment
-          >
           <RadioGroup>
             <RadioItem
-              bind:group={visualizationChoiceState}
+              bind:group={state}
               name="justify"
-              value={VisualizationChoiceState.CurrentSolutions}
-              >Current solutions</RadioItem
+              value={State.ClassifySelected}>Provide classification</RadioItem
             >
             <RadioItem
-              bind:group={visualizationChoiceState}
+              bind:group={state}
               name="justify"
-              value={VisualizationChoiceState.SavedSolutions}
-              >Best candidate solutions</RadioItem
-            >
-            <RadioItem
-              bind:group={visualizationChoiceState}
-              name="justify"
-              value={VisualizationChoiceState.AllSolutions}
-              >All solutions</RadioItem
+              value={State.SaveSolutionsSelected}
+              >Save best candidate solutions</RadioItem
             >
           </RadioGroup>
-
-          {#if visualizationChoiceState === VisualizationChoiceState.CurrentSolutions}
+          {#if state === State.ClassifySelected}
             <div>
-              Visualize solutions generated by the method in the latest
-              iteration.
+              Provide your preferences by classifying the objectives by either
+              clicking on the bars or using the input boxes. You must give a
+              preference for each objective. You must improve and impair at
+              least one objective.
             </div>
-          {:else if visualizationChoiceState === VisualizationChoiceState.SavedSolutions && problemInfo.saved_solutions.length}
-            <div>Visualize best candidate solutions saved by you.</div>
-          {:else if visualizationChoiceState === VisualizationChoiceState.SavedSolutions}
+            <ClassificationPreference
+              objective_long_names={problemInfo.objective_long_names}
+              is_maximized={problemInfo.is_maximized}
+              lower_bounds={problemInfo.lower_bounds}
+              upper_bounds={problemInfo.upper_bounds}
+              solutionValue={reference_solution}
+              previousValue={problemInfo.previous_preference}
+              bind:preference
+              decimalPrecision={decimals}
+            />
+          {:else if state === State.IntermediateSelected}
             <div>
-              No saved solutions. Showing solutions from the latest iterations
-              instead.
+              Select two solutions and then click "Iterate" to generate
+              intermediate solutions.
             </div>
-          {:else if visualizationChoiceState === VisualizationChoiceState.AllSolutions}
-            <div>Visualize all solutions generated by NIMBUS.</div>
+            <Input
+              labelName="Number of intermediate solutions:"
+              bind:value={numIntermediates}
+              onChange={() => {
+                if (numIntermediates < MIN_NUM_INTERMEDIATES) {
+                  numIntermediates = MIN_NUM_INTERMEDIATES;
+                }
+                if (numIntermediates > MAX_NUM_INTERMEDIATES) {
+                  numIntermediates = MAX_NUM_INTERMEDIATES;
+                }
+              }}
+            />
+            {#if solutions_to_visualize !== undefined}
+              <ParallelCoordinatePlotBase
+                names={problemInfo.objective_long_names}
+                values={solutions_to_visualize}
+                ranges={transform_bounds(
+                  problemInfo.lower_bounds,
+                  problemInfo.upper_bounds
+                )}
+                lowerIsBetter={problemInfo.is_maximized.map((value) => !value)}
+                showIndicators={true}
+                disableInteraction={false}
+                maxSelections={2}
+                bind:selectedIndices={selected_solutions}
+              />
+            {/if}
+          {:else if state === State.SaveSolutionsSelected}
+            <div>
+              Select any number of solutions and then click "Save" to save
+              solutions of interest to the database.
+            </div>
+            {#if solutions_to_visualize !== undefined}
+              <ParallelCoordinatePlotBase
+                names={problemInfo.objective_long_names}
+                values={solutions_to_visualize}
+                ranges={transform_bounds(
+                  problemInfo.lower_bounds,
+                  problemInfo.upper_bounds
+                )}
+                lowerIsBetter={problemInfo.is_maximized.map((value) => !value)}
+                showIndicators={true}
+                disableInteraction={false}
+                maxSelections={solutions_to_visualize.length}
+                bind:selectedIndices={selected_solutions}
+              />
+            {/if}
           {/if}
-        </Card>
+          {#if state === State.ClassifySelected}
+            <div class="flex gap-4">
+              <button
+                class="btn variant-filled inline"
+                on:click={handle_iterate}
+                disabled={!is_classification_valid}>Iterate</button
+              >
+              <button
+                class="btn variant-filled inline"
+                on:click={press_final_button}
+                disabled={!(state === State.ClassifySelected)}
+                >Finish with chosen solution</button
+              >
+            </div>
+            {#if !is_classification_valid}
+              <div class="text-error-500">
+                Please give a valid classification for the objectives.
+              </div>
+            {/if}
+          {:else if state === State.IntermediateSelected}
+            <div class="flex gap-4">
+              <button
+                class="btn variant-filled"
+                on:click={handle_intermediate}
+                disabled={!is_intermediate_selection_valid}>Iterate</button
+              >
+            </div>
+            {#if !is_intermediate_selection_valid}
+              <div class="text-error-500">Please select two solutions.</div>
+            {/if}
+          {:else if state === State.SaveSolutionsSelected}
+            <div class="flex gap-4">
+              <button
+                class="btn variant-filled"
+                on:click={handle_save_solutions}
+                disabled={!is_save_solutions_valid}>Save</button
+              >
+            </div>
+            {#if !is_save_solutions_valid}
+              <div class="text-error-500">
+                Please select at least one solution.
+              </div>
+            {/if}
+          {:else}
+            <GeneralError />
+          {/if}
+        {/if}
       </div>
       <div slot="visualizations">
         {#if state === State.ClassifySelected && !finalChoiceState}
           <Card>
-            <svelte:fragment slot="header">Solution Explorer</svelte:fragment>
+            <div
+              style="display: flex; flex-direction:row; justify-content: space-between;"
+            >
+              <div style="font-weight: bold;">Solutions</div>
+              <RadioGroup>
+                <RadioItem
+                  bind:group={visualizationChoiceState}
+                  name="justify"
+                  bind:value={VisualizationChoiceState.CurrentSolutions}
+                  >Current solutions</RadioItem
+                >
+                <RadioItem
+                  bind:group={visualizationChoiceState}
+                  name="justify"
+                  value={VisualizationChoiceState.SavedSolutions}
+                  >Best candidate solutions</RadioItem
+                >
+                <RadioItem
+                  bind:group={visualizationChoiceState}
+                  name="justify"
+                  value={VisualizationChoiceState.AllSolutions}
+                  >All solutions</RadioItem
+                >
+              </RadioGroup>
+            </div>
 
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
               <Visualizations
                 names={problemInfo.objective_long_names}
                 values={solutions_to_visualize}
+                reference_point={problemInfo.previous_preference}
+                multipliers={problemInfo.current_multipliers}
                 lower_bounds={problemInfo.lower_bounds}
                 upper_bounds={problemInfo.upper_bounds}
                 lower_is_better={problemInfo.is_maximized.map(

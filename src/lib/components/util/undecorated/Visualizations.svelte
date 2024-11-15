@@ -16,6 +16,8 @@ length.
 
   export let names: string[] | undefined = undefined;
   export let values: Point[];
+  export let reference_point: number[] | undefined = undefined;
+  export let multipliers: number[][] | undefined = undefined;
   export let lower_bounds: number[];
   export let upper_bounds: number[];
   export let lower_is_better: boolean[];
@@ -44,6 +46,8 @@ length.
   <TabbedVisualizations
     {names}
     {values}
+    {reference_point}
+    {multipliers}
     {lower_bounds}
     {upper_bounds}
     {lower_is_better}

@@ -6,6 +6,7 @@
 
 import axios, { type AxiosInstance } from "axios";
 import { z } from "zod";
+import type { Ranges } from "$lib/components/visual/types";
 
 //
 // TODO: Replace anything that depends on Svelte with something else to make
@@ -561,6 +562,51 @@ export function is_point_of_length(value: unknown, n: number): value is Point {
  */
 export function problem_has_finite_bounds(problem: Problem) {
   return is_point(problem.ideal_point) && is_point(problem.nadir_point);
+}
+
+export function compute_tradeoffs(solution:number[], multipliers: number[], ranges: Ranges[] | undefined){
+  const n_objectives = multipliers.length;
+  const partial_trade_offs: number[][] = Array.from({ length: n_objectives }, () =>
+    Array(n_objectives).fill(1)
+  );
+  //trade_off_with_original_values = np.ones((n_objectives, n_objectives))
+  //norm_objectives = (np.array(fx) - np.min(fx)) / (np.max(fx) - np.min(fx))
+  const baseWeight = 1 / n_objectives;
+  const w = Array(n_objectives).fill(baseWeight);
+
+  const minLambda = Math.min(...multipliers);
+  const maxLambda = Math.max(...multipliers);
+
+  //const normalizedMultipliers = multipliers.map(lambda => (lambda - minLambda) / (maxLambda - minLambda));
+  //min_value, max_value = get_min_max(ideal, nadir)
+
+  const w_inv = w.map(weight => 1 / weight)
+
+  for (let i = 0; i < n_objectives; i++) {
+      // lambda_i = lambdas[i] * (max_value[i] - min_value[i]) + min_value[i]
+      const lambda_i = multipliers[i]
+      for (let j = 0; j < n_objectives; j++) {
+        if (i !== j) {
+          const lambda_j = ranges![j]! && ranges![j]!.max !== undefined && ranges![j]!.min !== undefined
+          ? multipliers[j] * (ranges![j]!.max! - ranges![j]!.min!) + ranges![j]!.min!
+          : multipliers[j];
+        
+        // default value when ranges[j] or its properties are undefined
+
+              //const lambda_j = multipliers[j] * (ranges[j].max - ranges[j].min) + ranges[j].min
+              //const lambda_j = multipliers[j]
+              // print(np.array(x))
+              // tradeoff = (np.linalg.norm(lambdas[i] * gradient_i)) / (
+              //    np.linalg.norm(lambdas[j] * gradient_j)
+              // )
+              // Gaining one unit in i impairs j in tradeoff units
+              const tradeoff = -(lambda_j * baseWeight) / (lambda_i*baseWeight)
+              partial_trade_offs[i][j] = tradeoff * (solution[j]/solution[i])
+        }
+              // trade_off_with_original_values[i][j] = tradeoff * (fx[j] / fx[i])
+      }
+  }
+  return partial_trade_offs
 }
 
 export const methodHeaderText = writable("No method selected yet");

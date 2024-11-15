@@ -16,6 +16,8 @@ length.
 
   export let names: string[] | undefined = undefined;
   export let values: Point[];
+  export let reference_point: number[] | undefined = undefined;
+  export let multipliers: number[][] | undefined = undefined;
   export let lower_bounds: number[];
   export let upper_bounds: number[];
   export let lower_is_better: boolean[];
@@ -30,13 +32,14 @@ length.
   // Import the visualizations here.
   import ParallelCoordinatePlotBase from "$lib/components/visual/visualization/props-linking/ParallelCoordinatePlot.svelte";
   import MultiMiniBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniBarChart.svelte";
+  import XPcp from "$lib/components/visual/explanations/xPCP.svelte";
   // import Petals from "$lib/components/visual/visualization/props-linking/MultiplePetalCharts.svelte";
 </script>
 
 <TabGroup>
   <Tab bind:group={tab} name="tab1" value={0}>Parallel Coordinate Plot</Tab>
   <Tab bind:group={tab} name="tab2" value={1}>Bar Chart</Tab>
-  <Tab bind:group={tab} name="tab3" value={2}>All</Tab>
+  <Tab bind:group={tab} name="tab3" value={2}>Explanations</Tab>
 
   <svelte:fragment slot="panel">
     {#if tab === 0}
@@ -60,22 +63,12 @@ length.
         bind:selectedIndices={selected}
       />
     {:else if tab === 2}
-      <ParallelCoordinatePlotBase
+      <XPcp
         {names}
         {values}
+        referencePoint={reference_point}
+        {multipliers}
         ranges={bounds}
-        lowerIsBetter={lower_is_better}
-        showIndicators={true}
-        disableInteraction={disabled}
-        maxSelections={max_selections}
-        bind:selectedIndices={selected}
-        bind:highlightedIndex={highlighted}
-      />
-      <MultiMiniBarChart
-        solutions={values}
-        lowerBounds={lower_bounds}
-        upperBounds={upper_bounds}
-        lowerIsBetter={lower_is_better}
         bind:selectedIndices={selected}
       />
     {/if}
