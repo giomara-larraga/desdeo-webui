@@ -28,7 +28,7 @@ A user interface for the NIMBUS method.
   import ParallelCoordinatePlotBase from "$lib/components/visual/visualization/props-linking/ParallelCoordinatePlot.svelte";
   import { transform_bounds } from "$lib/components/util/util";
 
-  import ClassificationPreference from "$lib/components/visual/preference-interaction/ClassificationPreference.svelte";
+  import ClassificationPreference from "$lib/components/visual/preference-interaction/XClassificationPreference.svelte";
   import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import { onMount } from "svelte";
@@ -114,6 +114,11 @@ A user interface for the NIMBUS method.
 
   let max_multiplier: number[] | undefined = undefined;
   let classification_checker = false;
+
+  let to_impair: boolean[] | undefined = undefined;
+  let to_improve: boolean[] | undefined = undefined;
+
+  let show_explanations: boolean = false;
 
   let draw_map = false;
 
@@ -708,6 +713,9 @@ A user interface for the NIMBUS method.
               previousValue={problemInfo.previous_preference}
               bind:preference
               decimalPrecision={decimals}
+              bind:to_impair
+              bind:to_improve
+              bind:show_explanations
             />
           {:else if state === State.IntermediateSelected}
             <div>
@@ -855,6 +863,9 @@ A user interface for the NIMBUS method.
                 bind:selected={selected_solutions}
                 bind:tab={visualizations_tab}
                 max_selections={1}
+                bind:to_impair
+                bind:to_improve
+                bind:show_explanations
               />
             {:else}
               <GeneralError />

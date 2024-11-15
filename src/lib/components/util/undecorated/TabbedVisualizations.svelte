@@ -27,6 +27,10 @@ length.
   export let highlighted: number | undefined = undefined;
   export let tab = 0;
   export let disabled = false;
+  export let to_impair: boolean[] | undefined = undefined;
+  export let to_improve: boolean[] | undefined = undefined;
+
+  export let show_explanations: boolean = false;
 
   $: bounds = transform_bounds(lower_bounds, upper_bounds);
 

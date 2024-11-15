@@ -28,6 +28,10 @@ length.
   export let disabled = false;
   export let tab = 0;
   export let grid_mode = false;
+  export let to_impair: boolean[] | undefined = undefined;
+  export let to_improve: boolean[] | undefined = undefined;
+
+  export let show_explanations: boolean = false;
 </script>
 
 {#if grid_mode}
@@ -58,5 +62,8 @@ length.
     bind:highlighted
     bind:tab
     {disabled}
+    bind:to_impair
+    bind:to_improve
+    bind:show_explanations
   />
 {/if}
