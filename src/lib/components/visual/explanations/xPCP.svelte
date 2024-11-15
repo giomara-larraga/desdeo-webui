@@ -21,6 +21,7 @@
 
   //export let selectedIndices: (number | null)[] = []; // Allow null values
   export let referencePoint: number[] = [];
+  export let preference: (number | undefined)[] = [undefined];
   export let showArrows: boolean = true;
   export let multipliers: number[][] = [[0.1, 0.5, 0.1, 0.2, 0.3]]; // Array representing the impact of each objective
   export let width = 800;
@@ -468,7 +469,8 @@
       .text("How to improve this value?")
       .style("margin-top", "10px")
       .on("click", () => {
-        alert("Action taken for " + names[solutionIndex]);
+        //alert("Action taken for " + names[solutionIndex]);
+        preference = values[selectedIndices[0]];
       });
 
     // Add secondary explanatory text

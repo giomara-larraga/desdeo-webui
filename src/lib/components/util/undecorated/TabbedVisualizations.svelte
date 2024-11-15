@@ -17,6 +17,7 @@ length.
   export let names: string[] | undefined = undefined;
   export let values: Point[];
   export let reference_point: number[] | undefined = undefined;
+  export let preference: (number | undefined)[] = [undefined];
   export let multipliers: number[][] | undefined = undefined;
   export let lower_bounds: number[];
   export let upper_bounds: number[];
@@ -66,6 +67,7 @@ length.
       <XPcp
         {names}
         {values}
+        bind:preference
         referencePoint={reference_point}
         {multipliers}
         ranges={bounds}

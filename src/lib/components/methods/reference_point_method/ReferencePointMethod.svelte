@@ -844,6 +844,7 @@ A user interface for the NIMBUS method.
                 names={problemInfo.objective_long_names}
                 values={solutions_to_visualize}
                 reference_point={problemInfo.previous_preference}
+                bind:preference
                 multipliers={problemInfo.current_multipliers}
                 lower_bounds={problemInfo.lower_bounds}
                 upper_bounds={problemInfo.upper_bounds}
