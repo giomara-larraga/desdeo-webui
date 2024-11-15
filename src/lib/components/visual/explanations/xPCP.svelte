@@ -284,7 +284,7 @@
           .attr("cy", scales[i](value))
           .attr("r", 4)
           .attr("fill", "blue")
-          .attr("stroke", i === selectedObjective ? "red" : "blue")
+          .attr("stroke", "blue")
           .attr("stroke-width", 3)
           .attr("class", "solution-marker")
           .on("mouseover", function (event) {
@@ -486,20 +486,8 @@
       .on("mouseout", (event) => {
         // Only hide if mouse leaves the tooltip
         //const isInsideTooltip = tooltip?.node()?.contains(event.relatedTarget);
-        const tooltipNode = tooltip.node();
-        const target = event.target;
-        let isInsideTooltip = undefined;
-        if (
-          tooltipNode instanceof HTMLElement &&
-          target instanceof HTMLElement
-        ) {
-          isInsideTooltip = tooltipNode.contains(target);
-        } else {
-          // Handle the case where tooltipNode or target is not a valid HTMLElement
-        }
-        if (!isInsideTooltip) {
-          tooltip.style("display", "none");
-        }
+
+        tooltip.style("display", "none");
       });
   }
 
