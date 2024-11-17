@@ -30,12 +30,8 @@
   let svg: SVGSVGElement;
   let tooltip: any; // Tooltip container
 
-  export let to_impair: boolean[] | undefined = Array(
-    referencePoint.length
-  ).fill(false);
-  export let to_improve: boolean[] | undefined = Array(
-    referencePoint.length
-  ).fill(false);
+  export let to_impair: boolean[] = Array(referencePoint.length).fill(false);
+  export let to_improve: boolean[] = Array(referencePoint.length).fill(false);
 
   export let show_explanations: boolean = false;
 
@@ -387,17 +383,18 @@
       const selectedSolution = values[selectedIndices[0]];
 
       selectedSolution.forEach((value, i) => {
+        const y1 = scales[i](referencePoint[i]);
+        const y2 =
+          value < referencePoint[i]
+            ? scales[i](value) - 10
+            : scales[i](value) + 10;
+
         svgElement
           .append("line")
           .attr("x1", i * barWidth + positionMarker)
-          .attr("y1", scales[i](referencePoint[i]))
+          .attr("y1", y1)
           .attr("x2", i * barWidth + positionMarker)
-          .attr(
-            "y2",
-            value < referencePoint[i]
-              ? scales[i](value) - 10
-              : scales[i](value) + 10
-          )
+          .attr("y2", y2)
           .attr("stroke", value < referencePoint[i] ? "red" : "green")
           .attr("stroke-width", 2.5)
           .attr("stroke-dasharray", "6,2")
@@ -407,6 +404,28 @@
               ? "url(#arrow-negative)"
               : "url(#arrow-positive)"
           ); // Attach arrow marker at the end;
+
+        // Append a rectangle to act as the background
+        svgElement
+          .append("rect")
+          .attr("x", i * barWidth + positionMarker + 5) // Adjust positioning if needed
+          .attr("y", (y1 + y2) / 2 - 10) // Position the rectangle above/below the text
+          .attr("width", 50)
+          .attr("height", 20) // Adjust the height as needed
+          .attr("fill", "white") // Set background color to white
+          .attr("fill-opacity", 0.7); // Set the opacity for transparency
+
+        // Append the text element
+        svgElement
+          .append("text")
+          .attr("x", i * barWidth + positionMarker + 10)
+          .attr("y", (y1 + y2) / 2 + 5)
+          .text(
+            value < referencePoint[i]
+              ? String((referencePoint[i] - value).toFixed(3)) + " ↓ "
+              : String((value - referencePoint[i]).toFixed(3)) + " ↑ "
+          )
+          .attr("fill", value < referencePoint[i] ? "red" : "green");
       });
     }
   }
@@ -419,6 +438,9 @@
       ? (objectiveImpacts = multipliers[selectedIndices[0]])
       : (objectiveImpacts = [0, 0, 0, 0]);
     selectedObjective = d3.maxIndex(objectiveImpacts);
+    show_explanations = false;
+    to_impair = Array(referencePoint.length).fill(false);
+    to_improve = Array(referencePoint.length).fill(false);
     drawPlot();
   }
 
@@ -432,7 +454,7 @@
     let cumulativeWidth = 0; // Keep track of cumulative width to position each slot
 
     const chartWidth = impactBarWidth + 20;
-    const chartHeight = impactBarHeight + 100;
+    const chartHeight = impactBarHeight + 30;
 
     const tooltip = d3
       .select(".tooltip")
@@ -447,10 +469,41 @@
     tooltip.html("");
 
     // Add explanatory text
-    tooltip
+    /*tooltip
       .append("div")
       .style("font-weight", "bold")
-      .text("Sensitivenes to changes in each objective");
+      .text("Sensitivenes to changes in each objective");*/
+
+    const maxImpactIndex = current_multipliers.indexOf(
+      Math.max(...current_multipliers)
+    );
+    const mostInfluentialObjectiveName = names[maxImpactIndex];
+    const mostInfluentialObjectiveColor = colorPalette[maxImpactIndex];
+
+    // Add the dynamic legend text
+    tooltip
+      .append("text")
+      .attr("x", 0)
+      .attr("y", 40) // Position the text element
+      .style("fill", "black")
+      .style("font-size", "12px")
+      .append("tspan")
+      .text("This solution is most sensitive ")
+      .attr("x", 5) // Keep the x position the same for alignment
+      .attr("dy", 0) // First line
+      .append("tspan")
+      .attr("x", 5)
+      .attr("dy", "1.2em")
+      .text("to changes in ")
+      .append("tspan")
+      //.attr("x", legendPositionX) // Same x to align with the previous line
+      //.attr("dy", "1.2em") // Offset vertically to create a line break
+      .text(mostInfluentialObjectiveName)
+      .style("fill", mostInfluentialObjectiveColor) // Color for the most influential objective
+      .style("font-weight", "bold");
+    //.append("tspan")
+    //.text(" has the most influence in the selected solution")
+    //.style("fill", "black");
 
     const svg = tooltip
       .append("svg")
@@ -475,36 +528,14 @@
       cumulativeWidth += slotWidth; // Update the cumulative width for the next slot
     });
 
-    const maxImpactIndex = current_multipliers.indexOf(
-      Math.max(...current_multipliers)
-    );
-    const mostInfluentialObjectiveName = names[maxImpactIndex];
-    const mostInfluentialObjectiveColor = colorPalette[maxImpactIndex];
-
-    // Add the dynamic legend text
     svg
       .append("text")
       .attr("x", 0)
       .attr("y", 40) // Position the text element
-      .style("fill", "black")
+      .style("fill", "gray")
       .style("font-size", "12px")
       .append("tspan")
-      .text("This solution is most sensitive ")
-      .attr("x", 5) // Keep the x position the same for alignment
-      .attr("dy", 0) // First line
-      .append("tspan")
-      .attr("x", 5)
-      .attr("dy", "1.2em")
-      .text("to changes in ")
-      .append("tspan")
-      //.attr("x", legendPositionX) // Same x to align with the previous line
-      //.attr("dy", "1.2em") // Offset vertically to create a line break
-      .text(mostInfluentialObjectiveName)
-      .style("fill", mostInfluentialObjectiveColor) // Color for the most influential objective
-      .style("font-weight", "bold");
-    //.append("tspan")
-    //.text(" has the most influence in the selected solution")
-    //.style("fill", "black");
+      .text("Sensitivity to changes per objective");
   }
 
   // Function to display the tooltip
@@ -513,21 +544,15 @@
     const current_multipliers = multipliers[selectedIndices[0]].map(Math.abs);
     const tradeoffs = compute_tradeoffs(solution, current_multipliers, ranges);
 
-    let selected_tradeoffs = [];
+    let selected_tradeoffs: number[] = [];
     for (let index = 0; index < tradeoffs.length; index++) {
       selected_tradeoffs.push(Math.abs(tradeoffs[index][solutionIndex]));
     }
     console.log(selected_tradeoffs);
-    const significant_values = getSignificantIndices(selected_tradeoffs);
-    console.log(significant_values);
-    to_impair = Array(referencePoint.length).fill(false);
-    to_improve = Array(referencePoint.length).fill(false);
-    significant_values.forEach((index) => {
-      to_impair![index] = true;
-    });
-    to_improve[selectedIndices[0]] = true;
 
-    console.log(to_impair);
+    //to_improve[selectedIndices[0]] = true;
+
+    //console.log(to_impair);
     // Tooltip container setup
     const tooltip = d3
       .select(".tooltip")
@@ -586,6 +611,14 @@
       .on("click", () => {
         //alert("Action taken for " + names[solutionIndex]);
         preference = values[selectedIndices[0]];
+        const significant_values = getSignificantIndices(selected_tradeoffs);
+        console.log(significant_values);
+        to_impair = Array(referencePoint.length).fill(false);
+        to_improve = Array(referencePoint.length).fill(false);
+        significant_values.forEach((index) => {
+          to_impair![index] = true;
+        });
+        to_improve[solutionIndex] = true;
         show_explanations = true;
       });
 

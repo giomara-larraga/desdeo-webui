@@ -28,8 +28,8 @@ length.
   export let disabled = false;
   export let tab = 0;
   export let grid_mode = false;
-  export let to_impair: boolean[] | undefined = undefined;
-  export let to_improve: boolean[] | undefined = undefined;
+  export let to_impair: boolean[] = Array(lower_bounds.length).fill(false);
+  export let to_improve: boolean[] = Array(lower_bounds.length).fill(false);
 
   export let show_explanations: boolean = false;
 </script>

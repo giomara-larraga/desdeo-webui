@@ -39,8 +39,8 @@
    * objective_names.
    */
   export let preference: (number | undefined)[];
-  export let to_impair: boolean[] | undefined = undefined;
-  export let to_improve: boolean[] | undefined = undefined;
+  export let to_impair: boolean[] = Array(solutionValue.length).fill(false);
+  export let to_improve: boolean[] = Array(solutionValue.length).fill(false);
 
   export let show_explanations: boolean = false;
 
@@ -66,8 +66,8 @@
       {decimalPrecision}
       lowerIsBetter={!is_maximized[j]}
       arrowMode={true}
-      bind:to_impair
-      bind:to_improve
+      bind:to_impair={to_impair[j]}
+      bind:to_improve={to_improve[j]}
       bind:show_explanations
     />
   {/each}

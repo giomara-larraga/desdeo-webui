@@ -49,8 +49,8 @@
   /** The aspect ratio of the chart container div element. */
   export let aspect: string | undefined = undefined;
 
-  export let to_impair: boolean[] | undefined = undefined;
-  export let to_improve: boolean[] | undefined = undefined;
+  export let to_impair: boolean = false;
+  export let to_improve: boolean = false;
 
   export let show_explanations: boolean = false;
 
@@ -121,7 +121,18 @@
   <div class="secondPart">
     <div id="prev">
       <!-- TODO: Implement this so that when no prev values is given, nothing shows up. But implementation should not make a mess. Maybe reserve a blank space (how)? -->
-      <span style="color:gray; font-size: small; ">Previous preference</span>
+      {#if show_explanations}
+        {#if to_improve}
+          <span style="color:gray; font-size: small; margin-right:20px"
+            >Suggestion: to improve
+          </span>
+        {:else if to_impair}
+          <span style="color:gray; font-size: small; margin-right:20px"
+            >Suggestion: to impair
+          </span>
+        {/if}
+      {/if}
+      <span style="color:gray; font-size: small;">Previous preference</span>
       {#if previousValue}
         <span id="prevValue">{previousValue}</span>
       {:else}

@@ -115,8 +115,8 @@ A user interface for the NIMBUS method.
   let max_multiplier: number[] | undefined = undefined;
   let classification_checker = false;
 
-  let to_impair: boolean[] | undefined = undefined;
-  let to_improve: boolean[] | undefined = undefined;
+  let to_impair: boolean[];
+  let to_improve: boolean[];
 
   let show_explanations: boolean = false;
 
@@ -438,6 +438,7 @@ A user interface for the NIMBUS method.
         visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
         reference_solution = problemInfo.current_solutions[0];
         selected_solutions = [0];
+        show_explanations = false;
       } else {
         throw new Error("Failed to iterate NIMBUS method.");
       }

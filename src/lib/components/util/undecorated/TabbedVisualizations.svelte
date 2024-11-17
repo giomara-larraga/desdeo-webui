@@ -27,8 +27,8 @@ length.
   export let highlighted: number | undefined = undefined;
   export let tab = 0;
   export let disabled = false;
-  export let to_impair: boolean[] | undefined = undefined;
-  export let to_improve: boolean[] | undefined = undefined;
+  export let to_impair: boolean[];
+  export let to_improve: boolean[];
 
   export let show_explanations: boolean = false;
 

@@ -59,25 +59,33 @@
   /** The aspect ratio of the chart container. */
   export let aspect = "aspect-[11/2]";
 
-  export let to_impair: boolean[] | undefined = undefined;
-  export let to_improve: boolean[] | undefined = undefined;
+  export let to_impair: boolean = false;
+  export let to_improve: boolean = false;
 
-  export let show_explanations: boolean = false;
+  export const show_explanations: boolean = false;
 
   // $: console.log(selectedValue);
   $: if (selectedValue != null) {
     updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
+    //updateTradeoffs(selectedValue);
+    //console.log("triggered update aspiration line");
   }
   // $: updateAspirationLine(selectedValue);
   $: if (previousValue != null) {
     updatePreviousLine(
       (previousValue = roundToDecimal(previousValue, decimalPrecision))
     );
+    console.log("triggered update previous line");
   }
   $: if (solutionValue != null) {
     updateSolutionBar(solutionValue);
+    console.log("triggered update solution bar");
+    //updateTradeoffs(solutionValue);
     //updateSolutionBar(Number.parseFloat(solutionValue.toFixed(decimalPrecision)));
   }
+  /*$: if (solutionValue != null || to_improve || to_impair) {
+    updateTradeoffs(solutionValue!); // Regenerate arrows when any relevant variable changes
+  }*/
 
   const arrowSize = 15;
   const arrowColor = "black";
@@ -164,6 +172,172 @@
     addHorizontalBar(option);
   });
 
+  function getShapeTradeoff(value: string | null, scaleValue: number) {
+    let points = null;
+    console.log("the current tradeoff is", value);
+    if (to_improve) {
+      points = [
+        [0, scaleValue],
+        [scaleValue, 0],
+        [0, -scaleValue],
+      ];
+    } else if (to_impair) {
+      points = [
+        [0, scaleValue],
+        [-scaleValue, 0],
+        [0, -scaleValue],
+      ];
+    } else {
+      points = [
+        [0, scaleValue],
+        [0, -scaleValue],
+        [-scaleValue, 0],
+        [-scaleValue, scaleValue],
+      ];
+    }
+    return points;
+  }
+
+  function generateTradeoffArrows() {
+    let children = [];
+
+    children.push({
+      type: "polygon",
+      id: "improve_arrow",
+      x: solutionValue
+        ? chart.convertToPixel({ seriesIndex: 0 }, [solutionValue, 0])[0]
+        : 0,
+      y: chart.getHeight() / 2,
+      z: 498,
+      invisible: true,
+      shape: {
+        points: getShapeTradeoff("Improve", arrowSize),
+      },
+      style: {
+        fill: referencePointStyle.stroke,
+        // stroke: "black",
+        lineWidth: 2,
+        // opacity: 0.7,
+      },
+    });
+    children.push({
+      type: "polygon",
+      id: "impair_arrow",
+      x: solutionValue
+        ? chart.convertToPixel({ seriesIndex: 0 }, [solutionValue, 0])[0]
+        : 0,
+      y: chart.getHeight() / 2,
+      z: 498,
+      invisible: true,
+      shape: {
+        points: getShapeTradeoff("Impair", arrowSize),
+      },
+      style: {
+        fill: referencePointStyle.stroke,
+        // stroke: "black",
+        lineWidth: 2,
+        // opacity: 0.7,
+      },
+    });
+
+    return children;
+  }
+
+  /*function updateTradeoffs(newValue: number) {
+    if (!chart) {
+      return;
+    }
+    console.log("updating tradeoffs");
+    let options = null;
+    let hideoptions = [];
+
+    hideoptions.push({
+      id: "improve_arrow",
+      invisible: true,
+      transition: "all",
+    });
+    hideoptions.push({
+      id: "impair_arrow",
+      invisible: true,
+      transition: "all",
+    });
+
+    chart.setOption({
+      graphic: hideoptions,
+    });
+
+    if (to_improve && show_explanations) {
+      console.log("to improve...");
+      options = [
+        {
+          id: "improve_arrow",
+          invisible: false,
+          transition: "all",
+          x:
+            newValue !== null
+              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
+              : [],
+        },
+        {
+          id: "impair_arrow",
+          invisible: true,
+          transition: "all",
+          x:
+            newValue !== null
+              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
+              : [],
+        },
+      ];
+    } else if (to_impair && show_explanations) {
+      console.log("to impair ...");
+      options = [
+        {
+          id: "impair_arrow",
+          invisible: false,
+          transition: "all",
+          x:
+            newValue !== null
+              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
+              : [],
+        },
+        {
+          id: "improve_arrow",
+          invisible: true,
+          transition: "all",
+          x:
+            newValue !== null
+              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
+              : [],
+        },
+      ];
+    } else {
+      console.log("other");
+      options = [
+        {
+          id: "impair_arrow",
+          invisible: true,
+          transition: "all",
+          x:
+            newValue !== null
+              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
+              : [],
+        },
+        {
+          id: "improve_arrow",
+          invisible: true,
+          transition: "all",
+          x:
+            newValue !== null
+              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
+              : [],
+        },
+      ];
+    }
+
+    chart.setOption({
+      graphic: options,
+    });
+  }*/
   // TODO: Better documentation. Also try to make this more understandable.
   function updateBarColor() {
     let originalBarColor = barColor.slice();
@@ -251,6 +425,8 @@
 
   function addHorizontalBar(option: echarts.EChartOption) {
     chart.setOption(option);
+    //console.log("add horizontal");
+
     updateBarColor();
 
     // TODO: How to get the gridRect without using the private method?
@@ -575,6 +751,12 @@
             }
           },
         },
+        {
+          id: "tradeoffArrow",
+          type: "group",
+          name: "interactiveButtons",
+          children: generateTradeoffArrows(),
+        },
         // Invisible rectangle for the whole grid area, so that clicking on the grid area works correctly
         {
           id: "valueArea",
@@ -635,6 +817,7 @@
   function updateAspirationLine(newValue: number) {
     selectedValue = newValue;
     updateLinePosition("aspirationGroup", newValue);
+    //updateTradeoffs(newValue);
   }
 
   /**
@@ -738,6 +921,7 @@
         ],
       });
       updateBarColor();
+      //updateTradeoffs(newValue);
       // Update the reset arrow position and make it visible
       chart.setOption({
         graphic: [
