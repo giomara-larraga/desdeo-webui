@@ -24,23 +24,33 @@
   export let preference: (number | undefined)[] = [undefined];
   export let showArrows: boolean = true;
   export let multipliers: number[][] = [[0.1, 0.5, 0.1, 0.2, 0.3]]; // Array representing the impact of each objective
-  export let width = 800;
+  export let width = 850;
   export let height = 400;
   let selectedObjective: number = -1;
   let svg: SVGSVGElement;
   let tooltip: any; // Tooltip container
+
+  export let to_impair: boolean[] | undefined = Array(
+    referencePoint.length
+  ).fill(false);
+  export let to_improve: boolean[] | undefined = Array(
+    referencePoint.length
+  ).fill(false);
+
+  export let show_explanations: boolean = false;
 
   function drawPlot() {
     if (!ranges || names.length === 0 || values.length === 0) return;
 
     //const width = 800;
     //const height = 600;
-    const margin = { top: 20, right: 250, bottom: 20, left: 30 };
+
+    const margin = { top: 40, right: 50, bottom: 20, left: 100 };
     const barWidth = (width - margin.left - margin.right) / names.length;
     const ticknessBar = 20;
     const positionMarker = ticknessBar / 2;
-    const legendPositionX = barWidth * (names.length - 1) + ticknessBar + 30;
-    const legendPositionY = 0;
+    //const legendPositionX = barWidth * (names.length - 1) + ticknessBar + 30;
+    //const legendPositionY = 0;
 
     // Clear existing plot
     d3.select(svg).selectAll("*").remove();
@@ -188,7 +198,17 @@
         .attr("stroke", "transparent") // Make the stroke invisible
         .attr("stroke-width", 10) // Increase stroke width to make it easier to click
         .attr("class", "clickable-line")
-        .on("click", () => selectLine(index)); // Handle the click event
+        .on("click", () => selectLine(index))
+        .on("mouseover", function (event) {
+          if (index == selectedIndices[0]) {
+            showTooltipSolution(event, index); // Show the tooltip on hover'
+          }
+        })
+        .on("mouseout", function (event) {
+          if (index == selectedIndices[0]) {
+            hideTooltip(event); // Show the tooltip on hover'
+          }
+        }); // Hide the tooltip on mouse out // Handle the click event
 
       // Plot circular markers
       values[index].forEach((value, i) => {
@@ -234,7 +254,7 @@
         .attr("fill", "black");
     });
 
-    svgElement
+    /*svgElement
       .append("circle")
       .attr("cx", legendPositionX)
       .attr("cy", 0)
@@ -259,7 +279,7 @@
       .attr("y", 30)
       .text("Solution")
       .style("font-size", "12px")
-      .attr("alignment-baseline", "middle");
+      .attr("alignment-baseline", "middle");*/
 
     //Rewrite selected markers
     if (selectedIndices[0] !== null) {
@@ -295,7 +315,7 @@
       });
     }
 
-    if (selectedIndices[0] !== null) {
+    /*if (selectedIndices[0] !== null) {
       svgElement
         .append("text")
         .attr("x", legendPositionX)
@@ -361,7 +381,7 @@
       //.append("tspan")
       //.text(" has the most influence in the selected solution")
       //.style("fill", "black");
-    }
+    }*/
     // If a line is selected, draw dashed line connecting to reference point
     if (selectedIndices[0] !== null && showArrows) {
       const selectedSolution = values[selectedIndices[0]];
@@ -402,17 +422,112 @@
     drawPlot();
   }
 
+  function showTooltipSolution(event: any, solutionIndex: number) {
+    const solution = values[selectedIndices[0]];
+    const current_multipliers = multipliers[selectedIndices[0]].map(Math.abs);
+    const totalImpact = d3.sum(current_multipliers);
+
+    const impactBarWidth = 200; // Total width of the impact bar
+    const impactBarHeight = 20; // Height of the impact bar
+    let cumulativeWidth = 0; // Keep track of cumulative width to position each slot
+
+    const chartWidth = impactBarWidth + 20;
+    const chartHeight = impactBarHeight + 100;
+
+    const tooltip = d3
+      .select(".tooltip")
+      .style("display", "block")
+      .style("width", chartWidth + 5)
+      .style("word-wrap", "break-word")
+      .style("left", event.pageX + 5 + "px")
+      .style("top", event.pageY - 50 + "px")
+      .style("pointer-events", "auto");
+
+    // Clear existing content
+    tooltip.html("");
+
+    // Add explanatory text
+    tooltip
+      .append("div")
+      .style("font-weight", "bold")
+      .text("Sensitivenes to changes in each objective");
+
+    const svg = tooltip
+      .append("svg")
+      .attr("width", chartWidth)
+      .attr("height", chartHeight);
+
+    // Add the impact plot to the tooltip
+
+    current_multipliers.forEach((impact, i) => {
+      const impactProportion = impact / totalImpact;
+      const slotWidth = impactProportion * impactBarWidth; // Calculate width based on proportion
+
+      // Add a colored rectangle for each objective's impact
+      svg
+        .append("rect")
+        .attr("x", cumulativeWidth) // Start after the previous slot
+        .attr("y", 5)
+        .attr("width", slotWidth)
+        .attr("height", impactBarHeight)
+        .attr("fill", colorPalette[i]); // Color for each objective
+
+      cumulativeWidth += slotWidth; // Update the cumulative width for the next slot
+    });
+
+    const maxImpactIndex = current_multipliers.indexOf(
+      Math.max(...current_multipliers)
+    );
+    const mostInfluentialObjectiveName = names[maxImpactIndex];
+    const mostInfluentialObjectiveColor = colorPalette[maxImpactIndex];
+
+    // Add the dynamic legend text
+    svg
+      .append("text")
+      .attr("x", 0)
+      .attr("y", 40) // Position the text element
+      .style("fill", "black")
+      .style("font-size", "12px")
+      .append("tspan")
+      .text("This solution is most sensitive ")
+      .attr("x", 5) // Keep the x position the same for alignment
+      .attr("dy", 0) // First line
+      .append("tspan")
+      .attr("x", 5)
+      .attr("dy", "1.2em")
+      .text("to changes in ")
+      .append("tspan")
+      //.attr("x", legendPositionX) // Same x to align with the previous line
+      //.attr("dy", "1.2em") // Offset vertically to create a line break
+      .text(mostInfluentialObjectiveName)
+      .style("fill", mostInfluentialObjectiveColor) // Color for the most influential objective
+      .style("font-weight", "bold");
+    //.append("tspan")
+    //.text(" has the most influence in the selected solution")
+    //.style("fill", "black");
+  }
+
   // Function to display the tooltip
   function showTooltip(event: any, solutionIndex: number) {
     const solution = values[selectedIndices[0]];
     const current_multipliers = multipliers[selectedIndices[0]].map(Math.abs);
     const tradeoffs = compute_tradeoffs(solution, current_multipliers, ranges);
+
     let selected_tradeoffs = [];
     for (let index = 0; index < tradeoffs.length; index++) {
       selected_tradeoffs.push(Math.abs(tradeoffs[index][solutionIndex]));
     }
     console.log(selected_tradeoffs);
+    const significant_values = getSignificantIndices(selected_tradeoffs);
+    console.log(significant_values);
+    to_impair = Array(referencePoint.length).fill(false);
+    to_improve = Array(referencePoint.length).fill(false);
+    significant_values.forEach((index) => {
+      to_impair![index] = true;
+    });
+    to_improve[selectedIndices[0]] = true;
 
+    console.log(to_impair);
     // Tooltip container setup
     const tooltip = d3
       .select(".tooltip")
@@ -471,6 +586,7 @@
       .on("click", () => {
         //alert("Action taken for " + names[solutionIndex]);
         preference = values[selectedIndices[0]];
+        show_explanations = true;
       });
 
     // Add secondary explanatory text
@@ -491,6 +607,20 @@
 
         tooltip.style("display", "none");
       });
+  }
+
+  function getSignificantIndices(arr: number[]): number[] {
+    const sortedIndices = arr
+      .map((val, idx) => ({ val, idx }))
+      .sort((a, b) => b.val - a.val);
+
+    const significant = [];
+    for (let i = 0; i < sortedIndices.length - 1; i++) {
+      const diff = sortedIndices[i].val / sortedIndices[i + 1].val;
+      if (diff > 2) significant.push(sortedIndices[i].idx); // Adjust "2" as a significance ratio
+    }
+
+    return significant;
   }
 
   // Function to hide the tooltip

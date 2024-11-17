@@ -76,6 +76,9 @@ length.
         {multipliers}
         ranges={bounds}
         bind:selectedIndices={selected}
+        bind:to_improve
+        bind:to_impair
+        bind:show_explanations
       />
     {/if}
   </svelte:fragment>
