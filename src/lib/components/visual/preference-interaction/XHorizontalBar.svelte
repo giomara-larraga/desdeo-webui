@@ -12,10 +12,6 @@
       TODO: add rest of the props
  
 -->
-<!-- 
-  TODO: When drag line is outside the bounds, dragging should start from that position. Now it starts from the edge of the chart. It's not a big problem, but a little annoying to use.
-  TODO: Include ideal and nadir points at both ends of the horizontal bar
- -->
 <script lang="ts">
   import * as echarts from "echarts";
   import { onMount } from "svelte";
@@ -27,7 +23,6 @@
     getChartModel,
     roundToDecimal,
   } from "$lib/components/visual/helperFunctions";
-  // import type { SolutionData } from "$lib/components/visual/types";
 
   /** The lower bound of the chart. */
   export let lowerBound: number;
@@ -63,29 +58,6 @@
   export let to_improve: boolean = false;
 
   export const show_explanations: boolean = false;
-
-  // $: console.log(selectedValue);
-  $: if (selectedValue != null) {
-    updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
-    //updateTradeoffs(selectedValue);
-    //console.log("triggered update aspiration line");
-  }
-  // $: updateAspirationLine(selectedValue);
-  $: if (previousValue != null) {
-    updatePreviousLine(
-      (previousValue = roundToDecimal(previousValue, decimalPrecision))
-    );
-    console.log("triggered update previous line");
-  }
-  $: if (solutionValue != null) {
-    updateSolutionBar(solutionValue);
-    console.log("triggered update solution bar");
-    //updateTradeoffs(solutionValue);
-    //updateSolutionBar(Number.parseFloat(solutionValue.toFixed(decimalPrecision)));
-  }
-  /*$: if (solutionValue != null || to_improve || to_impair) {
-    updateTradeoffs(solutionValue!); // Regenerate arrows when any relevant variable changes
-  }*/
 
   const arrowSize = 15;
   const arrowColor = "black";
@@ -161,183 +133,27 @@
     },
   };
 
+  $: if (selectedValue != null) {
+    updateAspirationLine(roundToDecimal(selectedValue, decimalPrecision));
+  }
+  $: if (previousValue != null) {
+    updatePreviousLine(
+      (previousValue = roundToDecimal(previousValue, decimalPrecision))
+    );
+  }
+  $: if (solutionValue != null) {
+    updateSolutionBar(solutionValue);
+  }
+
   onMount(() => {
-    // todo: fix the height issue!
     if (chartDiv.clientHeight == 0) {
       chart = echarts.init(chartDiv, null, { height: 100 });
     } else {
       chart = echarts.init(chartDiv);
     }
-
     addHorizontalBar(option);
   });
 
-  function getShapeTradeoff(value: string | null, scaleValue: number) {
-    let points = null;
-    console.log("the current tradeoff is", value);
-    if (to_improve) {
-      points = [
-        [0, scaleValue],
-        [scaleValue, 0],
-        [0, -scaleValue],
-      ];
-    } else if (to_impair) {
-      points = [
-        [0, scaleValue],
-        [-scaleValue, 0],
-        [0, -scaleValue],
-      ];
-    } else {
-      points = [
-        [0, scaleValue],
-        [0, -scaleValue],
-        [-scaleValue, 0],
-        [-scaleValue, scaleValue],
-      ];
-    }
-    return points;
-  }
-
-  function generateTradeoffArrows() {
-    let children = [];
-
-    children.push({
-      type: "polygon",
-      id: "improve_arrow",
-      x: solutionValue
-        ? chart.convertToPixel({ seriesIndex: 0 }, [solutionValue, 0])[0]
-        : 0,
-      y: chart.getHeight() / 2,
-      z: 498,
-      invisible: true,
-      shape: {
-        points: getShapeTradeoff("Improve", arrowSize),
-      },
-      style: {
-        fill: referencePointStyle.stroke,
-        // stroke: "black",
-        lineWidth: 2,
-        // opacity: 0.7,
-      },
-    });
-    children.push({
-      type: "polygon",
-      id: "impair_arrow",
-      x: solutionValue
-        ? chart.convertToPixel({ seriesIndex: 0 }, [solutionValue, 0])[0]
-        : 0,
-      y: chart.getHeight() / 2,
-      z: 498,
-      invisible: true,
-      shape: {
-        points: getShapeTradeoff("Impair", arrowSize),
-      },
-      style: {
-        fill: referencePointStyle.stroke,
-        // stroke: "black",
-        lineWidth: 2,
-        // opacity: 0.7,
-      },
-    });
-
-    return children;
-  }
-
-  /*function updateTradeoffs(newValue: number) {
-    if (!chart) {
-      return;
-    }
-    console.log("updating tradeoffs");
-    let options = null;
-    let hideoptions = [];
-
-    hideoptions.push({
-      id: "improve_arrow",
-      invisible: true,
-      transition: "all",
-    });
-    hideoptions.push({
-      id: "impair_arrow",
-      invisible: true,
-      transition: "all",
-    });
-
-    chart.setOption({
-      graphic: hideoptions,
-    });
-
-    if (to_improve && show_explanations) {
-      console.log("to improve...");
-      options = [
-        {
-          id: "improve_arrow",
-          invisible: false,
-          transition: "all",
-          x:
-            newValue !== null
-              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
-              : [],
-        },
-        {
-          id: "impair_arrow",
-          invisible: true,
-          transition: "all",
-          x:
-            newValue !== null
-              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
-              : [],
-        },
-      ];
-    } else if (to_impair && show_explanations) {
-      console.log("to impair ...");
-      options = [
-        {
-          id: "impair_arrow",
-          invisible: false,
-          transition: "all",
-          x:
-            newValue !== null
-              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
-              : [],
-        },
-        {
-          id: "improve_arrow",
-          invisible: true,
-          transition: "all",
-          x:
-            newValue !== null
-              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
-              : [],
-        },
-      ];
-    } else {
-      console.log("other");
-      options = [
-        {
-          id: "impair_arrow",
-          invisible: true,
-          transition: "all",
-          x:
-            newValue !== null
-              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
-              : [],
-        },
-        {
-          id: "improve_arrow",
-          invisible: true,
-          transition: "all",
-          x:
-            newValue !== null
-              ? chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0]
-              : [],
-        },
-      ];
-    }
-
-    chart.setOption({
-      graphic: options,
-    });
-  }*/
   // TODO: Better documentation. Also try to make this more understandable.
   function updateBarColor() {
     let originalBarColor = barColor.slice();
@@ -355,12 +171,10 @@
     if (lowerIsBetter) {
       backgroundStyle = {
         color: "white",
-        // opacity: 1,
       };
     } else {
       backgroundStyle = {
         color: originalBarColor,
-        // opacity: 1,
       };
       let oldBarColor = originalBarColor;
       originalBarColor = "white";
@@ -391,7 +205,6 @@
           backgroundStyle: backgroundStyle,
           data: solutionValue ? [[solutionValue]] : [[0]],
           barWidth: "100%",
-          // opacity: lowerIsBetter ? 1 : 0.2,
           emphasis: {
             //  eslint-disable-next-line @typescript-eslint/ban-ts-comment
             // @ts-ignore -- Error says that disabled doesn't exist in the echarts series type, but in the documentation it exists. Might be because it's a new property, so they have not updated the type yet. https://echarts.apache.org/en/option.html#series-bar.emphasis.disabled
@@ -425,8 +238,6 @@
 
   function addHorizontalBar(option: echarts.EChartOption) {
     chart.setOption(option);
-    //console.log("add horizontal");
-
     updateBarColor();
 
     // TODO: How to get the gridRect without using the private method?
@@ -440,7 +251,6 @@
     const gridRect = gridView.group.getBoundingRect();
 
     const scaleValue = gridRect.height * 0.05;
-    // const ratio = gridRect.height / scaleValue / 10;
     // This option adds the interactive custom graphic elements to the chart
     const graphicOptions = {
       graphic: [
@@ -449,40 +259,14 @@
           id: "aspirationGroup",
           type: "group",
           x: chart.convertToPixel({ seriesIndex: 0 }, [selectedValue, 0])[0],
-          // z: 1000,
           draggable: "horizontal",
           silent: selectedValue == null ? true : false,
           children: [
-            // Dragging circle with arrows
-            // {
-
-            // },
-
-            // Dragging image
-            // {
-            //   type: "image",
-            //   id: "dragImage",
-            //   z: 501,
-            //   left: -15,
-            //   invisible: selectedValue == null ? true : false,
-            //   style: {
-            //     image: "../src/lib/assets/Picture2.png",
-            //     width: arrowSize,
-            //     height: arrowSize,
-            //     y: chart.getHeight() / 2 - arrowSize/2,
-            //     fill: "blue",
-            //     stroke: "blue",
-            //   },
-            // },
             // Dragging circle
             {
               type: "group",
               id: "drag",
               y: chart.getHeight() / 2,
-
-              // scale: [10,10],
-              // scale: [scaleValue, scaleValue],
-
               children: [
                 {
                   type: "circle",
@@ -495,9 +279,7 @@
                   },
                   style: {
                     fill: referencePointStyle.stroke,
-                    // stroke: "black",
                     lineWidth: 2,
-                    // opacity: 0.7,
                   },
                 },
                 {
@@ -506,9 +288,7 @@
                   right: referencePointStyle.lineWidth / 10,
                   invisible: selectedValue == null ? true : false,
                   z: 499,
-                  // scale: [0.5, 0.5],
                   style: {
-                    // fill: "black",
                     stroke: dragArrowColor,
                     lineWidth: 2,
                   },
@@ -527,11 +307,8 @@
                   scaleX: -1,
                   z: 499,
                   invisible: selectedValue == null ? true : false,
-                  // scale: [-0.5, 0.5],
-                  // scaleX: -1,
                   style: {
                     stroke: dragArrowColor,
-                    // fill: "black",
                     lineWidth: 2,
                   },
                   shape: {
@@ -542,31 +319,11 @@
                     ],
                   },
                 },
-                // {
-                //   type:"line",
-                //   z: 502,
-                //   style: {
-                //     stroke: "blue",
-                //     opacity: 0.2,
-                //     lineWidth: 2,
-                //   },
-                //   shape: {
-                //     x1: 0,
-                //     y1: scaleValue,
-                //     x2: 0,
-                //     y2: -scaleValue,
-                //   },
-
-                // },
               ],
             },
             {
               id: "rec",
               type: "rect",
-              // x: chart.convertToPixel({ seriesIndex: 0 }, [
-              //   selectedValue,
-              //   0,
-              // ])[0],
               y: gridRect.y,
               invisible: selectedValue == null ? true : false,
               z: 300,
@@ -577,10 +334,7 @@
               style: {
                 stroke: referencePointStyle.stroke,
                 lineWidth: referencePointStyle.lineWidth,
-                // opacity: 0.8,
               },
-
-              // draggable: "horizontal",
             },
           ],
           ondragstart: () => {
@@ -687,7 +441,6 @@
             fill: arrowColor,
             fillOpacity: 0.6,
             stroke: arrowColor,
-            // lineDash: [2],
             lineWidth: 2,
           },
         },
@@ -720,13 +473,11 @@
               y: 2,
               style: {
                 fill: "transparent",
-                // fillOpacity: 0,
                 stroke: arrowColor,
                 lineWidth: 1.25,
               },
 
               onclick: () => {
-                // console.log("click");
                 selectedValue = solutionValue;
               },
             },
@@ -750,12 +501,6 @@
               }
             }
           },
-        },
-        {
-          id: "tradeoffArrow",
-          type: "group",
-          name: "interactiveButtons",
-          children: generateTradeoffArrows(),
         },
         // Invisible rectangle for the whole grid area, so that clicking on the grid area works correctly
         {
@@ -817,7 +562,6 @@
   function updateAspirationLine(newValue: number) {
     selectedValue = newValue;
     updateLinePosition("aspirationGroup", newValue);
-    //updateTradeoffs(newValue);
   }
 
   /**
@@ -855,14 +599,6 @@
         xOption = chart.getWidth() - 15;
       }
     }
-
-    //  let xOption = chart.convertToPixel({ seriesIndex: 0 }, [newValue, 0])[0];
-    //   if (newValue < lowerBound) {
-    //     xOption = 15;
-    //   } else if (newValue > higherBound) {
-    //     xOption = chart.getWidth() - 15;
-    //   }
-
     let opt =
       lineId === "aspirationGroup"
         ? [
@@ -873,7 +609,6 @@
               invisible: true,
             },
             {
-              // id: "dragImage",
               id: "dragCircle",
               invisible: false,
             },
@@ -898,7 +633,6 @@
               invisible: false,
             },
           ];
-
     let newOption = {
       graphic: opt,
     };
@@ -921,7 +655,6 @@
         ],
       });
       updateBarColor();
-      //updateTradeoffs(newValue);
       // Update the reset arrow position and make it visible
       chart.setOption({
         graphic: [
@@ -935,7 +668,6 @@
       });
     }
   }
-
   /**
    * Gets the component of the wanted part of the aspiration or bound line.
    *
@@ -945,8 +677,6 @@
   function getLineComponent(chart: echarts.EChartsType, lineId: string) {
     let graphicComponent = chart.getOption()
       .graphic as echarts.GraphicComponentOption;
-    // Get the component
-    // Type check
     if (graphicComponent instanceof Array && graphicComponent.length > 0) {
       return graphicComponent[0].elements.find(
         (property: echarts.GraphicComponentOption) => property.id === lineId
@@ -968,17 +698,11 @@
 
   // a function that changes opacity of arrow when mouse is over it
   function addOnMouseEffect(compID: string) {
-    // let type = getLineComponent(chart, compID).type;
     let styleForArrow = {
       strokeOpacity: 1,
       shadowColor: shadowColor,
       shadowBlur: shadowSize + 3,
     };
-    // if (type === "polyline") {
-    //   styleForArrow = {
-    //     strokeOpacity: 0.5,
-    //   };
-    // }
     chart.setOption({
       graphic: [
         {
@@ -1019,7 +743,6 @@
   function showTooltip(params: {
     target: { id: number | string; parent: { id: number | string } };
   }) {
-    // console.log("mouse enter");
     let targetId = params.target.id;
     let idToChek = targetId;
     const parentId = params.target.parent.id;
@@ -1051,7 +774,6 @@
       default:
         break;
     }
-
     chart.setOption({
       tooltip: {
         show: true,
@@ -1066,8 +788,6 @@
       type: "showTip",
       seriesIndex: 0,
       dataIndex: 0,
-      // x:0,
-      // y:0,
     });
   }
 
