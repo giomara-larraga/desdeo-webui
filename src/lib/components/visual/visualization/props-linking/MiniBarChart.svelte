@@ -41,61 +41,7 @@
     colors = colorPalette;
   }
 
-  /* $: if (selectedIndices != undefined) {
-    if (componentIndex != undefined) {
-      if (selectedIndices.includes(componentIndex)) {
-        if (chart) {
-          chart.setOption({
-            series: [
-              {
-                type: "bar",
-                selectedMode: "series",
-              },
-            ],
-          });
-          chart.dispatchAction({
-            type: "select",
-            seriesIndex: 0,
-            dataIndex: 0,
-          });
-        }
-      } else {
-        if (chart) {
-          chart.setOption({
-            series: [
-              {
-                type: "bar",
-                selectedMode: false,
-              },
-            ],
-          });
-        }
-      }
-    }
-  } */
-  /* $: {
-    if (chart) {
-      if (componentIndex === highlightedIndex) {
-        // highlightedIndex = -1;
-        chart.dispatchAction({
-          type: "highlight",
-          seriesIndex: 0,
-        });
-      } else {
-        chart.dispatchAction({
-          type: "downplay",
-          seriesIndex: 0,
-        });
-      }
-    }
-  } */
-
   let chart: echarts.EChartsType;
-  /* $: if (selectedIndices) {
-    if (chart) {
-      handleSelectionChange(chart, selectedIndices, maxSelections);
-    }
-  } */
 
   // Create the series data for the bar chart and the data for the markLines (They indicate if lower or higher value is better).
   type seriesDataElement = {
@@ -190,36 +136,6 @@
       bottom: 0,
     },
   };
-
-  // TODO: The following part (let events...) of the code is duplicated in every chart component. Moving to separate file doesn't work, most likely because of chart.on -functions that might need to be defined in the same file as the chart is created.
-  /* let events = {
-    click: function () {
-      if (componentIndex != undefined) {
-        selectedIndices = updateSelectedIndices(componentIndex);
-      }
-    },
-    mouseover: function () {
-      highlightedIndex = componentIndex;
-    },
-    mouseout: function () {
-      highlightedIndex = undefined;
-    },
-  };
-
-  function updateSelectedIndices(indexToAdd: number) {
-    let selectedCopy = selectedIndices.slice();
-    // Check if selectedCopy already contains the index of the clicked solution
-    if (selectedCopy.includes(indexToAdd)) {
-      // If it does, remove it from the array (to unselect it)
-      selectedCopy.splice(selectedCopy.indexOf(indexToAdd), 1);
-    } else {
-      // If it doesn't, add it to the array
-      selectedCopy = [...selectedCopy, indexToAdd];
-    }
-    return selectedCopy;
-  } */
 </script>
 
 <EchartsComponent {option} bind:chart {disableAnimation} {aspect} />
-
-<!-- height = {6/3} -->
