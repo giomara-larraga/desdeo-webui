@@ -49,6 +49,7 @@
   function handle_selection(meta: unknown) {
     const problem_id = schema.parse(meta).detail[0];
     selected_problem = problems.find(({ id }) => id === problem_id);
+    console.log(problem_id);
   }
 </script>
 

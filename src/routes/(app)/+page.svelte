@@ -1,5 +1,15 @@
 <script lang="ts">
-  import { baseURL, get_access_token } from "$lib/api";
+  import { baseURL, get_access_token, get_all_problems } from "$lib/api";
+  import {
+    login_status,
+    LoginStatus,
+    methodHeaderText,
+    selectedProblem,
+    selectedMethod,
+    type Problem,
+  } from "$lib/api";
+
+  import { goto } from "$app/navigation";
 
   async function fetchUserDetails() {
     try {
@@ -18,6 +28,14 @@
   }
 
   fetchUserDetails();
+
+  function go_to_xaimoo() {
+    selectedMethod.set("reference_point_method");
+    selectedProblem.set(3);
+    methodHeaderText.set("Reference point method");
+
+    goto("/solve");
+  }
 </script>
 
 <div class="flex flex-col gap-4">
@@ -26,4 +44,10 @@
     You are now logged in to DESDEO. You can now solve multi-objective
     optimization problems using the DESDEO framework.
   </p>
+  <button
+    class="anchor"
+    on:click={() => {
+      go_to_xaimoo();
+    }}>Test explanations</button
+  >
 </div>
