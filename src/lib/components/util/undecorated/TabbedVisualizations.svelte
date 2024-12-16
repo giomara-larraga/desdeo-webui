@@ -121,6 +121,7 @@ length.
           {names}
           solutions={values}
           referencePoint={reference_point}
+          ranges={bounds}
           {multipliers}
           lowerBounds={lower_bounds}
           upperBounds={upper_bounds}

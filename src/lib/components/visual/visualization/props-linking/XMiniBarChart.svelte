@@ -11,6 +11,7 @@
   import PuzzlePiece from "~icons/heroicons/puzzle-piece";
 
   import type { Ranges } from "$lib/components/visual/types";
+  import { compute_tradeoffs } from "$lib/api";
 
   /** The colors to use for the chart. */
   export let colors: string[] = [];
@@ -29,6 +30,7 @@
   export let upperBounds: number[] = [];
 
   export let isSelected: boolean = false;
+  let objective_to_improve: number = -1;
 
   /**
    * The aspect ratio as a tailwind class for the div container, which contains
@@ -50,6 +52,14 @@
 
   export let show_explanations: boolean = false;
 
+  const tradeoffs = compute_tradeoffs(values, multipliers, ranges);
+
+  const totalImpact = d3.sum(multipliers);
+
+  const impactBarHeight = 20; // Height of the impact bar
+
+  let selected_tradeoffs: number[] = [];
+
   let width = 350;
   let height = 200;
 
@@ -59,23 +69,53 @@
     colors = colorPalette;
   }
 
+  function getSignificantIndices(arr: number[]): number[] {
+    const sortedIndices = arr
+      .map((val, idx) => ({ val, idx }))
+      .sort((a, b) => b.val - a.val);
+
+    const significant = [];
+    for (let i = 0; i < sortedIndices.length - 1; i++) {
+      const diff = sortedIndices[i].val / sortedIndices[i + 1].val;
+      if (diff > 2) significant.push(sortedIndices[i].idx); // Adjust "2" as a significance ratio
+    }
+
+    return significant;
+  }
   function handleSelectButton(index: number) {
     if (isSelected) {
       if (to_improve[index]) {
         to_improve[index] = false;
+        objective_to_improve = -1;
+        selected_tradeoffs = [];
       } else {
         to_impair = Array(referencePoint.length).fill(false);
         to_improve = Array(referencePoint.length).fill(false);
-
+        selected_tradeoffs = [];
+        for (
+          let index_tradeoff = 0;
+          index_tradeoff < tradeoffs.length;
+          index_tradeoff++
+        ) {
+          selected_tradeoffs.push(Math.abs(tradeoffs[index_tradeoff][index]));
+        }
+        const significant_values = getSignificantIndices(selected_tradeoffs);
+        significant_values.forEach((index) => {
+          to_impair![index] = true;
+        });
         to_improve[index] = true;
+        objective_to_improve = index;
         //show_explanations = true;
       }
+    } else {
+      objective_to_improve = -1;
     }
+    //drawPlot();
   }
   function drawPlot() {
     if (names.length === 0 || values.length === 0) return;
 
-    const margin = { top: 10, right: 30, bottom: 10, left: 100 };
+    const margin = { top: 10, right: 30, bottom: 50, left: 10 };
     const barHeight = (height - margin.top - margin.bottom) / names.length;
     //const ticknessBar = 20;
     //const positionMarker = ticknessBar / 2;
@@ -141,13 +181,13 @@
         .attr("fill", upperColor);
 
       // Add a label with the bar's name on the y-axis
-      svgElement
+      /*svgElement
         .append("text")
         .attr("x", margin.left - 10)
         .attr("y", i * barHeight + barHeight / 2 + margin.top)
         .attr("dy", "0.35em")
         .attr("text-anchor", "end")
-        .text(names[i] || `Obj ${i + 1}`);
+        .text(names[i] || `Obj ${i + 1}`);*/
 
       // Add a label with the numerical value inside the bar
       const labelX = xScale(normalizedValue) - 5;
@@ -188,6 +228,25 @@
           .attr("fill", to_improve[i] && isSelected ? "#fff" : "#000")
           .text("↗") // Example icon, can be replaced
           .on("click", () => handleSelectButton(i));
+
+        if (objective_to_improve == i) {
+          svgElement
+            .append("text")
+            .attr("x", width - margin.right - 15)
+            .attr("y", i * barHeight + barHeight / 2 + margin.top)
+            .attr("fill", "blue")
+            .text("►");
+          to_impair.forEach((value, j) => {
+            if (value) {
+              svgElement
+                .append("text")
+                .attr("x", 0 + margin.left)
+                .attr("y", j * barHeight + barHeight / 2 + margin.top)
+                .attr("fill", "#C00000")
+                .text("◄");
+            }
+          });
+        }
       }
     });
 
@@ -202,15 +261,55 @@
         .attr("r", 6)
         .attr("fill", "black");
     });
+
+    svgElement
+      .append("rect")
+      .attr("x", margin.left)
+      .attr("y", height - margin.bottom + 5)
+      .attr("width", width - margin.left - margin.right)
+      .attr("height", impactBarHeight)
+      .attr("fill", "#fff")
+      .attr("stroke", "#000");
+
+    let impactBarWidth = width - margin.left - margin.right;
+    let cumulativeWidth = margin.left; // Keep track of cumulative width to position each slot
+
+    multipliers.forEach((impact, idx_mult) => {
+      console.log(impact);
+      let impactProportion = impact / totalImpact;
+      let slotWidth = impactProportion * impactBarWidth; // Calculate width based on proportion
+      console.log(slotWidth);
+
+      // Add a colored rectangle for each objective's impact
+      svgElement
+        .append("rect")
+        .attr("x", cumulativeWidth) // Start after the previous slot
+        .attr("y", height - margin.bottom + 5)
+        .attr("width", slotWidth)
+        .attr("height", impactBarHeight)
+        .attr("fill", colorPalette[idx_mult]); // Color for each objective
+
+      cumulativeWidth += slotWidth; // Update the cumulative width for the next slot
+    });
+
+    svgElement
+      .append("text")
+      .attr("x", margin.left)
+      .attr("y", height - margin.bottom + 5 + impactBarHeight + 14)
+      .text("Contribution of each objective");
   }
   // Redraw plot if input data or selection changes
-  $: if (values.length > 0 || names.length > 0) {
+  $: if (isSelected || objective_to_improve != undefined) {
     drawPlot(); // Redraw whenever any input changes
   }
 
+  $: if (isSelected) {
+    objective_to_improve = -1;
+  }
   onMount(() => {
-    to_impair = Array(referencePoint.length).fill(false);
-    to_improve = Array(referencePoint.length).fill(false);
+    //to_impair = Array(referencePoint.length).fill(false);
+    //to_improve = Array(referencePoint.length).fill(false);
+    objective_to_improve = -1;
     drawPlot(); // Initial plot drawing
   });
 </script>

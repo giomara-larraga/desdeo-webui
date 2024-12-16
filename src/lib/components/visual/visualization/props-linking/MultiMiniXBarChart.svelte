@@ -6,10 +6,12 @@
 <script lang="ts">
   import { colorPalette } from "../../constants";
   import MiniBarChart from "./XMiniBarChart.svelte";
+  import type { Ranges } from "$lib/components/visual/types";
 
   /** The colors to use for the chart. */
   export let colors: string[] = [];
   export let names: string[] = [];
+  export let ranges: Ranges[] | undefined = undefined;
 
   /** The values to use for the chart. */
   export let solutions: number[][];
@@ -53,6 +55,9 @@
   function handleClick(index: number) {
     selectedIndices = [index];
 
+    to_impair = Array(referencePoint.length).fill(false);
+    to_improve = Array(referencePoint.length).fill(false);
+
     /*     if (selectedIndices.includes(index)) {
       selectedIndices = selectedIndices.filter((i) => i !== index);
     } else {
@@ -74,8 +79,9 @@
         {names}
         {colors}
         values={value}
+        {ranges}
         {referencePoint}
-        multipliers={multipliers[index]}
+        multipliers={multipliers[index].map(Math.abs)}
         {lowerBounds}
         {upperBounds}
         {lowerIsBetter}
