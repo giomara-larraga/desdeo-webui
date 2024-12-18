@@ -35,6 +35,7 @@ A user interface for the NIMBUS method.
   import EchartsComponent from "$lib/components/visual/general/EchartsComponent.svelte";
   import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
   import { roundToDecimal } from "$lib/components/visual/helperFunctions";
+    import RpmLayout from "./RPMLayout.svelte";
 
   /** The problem to solve. */
   export let problem_id: number;
@@ -678,7 +679,7 @@ A user interface for the NIMBUS method.
       <!-- <ProblemDetails {problem} /> -->
     </div>
   {:else}
-    <NimbusLayout
+    <RpmLayout
       classify={state === State.ClassifySelected ? true : false}
       finalChoice={finalChoiceState}
       drawMap={draw_map}
@@ -927,39 +928,7 @@ A user interface for the NIMBUS method.
           </div>
         </Card>
       </div>
-      <div slot="Map">
-        <Card>
-          <svelte:fragment slot="header"
-            >Treatment options visualized on a map</svelte:fragment
-          >
-          {#if mapOptions[periodChoice] !== undefined && geoJSON !== undefined}
-            <div style="white-space: pre-wrap;">{mapDescription}</div>
-            <EchartsComponent
-              option={mapOptions[periodChoice]}
-              {geoJSON}
-              {mapName}
-              customStyle="height: 500px; width: 100%;"
-            />
-          {/if}
-          <RadioGroup>
-            <RadioItem
-              bind:group={periodChoice}
-              name="justify"
-              value={PeriodChoice.one}>{yearlist[0]}</RadioItem
-            >
-            <RadioItem
-              bind:group={periodChoice}
-              name="justify"
-              value={PeriodChoice.two}>{yearlist[1]}</RadioItem
-            >
-            <RadioItem
-              bind:group={periodChoice}
-              name="justify"
-              value={PeriodChoice.three}>{yearlist[2]}</RadioItem
-            >
-          </RadioGroup>
-        </Card>
-      </div>
-    </NimbusLayout>
+
+    </RpmLayout>
   {/if}
 </div>

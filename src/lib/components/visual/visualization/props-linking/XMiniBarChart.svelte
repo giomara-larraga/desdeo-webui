@@ -60,7 +60,7 @@
 
   let selected_tradeoffs: number[] = [];
 
-  let width = 350;
+  let width = 300;
   let height = 200;
 
   let svg: SVGSVGElement;

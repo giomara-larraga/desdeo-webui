@@ -1,25 +1,49 @@
 <script lang="ts">
+  export let classify = true;
+  export let finalChoice = false;
+
+  export let voteChoice = false;
+  export let drawMap = true;
 </script>
 
-<!-- 3-column grid layout -->
-<div class="grid-layout">
-  <!-- Preferences (full height, first column) -->
-  <div class="preferences">
-    <slot name="preferences" />
+{#if classify && !finalChoice && !voteChoice}
+  <div class="grid-layout">
+    <div class="preferences">
+      <slot name="preferences" />
+      <!-- <slot name="solutions" /> -->
+    </div>
+    <div class="flex flex-col gap-10">
+      <slot name="solutionSetChoice" />
+      <slot name="visualizations" />
+      {#if drawMap}
+        <slot name="Map" />
+      {/if}
+    </div>
   </div>
-
-  <!-- Visualizations (spans 2 rows in second column) -->
-  <div class="visualizations">
-    <div class="slot-content">
+{:else if !finalChoice && !voteChoice}
+  <div class="grid grid-cols-2 items-start gap-10">
+    <div class="preferences">
+      <slot name="preferences" />
+    </div>
+    <div class="flex flex-col gap-10">
+      <slot name="solutionSetChoice" />
+      <slot name="solutions" />
       <slot name="visualizations" />
     </div>
   </div>
-
-  <!-- Solutions (scrollable, bottom of second column) -->
-  <div class="scrollable">
-    <div class="slot-content"><slot name="solutions" /></div>
+{:else}
+  <div class="grid grid-cols-2 items-start gap-10">
+    <div class="flex flex-col gap-10">
+      <slot name="visualizations" />
+      <slot name="solutions" />
+    </div>
+    {#if drawMap}
+      <div class="flex flex-col gap-10">
+        <slot name="Map" />
+      </div>
+    {/if}
   </div>
-</div>
+{/if}
 
 <style>
   .preferences {
@@ -28,13 +52,7 @@
     padding: 0rem;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
-    min-width: 600px;
-  }
-  .visualizations {
-    padding: 1rem;
-    padding-bottom: 0;
-    /* background-color: #e0e0ff; */
-    height: 100%;
+    min-width: 500px;
   }
   .grid-layout {
     display: grid;
@@ -43,31 +61,8 @@
     gap: 10px; /* Gap between grid items */
     height: calc(100vh - 48px); /* Full viewport height */
   }
-
-  .slot-content {
-    width: 100%;
-    height: 100%;
-    display: flex;
-  }
-
-  .scrollable {
-    padding-top: 0;
-    padding: 1rem;
-    /* background-color: #ffe0e0; */
-    overflow-y: auto; /* Enable scrolling */
-    height: 100%;
-  }
-
   slot {
     flex: 1;
     display: flex;
-  }
-
-  .visualizations,
-  .scrollable {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 100%;
   }
 </style>

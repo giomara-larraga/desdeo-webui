@@ -10,16 +10,17 @@
   // Navigation tiles get the `active` and `hover` styles from the context,
   // unless they are explicitly given as props.
   //
-  setContext("active", "bg-surface-500");
-  setContext("hover", "hover:bg-surface-500/50");
+  setContext("active", "bg-secondary-500");
+  setContext("hover", "hover:bg-secondary-500/50");
 </script>
 
 <!--
   TODO: Use the theme system instead of hardcoded colors?
 -->
-<div class="h-full nav-bar">
+<div class="h-full container-nav">
   <div class="flex flex-col items-center nav-bar">
     <NavigationTile
+      
       href="/"
       selected={$page.url.pathname === "/"}
       text={["DESDEO"]}

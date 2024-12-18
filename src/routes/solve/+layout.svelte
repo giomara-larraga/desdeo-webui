@@ -6,10 +6,8 @@
 </script>
 
 <AppShell
-  slotSidebarLeft="top-0 w-20 h-full float-left z-10"
-  regionPage="flex-col left-20 z-1 h-screen"
   slotPageHeader="bg-white shadow-md border-b h-10 z-9 left-20 flex-row"
-  slotPageContent="p-0 bg-white flex-row overflow-y-auto h-full"
+  slotPageContent="p-20 bg-white flex-row overflow-y-auto h-full"
 >
   <svelte:fragment slot="sidebarLeft"><Navigation /></svelte:fragment>
   <svelte:fragment slot="pageHeader">

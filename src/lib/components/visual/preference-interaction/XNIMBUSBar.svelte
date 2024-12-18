@@ -100,7 +100,7 @@
 
 <!-- NIMBUS bar with inputs -->
 <!-- <div class="container" style="--barColor:{barColor ? barColor : '#c000'}"> -->
-<div class="container {aspect}">
+<div class="container">
   <div
     class="firstPart"
     style="--justify: {barName ? 'space-between' : 'flex-end'}"

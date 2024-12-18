@@ -118,13 +118,13 @@
         .call(d3.axisLeft(scale).ticks(10));
 
       // Draw vertical bar for each axis
-      /*svgElement
+      svgElement
         .append("rect")
         .attr("x", i * barWidth)
         .attr("width", ticknessBar)
         .attr("height", height - margin.top - margin.bottom)
         .attr("y", 0)
-        .attr("fill", "#ddd");*/
+        .attr("fill", "#ddd");
       //.attr("stroke-width", 5)
       //.attr("stroke", colorPalette[i]);
 
@@ -139,12 +139,37 @@
         .style("fill", "black");
     });
 
+    if (selectedIndices[0] != null) {
+      values[selectedIndices[0]].forEach((value, i) => {
+        svgElement
+          .append("rect")
+          .attr("x", i * barWidth)
+          .attr("width", ticknessBar)
+          .attr(
+            "height",
+            height - margin.top - margin.bottom - scales[i](value)
+          )
+          .attr("y", function (d) {
+            return scales[i](value);
+          })
+          .attr("fill", colorPalette[i]);
+
+        /*svgElement
+                      .append("rect")
+                      .attr("x", i * barWidth)
+                      .attr("width", ticknessBar)
+                      .attr("height", Math.abs(scales[i](referencePoint[i]) - scales[i](value)))
+                      .attr("y", value < referencePoint[i]?scales[i](referencePoint[i]):scales[i](value))
+                      .attr("fill", value < referencePoint[i]?"red":"green")*/
+      });
+    }
+
     // Plot solutions' objective values as markers and lines
     for (let index = 0; index < values.length; index++) {
       //values.forEach((solution, solutionIndex) => {
       const line = d3
         .line<number>()
-        .x((_, i) => i * barWidth)
+        .x((_, i) => i * barWidth + positionMarker)
         .y((_, i) => scales[i](values[index][i]));
 
       svgElement
@@ -185,7 +210,7 @@
       values[index].forEach((value, i) => {
         svgElement
           .append("circle")
-          .attr("cx", i * barWidth)
+          .attr("cx", i * barWidth + positionMarker)
           .attr("cy", scales[i](value))
           .attr("r", 4)
           .attr(
@@ -205,7 +230,7 @@
     // Plot reference point markers and lines
     const refLine = d3
       .line<number>()
-      .x((_, i) => i * barWidth)
+      .x((_, i) => i * barWidth + positionMarker)
       .y((_, i) => scales[i](referencePoint[i]));
 
     svgElement
@@ -219,17 +244,44 @@
     referencePoint.forEach((value, i) => {
       svgElement
         .append("circle")
-        .attr("cx", i * barWidth)
+        .attr("cx", i * barWidth + positionMarker)
         .attr("cy", scales[i](value))
         .attr("r", 5)
         .attr("fill", "black");
     });
 
+    /*svgElement
+      .append("circle")
+      .attr("cx", legendPositionX)
+      .attr("cy", 0)
+      .attr("r", 6)
+      .style("fill", "black");
+    svgElement
+      .append("circle")
+      .attr("cx", legendPositionX)
+      .attr("cy", 30)
+      .attr("r", 6)
+      .style("fill", "blue");
+    svgElement
+      .append("text")
+      .attr("x", legendPositionX + 10)
+      .attr("y", 0)
+      .text("Reference point")
+      .style("font-size", "12px")
+      .attr("alignment-baseline", "middle");
+    svgElement
+      .append("text")
+      .attr("x", legendPositionX + 10)
+      .attr("y", 30)
+      .text("Solution")
+      .style("font-size", "12px")
+      .attr("alignment-baseline", "middle");*/
+
     //Rewrite selected markers
     if (selectedIndices[0] !== null) {
       const line = d3
         .line<number>()
-        .x((_, i) => i * barWidth)
+        .x((_, i) => i * barWidth + positionMarker)
         .y((_, i) => scales[i](values[selectedIndices[0]][i]));
 
       svgElement
@@ -245,7 +297,7 @@
         //const max_impact = d3.maxIndex(objectiveImpacts);
         svgElement
           .append("circle")
-          .attr("cx", i * barWidth)
+          .attr("cx", i * barWidth + positionMarker)
           .attr("cy", scales[i](value))
           .attr("r", 4)
           .attr("fill", "blue")
@@ -339,9 +391,9 @@
 
         svgElement
           .append("line")
-          .attr("x1", i * barWidth)
+          .attr("x1", i * barWidth + positionMarker)
           .attr("y1", y1)
-          .attr("x2", i * barWidth)
+          .attr("x2", i * barWidth + positionMarker)
           .attr("y2", y2)
           .attr("stroke", value < referencePoint[i] ? "red" : "green")
           .attr("stroke-width", 2.5)
@@ -356,7 +408,7 @@
         // Append a rectangle to act as the background
         svgElement
           .append("rect")
-          .attr("x", i * barWidth  + 5) // Adjust positioning if needed
+          .attr("x", i * barWidth + positionMarker + 5) // Adjust positioning if needed
           .attr("y", (y1 + y2) / 2 - 10) // Position the rectangle above/below the text
           .attr("width", 50)
           .attr("height", 20) // Adjust the height as needed
@@ -366,7 +418,7 @@
         // Append the text element
         svgElement
           .append("text")
-          .attr("x", i * barWidth  + 10)
+          .attr("x", i * barWidth + positionMarker + 10)
           .attr("y", (y1 + y2) / 2 + 5)
           .text(
             value < referencePoint[i]
