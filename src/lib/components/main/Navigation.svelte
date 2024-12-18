@@ -17,8 +17,8 @@
 <!--
   TODO: Use the theme system instead of hardcoded colors?
 -->
-<div class="h-full bg-[#141313] text-[#f0efef]">
-  <div class="flex flex-col items-center">
+<div class="h-full nav-bar">
+  <div class="flex flex-col items-center nav-bar">
     <NavigationTile
       href="/"
       selected={$page.url.pathname === "/"}

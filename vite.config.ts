@@ -12,7 +12,4 @@ export default defineConfig({
       compiler: "svelte",
     }),
   ],
-  test: {
-    include: ["src/**/*.{test,spec}.{js,ts}"],
-  },
 });
