@@ -8,7 +8,6 @@
     colorPalette,
     selectedLineStyle,
   } from "$lib/components/visual/constants";
-  import PuzzlePiece from "~icons/heroicons/puzzle-piece";
 
   import type { Ranges } from "$lib/components/visual/types";
   import { compute_tradeoffs } from "$lib/api";
@@ -105,10 +104,11 @@
         });
         to_improve[index] = true;
         objective_to_improve = index;
-        //show_explanations = true;
+        show_explanations = true;
       }
     } else {
       objective_to_improve = -1;
+      show_explanations = false;
     }
     //drawPlot();
   }
@@ -305,8 +305,10 @@
 
   $: if (isSelected) {
     objective_to_improve = -1;
+    show_explanations = false;
   }
   onMount(() => {
+    show_explanations = false;
     //to_impair = Array(referencePoint.length).fill(false);
     //to_improve = Array(referencePoint.length).fill(false);
     objective_to_improve = -1;

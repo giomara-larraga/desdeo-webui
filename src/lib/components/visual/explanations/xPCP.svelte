@@ -37,17 +37,9 @@
 
   function drawPlot() {
     if (!ranges || names.length === 0 || values.length === 0) return;
-
-    //const width = 800;
-    //const height = 600;
-
-    const margin = { top: 40, right: 50, bottom: 20, left: 100 };
+    const margin = { top: 40, right: 50, bottom: 40, left: 100 };
     const barWidth = (width - margin.left - margin.right) / names.length;
-    const ticknessBar = 20;
-    const positionMarker = ticknessBar / 2;
-    //const legendPositionX = barWidth * (names.length - 1) + ticknessBar + 30;
-    //const legendPositionY = 0;
-
+    
     // Clear existing plot
     d3.select(svg).selectAll("*").remove();
 
@@ -83,7 +75,7 @@
         .attr("orient", "auto-start-reverse")
         .append("path")
         .attr("d", "M 0 0 L 10 5 L 0 10 Z") // Arrow shape
-        .attr("fill", "green"); // Arrow color
+        .attr("fill", "#006400"); // Arrow color
 
       svgElement
         .append("defs")
@@ -97,7 +89,7 @@
         .attr("orient", "auto-start-reverse")
         .append("path")
         .attr("d", "M 0 0 L 10 5 L 0 10 Z") // Arrow shape
-        .attr("fill", "red"); // Arrow color
+        .attr("fill", "#C00000"); // Arrow color
     }
 
     // Create scales for each axis
@@ -108,27 +100,55 @@
         .range([height - margin.top - margin.bottom, 0])
     );
 
-    // Add name for each objective
-
     // Add y-axes and bars
     scales.forEach((scale, i) => {
-      svgElement
+      const axisGroup = svgElement
         .append("g")
-        .attr("transform", `translate(${i * barWidth}, 0)`)
-        .call(d3.axisLeft(scale).ticks(10));
+        .attr("class", `axis-${i}`)
+        .attr("transform", `translate(${i * barWidth}, 0)`);
+
+      // Add the axis to the group
+      axisGroup
+        .call(d3.axisLeft(scale).ticks(10))
+        .call((g) => g.selectAll(".tick line").style("stroke", "#646878")) // Style ticks
+        .call((g) => g.selectAll(".tick text").style("fill", "#646878")) // Style text
+        .call((g) => g.selectAll(".domain").style("stroke", "black")); // Style axis line
+      
+        // Add label to the group
+      axisGroup
+          .append("text")
+          //.attr("transform", "rotate(-90)")
+          .attr("x", 0)
+          .attr("y", -20) // Adjust label position
+          .style("text-anchor", "middle")
+          .text(names[i])
+          .style("fill", "black")
+          .style("font-size", "small");
+          
 
       // Draw vertical bar for each axis
-      /*svgElement
+      svgElement
         .append("rect")
-        .attr("x", i * barWidth)
-        .attr("width", ticknessBar)
+        .attr("x", i * barWidth -3)
+        .attr("width", 6)
         .attr("height", height - margin.top - margin.bottom)
         .attr("y", 0)
-        .attr("fill", "#ddd");*/
-      //.attr("stroke-width", 5)
-      //.attr("stroke", colorPalette[i]);
+        .attr("fill", colorPalette[i])
+        .attr("opacity",0.7);
 
-      svgElement
+        axisGroup
+          .append("circle")
+          .attr("cx", 0) // Position next to the label
+          .attr("cy", height - margin.top - margin.bottom + 16) // Align with the label
+          .attr("r", 6) // Button width
+          .attr("fill", "#000")
+          .attr("stroke", "#000")
+          .attr("stroke-width", 1)
+          .on("click", () => {
+            console.log(`Button clicked for axis ${i + 1}`);
+          });
+
+      /*svgElement
         .append("g")
         .attr("transform", `translate(${i * barWidth}, 0)`)
         .call(d3.axisLeft(scale))
@@ -136,7 +156,7 @@
         .style("text-anchor", "middle")
         .attr("y", -10)
         .text(names[i])
-        .style("fill", "black");
+        .style("fill", "black");*/
     });
 
     // Plot solutions' objective values as markers and lines
@@ -155,9 +175,10 @@
         .attr(
           "stroke",
 
-          "#C5E3E6"
+          "#646878"
         )
-        .attr("stroke-width", 1)
+        .attr("stroke-width", 1.5)
+        .attr("stroke-opacity", 0.4)
         .attr("class", "solution-line");
 
       // Add an invisible larger "click area" path over the line
@@ -188,14 +209,17 @@
           .attr("cx", i * barWidth)
           .attr("cy", scales[i](value))
           .attr("r", 4)
+          .attr("stroke", "none")
           .attr(
             "fill",
             selectedIndices[0] === index
               ? "blue"
               : selectedIndices[0] === null
               ? "blue"
-              : "#C5E3E6"
+              : "#646878"
           )
+          .attr("stroke-width",2)
+          .attr("opacity",0.4)
           .attr("class", "solution-marker")
           .on("click", () => selectLine(index));
       });
@@ -242,7 +266,6 @@
         .attr("class", "solution-line");
 
       values[selectedIndices[0]].forEach((value, i) => {
-        //const max_impact = d3.maxIndex(objectiveImpacts);
         svgElement
           .append("circle")
           .attr("cx", i * barWidth)
@@ -259,73 +282,6 @@
       });
     }
 
-    /*if (selectedIndices[0] !== null) {
-      svgElement
-        .append("text")
-        .attr("x", legendPositionX)
-        .attr("y", 60)
-        .text("Sensitivenes to changes in each objective")
-        .style("font-size", "12px")
-        .style("font-weight", "bold")
-        .attr("alignment-baseline", "middle");
-
-      // Calculate total impact for scaling
-      const current_multipliers = multipliers[selectedIndices[0]].map(Math.abs);
-
-      const totalImpact = d3.sum(current_multipliers);
-
-      // Add the impact plot to the legend
-      const impactBarWidth = 200; // Total width of the impact bar
-      const impactBarHeight = 20; // Height of the impact bar
-      let cumulativeWidth = 0; // Keep track of cumulative width to position each slot
-
-      current_multipliers.forEach((impact, i) => {
-        const impactProportion = impact / totalImpact;
-        const slotWidth = impactProportion * impactBarWidth; // Calculate width based on proportion
-
-        // Add a colored rectangle for each objective's impact
-        svgElement
-          .append("rect")
-          .attr("x", legendPositionX + cumulativeWidth) // Start after the previous slot
-          .attr("y", 80)
-          .attr("width", slotWidth)
-          .attr("height", impactBarHeight)
-          .attr("fill", colorPalette[i]); // Color for each objective
-
-        cumulativeWidth += slotWidth; // Update the cumulative width for the next slot
-      });
-
-      const maxImpactIndex = current_multipliers.indexOf(
-        Math.max(...current_multipliers)
-      );
-      const mostInfluentialObjectiveName = names[maxImpactIndex];
-      const mostInfluentialObjectiveColor = colorPalette[maxImpactIndex];
-
-      // Add the dynamic legend text
-      svgElement
-        .append("text")
-        .attr("x", legendPositionX)
-        .attr("y", 150) // Position the text element
-        .style("fill", "black")
-        .style("font-size", "12px")
-        .append("tspan")
-        .text("The selected solution is most sensitive ")
-        .attr("x", legendPositionX) // Keep the x position the same for alignment
-        .attr("dy", 0) // First line
-        .append("tspan")
-        .attr("x", legendPositionX)
-        .attr("dy", "1.2em")
-        .text("to changes in Objective ")
-        .append("tspan")
-        //.attr("x", legendPositionX) // Same x to align with the previous line
-        //.attr("dy", "1.2em") // Offset vertically to create a line break
-        .text(mostInfluentialObjectiveName)
-        .style("fill", mostInfluentialObjectiveColor) // Color for the most influential objective
-        .style("font-weight", "bold");
-      //.append("tspan")
-      //.text(" has the most influence in the selected solution")
-      //.style("fill", "black");
-    }*/
     // If a line is selected, draw dashed line connecting to reference point
     if (selectedIndices[0] !== null && showArrows) {
       const selectedSolution = values[selectedIndices[0]];
@@ -343,7 +299,7 @@
           .attr("y1", y1)
           .attr("x2", i * barWidth)
           .attr("y2", y2)
-          .attr("stroke", value < referencePoint[i] ? "red" : "green")
+          .attr("stroke", value < referencePoint[i] ? "#C00000" : "#006400")
           .attr("stroke-width", 2.5)
           .attr("stroke-dasharray", "6,2")
           .attr(
@@ -373,7 +329,7 @@
               ? String((referencePoint[i] - value).toFixed(3)) + " ↓ "
               : String((value - referencePoint[i]).toFixed(3)) + " ↑ "
           )
-          .attr("fill", value < referencePoint[i] ? "red" : "green");
+          .attr("fill", value < referencePoint[i] ? "#C00000" : "#006400");
       });
     }
   }
@@ -416,12 +372,6 @@
     // Clear existing content
     tooltip.html("");
 
-    // Add explanatory text
-    /*tooltip
-      .append("div")
-      .style("font-weight", "bold")
-      .text("Sensitivenes to changes in each objective");*/
-
     const maxImpactIndex = current_multipliers.indexOf(
       Math.max(...current_multipliers)
     );
@@ -444,14 +394,9 @@
       .attr("dy", "1.2em")
       .text("to changes in ")
       .append("tspan")
-      //.attr("x", legendPositionX) // Same x to align with the previous line
-      //.attr("dy", "1.2em") // Offset vertically to create a line break
       .text(mostInfluentialObjectiveName)
       .style("fill", mostInfluentialObjectiveColor) // Color for the most influential objective
       .style("font-weight", "bold");
-    //.append("tspan")
-    //.text(" has the most influence in the selected solution")
-    //.style("fill", "black");
 
     const svg = tooltip
       .append("svg")
@@ -498,9 +443,6 @@
     }
     console.log(selected_tradeoffs);
 
-    //to_improve[selectedIndices[0]] = true;
-
-    //console.log(to_impair);
     // Tooltip container setup
     const tooltip = d3
       .select(".tooltip")
@@ -519,20 +461,28 @@
       .append("div")
       .style("font-weight", "bold")
       .text(
-        "Impairing effects of the rest of the objectives on the value of " +
+        "Impairing effects on " +
           names[solutionIndex]
       );
 
     // Set up SVG for the bar chart
-    const chartWidth = 150;
+    const chartWidth = 200;
     const chartHeight = 100;
+    const marginBottom = 20;
+    const marginLeft = 20;
     const barPadding = 5;
 
     const maxTradeoffValue = d3.max(selected_tradeoffs) || 0; // Avoid undefined
     const barScale = d3
       .scaleLinear()
       .domain([0, maxTradeoffValue])
-      .range([0, chartHeight]);
+      .range([0, chartHeight-marginBottom]);
+
+    var x = d3.scaleBand()
+      .range([ 0, width ])
+      .domain(names)
+      .padding(0.2);
+    
 
     const svg = tooltip
       .append("svg")
@@ -564,18 +514,12 @@
         to_impair = Array(referencePoint.length).fill(false);
         to_improve = Array(referencePoint.length).fill(false);
         significant_values.forEach((index) => {
-          to_impair![index] = true;
+          if(Math.abs(preference[index]! - ranges![index].min!)>0.5 )
+            to_impair![index] = true;
         });
         to_improve[solutionIndex] = true;
         show_explanations = true;
       });
-
-    // Add secondary explanatory text
-    /*tooltip
-      .append("div")
-      .text(
-        "To improve this value, impair the objectives that affect it the most"
-      );*/
 
     // Add event listener to keep tooltip open when mouse enters the tooltip area
     tooltip
@@ -596,10 +540,13 @@
       .sort((a, b) => b.val - a.val);
 
     const significant = [];
-    for (let i = 0; i < sortedIndices.length - 1; i++) {
+    significant.push(sortedIndices[0].idx);
+    significant.push(sortedIndices[1].idx);
+    significant.push(sortedIndices[2].idx);
+    /*for (let i = 0; i < sortedIndices.length - 1; i++) {
       const diff = sortedIndices[i].val / sortedIndices[i + 1].val;
       if (diff > 2) significant.push(sortedIndices[i].idx); // Adjust "2" as a significance ratio
-    }
+    }*/
 
     return significant;
   }
@@ -637,3 +584,4 @@
 </script>
 
 <svg bind:this={svg} />
+
