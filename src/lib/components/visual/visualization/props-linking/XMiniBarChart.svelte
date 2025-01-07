@@ -30,15 +30,7 @@
 
   export let isSelected: boolean = false;
   let objective_to_improve: number = -1;
-
-  /**
-   * The aspect ratio as a tailwind class for the div container, which contains
-   * the chart.
-   *
-   * @example
-   *   aspect - [5 / 3];
-   */
-  export let aspect: string | undefined = "1";
+  let tolerance = 0.009
 
   /**
    * An array of boolean values indicating whether lower values are better for
@@ -66,6 +58,30 @@
 
   if (colors === undefined || colors.length === 0) {
     colors = colorPalette;
+  }
+
+  function showTooltip(event: any, content: string) {
+    // Tooltip container setup
+    const tooltip = d3
+      .select(".tooltip")
+      .style("display", "block")
+      .style("word-wrap", "break-word")
+      .style("left", event.pageX +5 + "px")
+      .style("top", event.pageY+5 + "px")
+      .style("pointer-events", "auto");
+
+    // Clear existing content
+    tooltip.html("");
+
+    // Add explanatory text
+    tooltip
+      .append("div")
+      .text(content);
+  }
+
+  function hideTooltip(event: any) {
+    const tooltip = d3.select(".tooltip");    
+    tooltip.style("display", "none");
   }
 
   function getSignificantIndices(arr: number[]): number[] {
@@ -152,6 +168,20 @@
 
     // Add name for each objective
 
+    referencePoint.forEach((value, i) => {
+      const normalizedValue =
+        (value - lowerBounds[i]) / (upperBounds[i] - lowerBounds[i]);
+
+      svgElement
+        .append("circle")
+        .attr("cy", i * barHeight + barHeight / 2 + 8)
+        .attr("cx", xScale(normalizedValue))
+        .attr("r", 6)
+        .attr("fill", "black")
+        .attr("fill-opacity", 0.5); // Adjust transparency (0.5 = 50% transparent)
+
+    });
+
     // Add x-axes and bars
     values.forEach((value, i) => {
       const normalizedValue =
@@ -205,8 +235,10 @@
         .attr("fill", "#000")
         .text(value.toFixed(2));
 
-      // Add a button on the right side of the bar
+      // Add a button on the right side of the bar 
       if (isSelected) {
+        const difference_with_upperbound = Math.abs(upperBounds[i] - value);
+        const can_be_improved = difference_with_upperbound > tolerance? true: false;
         const button = svgElement
           .append("circle")
           .attr("cx", width - margin.right + 20) // Position outside the border
@@ -216,9 +248,12 @@
           .attr("stroke", "#000")
           .attr("stroke-width", 1)
           .style("cursor", "pointer")
-          .on("click", () => handleSelectButton(i));
-        // Add a zigzag arrow icon to the button
-        // Add a zigzag arrow icon to the button
+          .on("click", () => handleSelectButton(i))
+          .on("mouseover", function (event) {showTooltip(event,can_be_improved?"How to improve this value?":"This is the best value for this objective and cannot be improved more.")})
+          .on("mousemove", function (event) {showTooltip(event,can_be_improved?"How to improve this value?":"This is the best value for this objective and cannot be improved more")})
+          .on("mouseout", function (event) {hideTooltip(event)});
+
+        // Add arrow icon to the button
         svgElement
           .append("text")
           .attr("x", width - margin.right + 20)
@@ -226,41 +261,48 @@
           .attr("dy", "0.35em")
           .attr("text-anchor", "middle")
           .attr("fill", to_improve[i] && isSelected ? "#fff" : "#000")
-          .text("↗") // Example icon, can be replaced
-          .on("click", () => handleSelectButton(i));
+          .text(can_be_improved?"↗":"✓") // Example icon, can be replaced
+          .on("click", can_be_improved? () => handleSelectButton(i):()=> null)
+          .on("mouseover", function (event) {showTooltip(event,can_be_improved?"How to improve this value?":"This is the best value for this objective and cannot be improved more.")})
+          .on("mousemove", function (event) {showTooltip(event,can_be_improved?"How to improve this value?":"This is the best value for this objective and cannot be improved more")})
+          .on("mouseout", function (event) {hideTooltip(event)});
 
         if (objective_to_improve == i) {
           svgElement
             .append("text")
-            .attr("x", width - margin.right - 15)
-            .attr("y", i * barHeight + barHeight / 2 + margin.top)
+            .attr("x", xScale(normalizedValue))
+            .attr("y", margin.top + i * barHeight + barHeight / 2 + 5 )
             .attr("fill", "blue")
-            .text("►");
+            .attr("fill-opacity", 0.7) 
+            .text("►")
+            .style("font-size", 18);
           to_impair.forEach((value, j) => {
-            if (value) {
+            if (value && j!=objective_to_improve) {
+              const difference_with_lowerbound = Math.abs(lowerBounds[j] - values[j]);
+              const can_be_impaired = difference_with_lowerbound > tolerance? true: false;
+              const normalizedValue_j = (values[j] - lowerBounds[j]) / (upperBounds[j] - lowerBounds[j]);
+              if (can_be_impaired){
               svgElement
                 .append("text")
-                .attr("x", 0 + margin.left)
-                .attr("y", j * barHeight + barHeight / 2 + margin.top)
+                .attr("x", xScale(normalizedValue_j)-16)
+                .attr("y", margin.top + j * barHeight + barHeight / 2 +5)
                 .attr("fill", "#C00000")
-                .text("◄");
+                .attr("fill-opacity", 0.7) 
+                .text("◄")
+                .style("font-size", 18);
+              }
+
             }
           });
         }
+
       }
+
+
+      
     });
 
-    referencePoint.forEach((value, i) => {
-      const normalizedValue =
-        (value - lowerBounds[i]) / (upperBounds[i] - lowerBounds[i]);
 
-      svgElement
-        .append("circle")
-        .attr("cy", i * barHeight + barHeight / 2 + 8)
-        .attr("cx", xScale(normalizedValue))
-        .attr("r", 6)
-        .attr("fill", "black");
-    });
 
     svgElement
       .append("rect")

@@ -10,11 +10,12 @@
   <div class="grid-layout">
     <div class="preferences">
       <slot name="preferences" />
-      <!-- <slot name="solutions" /> -->
+     
     </div>
-    <div class="flex flex-col gap-10">
+    <div class="flex flex-col">
       <slot name="solutionSetChoice" />
       <slot name="visualizations" />
+      <slot name="solutions" /> 
       {#if drawMap}
         <slot name="Map" />
       {/if}

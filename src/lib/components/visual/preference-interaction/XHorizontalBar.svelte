@@ -54,8 +54,8 @@
   /** The aspect ratio of the chart container. */
   export let aspect = "aspect-[11/2]";
 
-  export let to_impair: boolean = false;
-  export let to_improve: boolean = false;
+  //export let to_impair: boolean = false;
+  //export let to_improve: boolean = false;
 
   export const show_explanations: boolean = false;
 

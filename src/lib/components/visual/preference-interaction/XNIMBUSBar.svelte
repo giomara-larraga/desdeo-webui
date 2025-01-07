@@ -46,9 +46,6 @@
    */
   export let arrowMode = false;
 
-  /** The aspect ratio of the chart container div element. */
-  export let aspect: string | undefined = undefined;
-
   export let to_impair: boolean = false;
   export let to_improve: boolean = false;
 
@@ -155,8 +152,6 @@
       {decimalPrecision}
       {barColor}
       {arrowMode}
-      bind:to_impair
-      bind:to_improve
       bind:show_explanations
     />
   </div>
