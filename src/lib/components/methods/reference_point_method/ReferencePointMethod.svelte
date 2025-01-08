@@ -684,7 +684,7 @@ A user interface for the NIMBUS method.
       finalChoice={finalChoiceState}
       drawMap={draw_map}
     >
-      <div slot="preferences">
+      <div slot="preferences" class="pl-2 pr-2">
         {#if problemInfo !== undefined && reference_solution !== undefined}
           <RadioGroup>
             <RadioItem
@@ -700,7 +700,7 @@ A user interface for the NIMBUS method.
             >
           </RadioGroup>
           {#if state === State.ClassifySelected}
-            <div>
+            <div class="text-sm pt-2 pb-2">
               Provide your preferences by classifying the objectives by either
               clicking on the bars or using the input boxes. You must give a
               preference for each objective. You must improve and impair at
@@ -901,17 +901,23 @@ A user interface for the NIMBUS method.
               {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
                 {#if !finalChoiceState}
                   <Table
-                    head={problemInfo.objective_long_names}
-                    body={solutions_to_visualize.map((solution) => {
-                      return solution.map((value) => value.toFixed(decimals));
+                    head={["Solution ID", ...problemInfo.objective_long_names]}
+                    body={solutions_to_visualize.map((solution,index) => {
+                      return [
+                        `Solution ${index + 1}`, // Add the ID for the solution
+                        ...solution.map((value) => value.toFixed(decimals))
+                    ];
                     })}
                     bind:selected_rows={selected_solutions}
                   />
                 {:else if reference_solution !== undefined}
                   <Table
-                    head={problemInfo.objective_long_names}
-                    body={[reference_solution].map((solution) => {
-                      return solution.map((value) => value.toFixed(decimals));
+                    head={["Solution ID", ...problemInfo.objective_long_names]}
+                    body={[reference_solution].map((solution, index) => {
+                      return [
+                        `Solution ${index + 1}`, // Add the ID for the solution
+                        ...solution.map((value) => value.toFixed(decimals)) // Append the rest of the values
+                      ];
                     })}
                   />
                 {/if}

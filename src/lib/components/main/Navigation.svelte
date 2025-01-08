@@ -19,14 +19,14 @@
 -->
 <div class="h-full container-nav">
   <div class="flex flex-col items-center nav-bar">
-    <NavigationTile
+    <!-- <NavigationTile
       
       href="/"
       selected={$page.url.pathname === "/"}
       text={["DESDEO"]}
     >
       <img src={logo} alt="" />
-    </NavigationTile>
+    </NavigationTile> -->
     <NavigationTile
       href="/saved_problems"
       selected={$page.url.pathname === "/saved_problems"}

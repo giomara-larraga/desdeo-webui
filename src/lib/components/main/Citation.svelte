@@ -5,7 +5,7 @@
   export let show_bibtex_button = false;
 </script>
 
-<div>
+<div class="text-white text-lg">
   <p>
     The DESDEO software framework has been developed by the Multiobjective
     Optimization Group at the University of Jyväskylä. If you utilize it, we

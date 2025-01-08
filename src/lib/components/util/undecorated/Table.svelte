@@ -41,7 +41,7 @@ A simple table.
   }
 </script>
 
-<table class="table-comfortable">
+<table class="table-compact" style="width: 800px;">
   <thead class="bg-surface-200">
     {#each head as item}
       <th class="p-4">{item}</th>

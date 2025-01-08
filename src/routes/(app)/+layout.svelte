@@ -7,16 +7,17 @@
 
 <AppShell
   slotPageContent="p-20 pt-10 bg-white"
-  slotPageHeader="bg-white shadow-md border-b"
+  slotPageHeader="bg-black shadow-md border-b"
 >
+
+  <svelte:fragment slot="header"><Header /></svelte:fragment>
   <svelte:fragment slot="sidebarLeft"><Navigation /></svelte:fragment>
-  <svelte:fragment slot="pageHeader"><Header /></svelte:fragment>
   <slot />
 </AppShell>
 
-<button
+<!-- <button
   class="btn variant-filled-tertiary fixed bottom-0 right-0"
   on:click={() => {
     drawerStore.open();
   }}>How to cite DESDEO?</button
->
+> -->

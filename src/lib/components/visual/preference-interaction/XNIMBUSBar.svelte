@@ -97,15 +97,40 @@
 
 <!-- NIMBUS bar with inputs -->
 <!-- <div class="container" style="--barColor:{barColor ? barColor : '#c000'}"> -->
-<div class="container">
+<div style="display: grid; grid-template-columns: 1fr 1fr 1.5fr;">
+
+  <div style="vertical-align: middle;"> 
+    {#if barName}<span class="text-sm font-semibold">{barName}</span>{/if}
+  </div>
+  <div style="display: flex; flex-direction:row; justify-content:center">
+    {#if show_explanations}
+    {#if to_improve}
+      <span style="color:green; font-size: small; margin-right:20px"
+        >Improve
+      </span>
+    {:else if to_impair}
+      <span style="color:#C00000; font-size: small; margin-right:20px"
+        >Impair
+      </span>
+    {/if}
+  {/if}
+  </div>
+ <div style="display: flex; flex-direction:row; justify-content:flex-end">
+    <span style="color:gray; font-size: small;">Previous preference
+    {#if previousValue}
+      <span>{previousValue}</span>
+    {:else}
+      <span>--</span>
+    {/if}
+  </span>
+  </div>
+</div>
+<div class="container" style="margin-bottom:1rem">
+
   <div
     class="firstPart"
-    style="--justify: {barName ? 'space-between' : 'flex-end'}"
+    style="justify-content: center;"
   >
-    {#if barName}
-      <span>{barName}</span>
-    {/if}
-
     <Input
       bind:value={selectedValue}
       labelName={classificationValue}
@@ -118,23 +143,8 @@
   <div class="secondPart">
     <div id="prev">
       <!-- TODO: Implement this so that when no prev values is given, nothing shows up. But implementation should not make a mess. Maybe reserve a blank space (how)? -->
-      {#if show_explanations}
-        {#if to_improve}
-          <span style="color:gray; font-size: small; margin-right:20px"
-            >Suggestion: to improve
-          </span>
-        {:else if to_impair}
-          <span style="color:gray; font-size: small; margin-right:20px"
-            >Suggestion: to impair
-          </span>
-        {/if}
-      {/if}
-      <span style="color:gray; font-size: small;">Previous preference</span>
-      {#if previousValue}
-        <span id="prevValue">{previousValue}</span>
-      {:else}
-        <span id="prevValue">--</span>
-      {/if}
+      
+
       <!-- <InputWithValidation
           bind:value={previousValue}
           {higherBound}
@@ -168,10 +178,6 @@
     height: 100%;
     width: 100%;
     column-gap: 2em;
-    border-style: solid;
-    border-width: 2px;
-    border-color: "c000";
-    padding: 0.5em;
   }
 
   div div {
@@ -183,7 +189,6 @@
   .firstPart {
     min-width: 20%;
     max-width: 20%;
-    justify-content: var(--justify);
   }
   .secondPart {
     width: 100%;
@@ -191,16 +196,12 @@
   }
 
   #prev {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
     margin: 0;
     padding-bottom: 0;
   }
 
   #prevValue {
-    margin-left: 0.5em;
-    align-self: center;
+    align-self: flex-end;
     font-size: small;
     color: gray;
     font-weight: 600;

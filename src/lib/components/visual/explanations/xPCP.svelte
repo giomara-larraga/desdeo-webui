@@ -37,7 +37,7 @@
   export let preference: (number | undefined)[] = [undefined];
   export let showArrows: boolean = true;
   export let multipliers: number[][] = [[0.1, 0.5, 0.1, 0.2, 0.3]]; // Array representing the impact of each objective
-  export let width = 700;
+  export let width = 1000;
   export let height = 350;
   let selectedObjective: number = -1;
   let svg: SVGSVGElement;
@@ -50,7 +50,7 @@
 
   function drawPlot() {
     if (!ranges || names.length === 0 || values.length === 0) return;
-    const margin = { top: 40, right: 50, bottom: 40, left: 30 };
+    const margin = { top: 40, right: 50, bottom: 40, left: 50 };
     const barWidth = (width - margin.left - margin.right) / names.length;
     
     // Clear existing plot

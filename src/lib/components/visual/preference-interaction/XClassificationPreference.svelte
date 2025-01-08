@@ -53,7 +53,7 @@
   let colors = colorPalette.slice(0, objective_long_names.length);
 </script>
 
-<div class="flex flex-col gap-4">
+<div class="flex flex-col">
   {#each objective_long_names as objective_name, j}
     <XNIMBUSBar
       barName={objective_name + " (" + (is_maximized[j] ? "max" : "min") + ")"}
