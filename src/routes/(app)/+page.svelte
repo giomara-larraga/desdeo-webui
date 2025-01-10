@@ -30,9 +30,9 @@
   fetchUserDetails();
 
   function go_to_xaimoo() {
-    selectedMethod.set("reference_point_method");
+    selectedMethod.set("r_ximo");
     selectedProblem.set(3);
-    methodHeaderText.set("Reference point method");
+    methodHeaderText.set("R-XIMO");
 
     goto("/solve");
   }

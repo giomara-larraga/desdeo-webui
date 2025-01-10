@@ -9,6 +9,7 @@
   //import GNIMBUS from "$lib/components/methods/nimbus/NIMBUS_group.svelte";
   import GeneralError from "$lib/components/util/undecorated/GeneralError.svelte";
   import ReferencePointMethod from "$lib/components/methods/reference_point_method/ReferencePointMethod.svelte";
+  import Rximo from "$lib/components/methods/reference_point_method/RXIMO.svelte";
   /* This god-awful thing shouldn't be around for all the problems
   //import { socket } from "$lib/stores";
   //import type { Socket } from "socket.io-client";
@@ -38,11 +39,18 @@
 <div />
 
 <!-- TODO: Unify styles. Until then, comment studd out -->
-{#if $selectedMethod === "reference_point_method"}
-  <ReferencePointMethod     
-  problem_id={$selectedProblem}
-  API_URL={baseURL}
-  AUTH_TOKEN={get_access_token()} />
+{#if $selectedMethod === "r_ximo"}
+  <Rximo
+    problem_id={$selectedProblem}
+    API_URL={baseURL}
+    AUTH_TOKEN={get_access_token()}
+  />
+{:else if $selectedMethod === "reference_point_method"}
+  <ReferencePointMethod
+    problem_id={$selectedProblem}
+    API_URL={baseURL}
+    AUTH_TOKEN={get_access_token()}
+  />
 {:else if $selectedMethod === "nimbus"}
   <NIMBUS
     problem_id={$selectedProblem}
