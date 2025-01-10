@@ -504,6 +504,28 @@ A user interface for the NIMBUS method.
   //
   // The handlers
   //
+
+  function handle_iterate_back() {
+    if (current_iteration > 0) {
+      current_iteration = current_iteration - 1;
+      problemInfo = {
+        objective_long_names: ["f_1", "f_2", "f_3", "f_4", "f_5"],
+        is_maximized: [false, false, false, false, false],
+        lower_bounds: [-6.34, -3.44487179, -7.5, 0.0, 1.71409445e-3],
+        upper_bounds: [-4.751, -2.85595261, -0.32111111, 9.70666667, 0.35],
+        previous_preference: solutions[current_iteration].reference_point,
+        current_solutions: [solutions[current_iteration].objective_values],
+        current_explanations: solutions[current_iteration].explanations,
+        current_shap: solutions[current_iteration].shap_values,
+      };
+      preference = problemInfo.previous_preference;
+      state = State.ClassifySelected;
+      visualizationChoiceState = VisualizationChoiceState.CurrentSolutions;
+      reference_solution = problemInfo.current_solutions[0];
+      selected_solutions = [0];
+      show_explanations = false;
+    }
+  }
   async function handle_initialize() {
     problemInfo = {
       objective_long_names: ["f_1", "f_2", "f_3", "f_4", "f_5"],
@@ -592,8 +614,13 @@ A user interface for the NIMBUS method.
           <div class="flex gap-4">
             <button
               class="btn variant-filled inline"
+              on:click={handle_iterate_back}
+              disabled={current_iteration == 0}>Previous</button
+            >
+            <button
+              class="btn variant-filled inline"
               on:click={handle_iterate}
-              disabled={current_iteration >= total_iterations}>Iterate</button
+              disabled={current_iteration >= total_iterations - 1}>Next</button
             >
           </div>
           {#if current_iteration >= total_iterations}
