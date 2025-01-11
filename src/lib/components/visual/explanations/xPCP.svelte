@@ -15,14 +15,13 @@
 <script lang="ts">
   import * as d3 from "d3";
   import { onMount } from "svelte";
-  import {
-    colorPalette,
-  } from "$lib/components/visual/constants";
+  import { colorPalette } from "$lib/components/visual/constants";
   import { scale } from "svelte/transition";
   import type { Ranges } from "$lib/components/visual/types";
   import { compute_tradeoffs } from "$lib/api";
 
   export let values: number[][];
+  export let is_maximized: boolean[];
   //export let solutions: Solution[] = [];
   //export let lowerIsBetter: boolean[] = [];
   //export let showIndicators = false;
@@ -37,6 +36,7 @@
   export let preference: (number | undefined)[] = [undefined];
   export let showArrows: boolean = true;
   export let multipliers: number[][] = [[0.1, 0.5, 0.1, 0.2, 0.3]]; // Array representing the impact of each objective
+  export let explanations: string[];
   export let width = 1000;
   export let height = 350;
   let selectedObjective: number = -1;
@@ -46,13 +46,13 @@
   export let to_impair: boolean[] = Array(referencePoint.length).fill(false);
   export let to_improve: boolean[] = Array(referencePoint.length).fill(false);
 
-  export let show_explanations: boolean = false;
+  export let show_explanations: boolean = true;
 
   function drawPlot() {
     if (!ranges || names.length === 0 || values.length === 0) return;
     const margin = { top: 40, right: 50, bottom: 40, left: 50 };
     const barWidth = (width - margin.left - margin.right) / names.length;
-    
+
     // Clear existing plot
     d3.select(svg).selectAll("*").remove();
 
@@ -126,41 +126,27 @@
         .call((g) => g.selectAll(".tick line").style("stroke", "#646878")) // Style ticks
         .call((g) => g.selectAll(".tick text").style("fill", "#646878")) // Style text
         .call((g) => g.selectAll(".domain").style("stroke", "black")); // Style axis line
-      
-        // Add label to the group
+
+      // Add label to the group
       axisGroup
-          .append("text")
-          //.attr("transform", "rotate(-90)")
-          .attr("x", 0)
-          .attr("y", -20) // Adjust label position
-          .style("text-anchor", "middle")
-          .text(names[i])
-          .style("fill", "black")
-          .style("font-size", "12px");
-          
+        .append("text")
+        //.attr("transform", "rotate(-90)")
+        .attr("x", 0)
+        .attr("y", -20) // Adjust label position
+        .style("text-anchor", "middle")
+        .text(names[i])
+        .style("fill", "black")
+        .style("font-size", "12px");
 
       // Draw vertical bar for each axis
       svgElement
         .append("rect")
-        .attr("x", i * barWidth -5)
+        .attr("x", i * barWidth - 5)
         .attr("width", 10)
         .attr("height", height - margin.top - margin.bottom)
         .attr("y", 0)
         .attr("fill", colorPalette[i])
-        .attr("opacity",0.7);
-
-        axisGroup
-          .append("circle")
-          .attr("cx", 0) // Position next to the label
-          .attr("cy", height - margin.top - margin.bottom + 16) // Align with the label
-          .attr("r", 6) // Button width
-          .attr("fill", "#000")
-          .attr("stroke", "#000")
-          .attr("stroke-width", 1)
-          .on("mouseover", function (event) {
-            showTooltipHeatmap(event, i); // Show the tooltip on hover
-          })
-          .on("mouseout", hideTooltip); // Hide the tooltip on mouse out
+        .attr("opacity", 0.7);
 
       /*svgElement
         .append("g")
@@ -232,8 +218,8 @@
               ? "blue"
               : "#646878"
           )
-          .attr("stroke-width",2)
-          .attr("opacity",0.4)
+          .attr("stroke-width", 2)
+          .attr("opacity", 0.4)
           .attr("class", "solution-marker")
           .on("click", () => selectLine(index));
       });
@@ -313,12 +299,25 @@
           .attr("y1", y1)
           .attr("x2", i * barWidth)
           .attr("y2", y2)
-          .attr("stroke", value < referencePoint[i] ? "#C00000" : "#006400")
+          .attr(
+            "stroke",
+            is_maximized[i]
+              ? value < referencePoint[i]
+                ? "#C00000"
+                : "#006400"
+              : value > referencePoint[i]
+              ? "#C00000"
+              : "#006400"
+          )
           .attr("stroke-width", 2.5)
           .attr("stroke-dasharray", "6,2")
           .attr(
             "marker-end",
-            value < referencePoint[i]
+            is_maximized[i]
+              ? value < referencePoint[i]
+                ? "url(#arrow-negative)"
+                : "url(#arrow-positive)"
+              : value > referencePoint[i]
               ? "url(#arrow-negative)"
               : "url(#arrow-positive)"
           ); // Attach arrow marker at the end;
@@ -326,7 +325,7 @@
         // Append a rectangle to act as the background
         svgElement
           .append("rect")
-          .attr("x", i * barWidth  + 5) // Adjust positioning if needed
+          .attr("x", i * barWidth + 5) // Adjust positioning if needed
           .attr("y", (y1 + y2) / 2 - 10) // Position the rectangle above/below the text
           .attr("width", 50)
           .attr("height", 20) // Adjust the height as needed
@@ -336,14 +335,23 @@
         // Append the text element
         svgElement
           .append("text")
-          .attr("x", i * barWidth  + 10)
+          .attr("x", i * barWidth + 10)
           .attr("y", (y1 + y2) / 2 + 5)
           .text(
             value < referencePoint[i]
               ? String((referencePoint[i] - value).toFixed(3)) + " ↓ "
               : String((value - referencePoint[i]).toFixed(3)) + " ↑ "
           )
-          .attr("fill", value < referencePoint[i] ? "#C00000" : "#006400");
+          .attr(
+            "fill",
+            is_maximized[i]
+              ? value < referencePoint[i]
+                ? "#C00000"
+                : "#006400"
+              : value > referencePoint[i]
+              ? "#C00000"
+              : "#006400"
+          );
       });
     }
   }
@@ -447,15 +455,7 @@
 
   // Function to display the tooltip
   function showTooltip(event: any, solutionIndex: number) {
-    const solution = values[selectedIndices[0]];
-    const current_multipliers = multipliers[selectedIndices[0]].map(Math.abs);
-    const tradeoffs = compute_tradeoffs(solution, current_multipliers, ranges);
-
-    let selected_tradeoffs: number[] = [];
-    for (let index = 0; index < tradeoffs.length; index++) {
-      selected_tradeoffs.push(Math.abs(tradeoffs[index][solutionIndex]));
-    }
-    console.log(selected_tradeoffs);
+    const current_multipliers = multipliers[solutionIndex];
 
     // Tooltip container setup
     const tooltip = d3
@@ -475,46 +475,51 @@
       .append("div")
       .style("font-weight", "bold")
       .text(
-        "Impairing effects on " +
-          names[solutionIndex]
+        "Efects of the reference point components on " + names[solutionIndex]
       );
 
     // Set up SVG for the bar chart
     const chartWidth = 200;
-    const chartHeight = 100;
-    const marginBottom = 20;
-    const marginLeft = 20;
-    const barPadding = 5;
+    const chartHeight = 200;
+    const margin = {
+      top: 0,
+      left: 10,
+      right: 40,
+      bottom: 20,
+    };
 
-    const maxTradeoffValue = d3.max(selected_tradeoffs) || 0; // Avoid undefined
-    const barScale = d3
+    const max_value = d3.max(current_multipliers.map(Math.abs)) as number;
+    const x = d3
       .scaleLinear()
-      .domain([0, maxTradeoffValue])
-      .range([0, chartHeight-marginBottom]);
+      .domain([-max_value, max_value])
+      .range([0, chartWidth]);
 
-    var x = d3.scaleBand()
-      .range([ 0, width ])
-      .domain(names)
-      .padding(0.2);
-    
+    var y = d3.scaleBand().range([chartHeight, 0]).domain(names).padding(0.1);
 
     const svg = tooltip
       .append("svg")
-      .attr("width", chartWidth)
-      .attr("height", chartHeight);
+      .attr("width", chartWidth + margin.left + margin.right)
+      .attr("height", chartHeight + margin.top + margin.bottom);
 
-    // Bind data to the bars and update
     svg
       .selectAll("rect")
-      .data(selected_tradeoffs)
+      .data(current_multipliers)
       .join("rect") // Ensure proper enter/update/exit cycle
-      .attr("x", (_, i) => i * (chartWidth / solution.length))
-      .attr("y", (d) => chartHeight - barScale(d)) // Calculate y position
-      .attr("width", chartWidth / solution.length - barPadding)
-      .attr("height", (d) => barScale(d)) // Scale height
+      .attr("x", (d) => (d > 0 ? x(0) : x(d)))
+      .attr("y", (_, i) => i * (chartHeight / current_multipliers.length)) // Calculate y position
+      .attr("width", (d) => (d > 0 ? x(d) - x(0) : x(0) - x(d)))
+      .attr("height", y.bandwidth()) // Scale height
       .attr("fill", (_, i) => colorPalette[i]);
 
+    svg.append("g").classed("y-axis", true).call(d3.axisLeft(y));
+    svg
+      .append("g")
+      .classed("x-axis", true)
+      .attr("transform", `translate(0, ${chartHeight})`)
+      .call(d3.axisBottom(x));
     // Add a button
+
+    tooltip.append("text").text(explanations[solutionIndex]);
     tooltip
       .append("button")
       .attr("class", "btn variant-filled inline")
@@ -523,12 +528,12 @@
       .on("click", () => {
         //alert("Action taken for " + names[solutionIndex]);
         preference = values[selectedIndices[0]];
-        const significant_values = getSignificantIndices(selected_tradeoffs);
+        const significant_values = getSignificantIndices(current_multipliers);
         console.log(significant_values);
         to_impair = Array(referencePoint.length).fill(false);
         to_improve = Array(referencePoint.length).fill(false);
         significant_values.forEach((index) => {
-          if(Math.abs(preference[index]! - ranges![index].min!)>0.5 )
+          if (Math.abs(preference[index]! - ranges![index].min!) > 0.5)
             to_impair![index] = true;
         });
         to_improve[solutionIndex] = true;
@@ -547,127 +552,6 @@
         tooltip.style("display", "none");
       });
   }
-
-
-
-  function showTooltipHeatmap(event:any, objectiveIndex:number) {
-    const solution_names = Array.from({ length: values.length }, (_, i) => i.toString());
-    let color_scales: d3.ScaleLinear<string, string, never>[] = [];
-    let all_tradeoffs = [];
-    console.log("multipliers", multipliers);
-    console.log("values", values);
-    console.log("ranges", ranges);
-
-    for (let index = 0; index < values.length; index++) {
-        const solution = values[index];
-        const current_multipliers = multipliers[index].map(Math.abs);
-        const tradeoffs = compute_tradeoffs(solution, current_multipliers, ranges);
-        all_tradeoffs.push(tradeoffs[objectiveIndex]);
-    }
-
-    // Debug: Log tradeoff values
-    console.log("All tradeoffs:", all_tradeoffs);
-
-    // Define color scales for each column (red, green, yellow)
-    const columnColors: [string, string][] = [["white", colorPalette[0]], ["white", colorPalette[1]], ["white", colorPalette[2]], ["white", colorPalette[2]]];
-    for (let i = 0; i < values[0].length; i++) {
-        // Dynamically determine the domain from data
-        const domain = d3.extent(all_tradeoffs.map((row: number[]) => row[i])) as [number, number]; // Explicitly cast as [number, number]
-        console.log(`Domain for column ${i}:`, domain);
-
-        const myColor = d3.scaleLinear<string>()
-            .range(columnColors[i % columnColors.length])
-            .domain(domain); // Use actual min and max of the column
-        color_scales.push(myColor);
-    }
-
-    // Tooltip container setup
-    const tooltip_width = 300;
-    const tooltip_height = 250;
-    const tooltip_margin = 20;
-
-    const tooltip = d3
-        .select(".tooltip")
-        .style("display", "block")
-        .style("width", tooltip_width + "px")
-        .style("height", tooltip_height + "px")
-        .style("word-wrap", "break-word")
-        .style("left", event.pageX + 5 + "px")
-        .style("top", event.pageY - 150 + "px")
-        .style("pointer-events", "auto");
-
-    // Clear existing content
-    tooltip.html("");
-
-    // Add explanatory text
-    tooltip
-        .append("div")
-        .style("font-weight", "bold")
-        .text("Impairing effects on " + names[objectiveIndex]);
-
-    // Set up SVG for the heatmap
-    const chartWidth = tooltip_width - 100;
-    const chartHeight = tooltip_height;
-    const marginBottom = 20;
-    const marginLeft = 20;
-
-    var x = d3.scaleBand()
-        .range([0, chartWidth])
-        .domain(names)
-        .padding(0.05);
-
-    var y = d3.scaleBand()
-        .range([chartHeight - marginBottom - 24, 0])
-        .domain(solution_names)
-        .padding(0.05);
-
-    const svg = tooltip
-        .append("svg")
-        .attr("width", chartWidth + marginLeft)
-        .attr("height", chartHeight);
-
-    svg
-        .append("g")
-        .style("font-size", 8)
-        .attr("transform", "translate(" + marginLeft + "," + (chartHeight - marginBottom - 24) + ")")
-        .call(d3.axisBottom(x).tickSize(0));
-
-    svg.append("g")
-        .style("font-size", 8)
-        .attr("transform", `translate(${marginLeft}, 0)`)
-        .call(d3.axisLeft(y).tickSize(0));
-
-    // Add the heatmap squares
-    svg.selectAll()
-        .data(all_tradeoffs.flatMap((row, rowIndex) =>
-            row.map((value, colIndex) => ({
-                value,
-                rowIndex,
-                colIndex,
-            }))
-        ))
-        .enter()
-        .append("rect")
-        .attr("x", d => marginLeft + x(names[d.colIndex])!)
-        .attr("y", d => y(solution_names[d.rowIndex])!)
-        .attr("width", x.bandwidth())
-        .attr("height", y.bandwidth())
-        .style("fill", d => {
-            const color = color_scales![d.colIndex](d.value);
-            console.log(`Value: ${d.value}, Color: ${color}`); // Debug: Log each value and its color
-            return color;
-        });
-
-    // Add event listener to keep tooltip open when mouse enters the tooltip area
-    tooltip
-        .on("mouseover", () => {
-            tooltip.style("display", "block"); // Prevent hiding on mouseover
-        })
-        .on("mouseout", () => {
-            tooltip.style("display", "none");
-        });
-}
-
   function getSignificantIndices(arr: number[]): number[] {
     const sortedIndices = arr
       .map((val, idx) => ({ val, idx }))
@@ -718,4 +602,3 @@
 </script>
 
 <svg bind:this={svg} />
-

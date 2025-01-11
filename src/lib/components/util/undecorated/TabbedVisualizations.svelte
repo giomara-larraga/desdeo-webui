@@ -104,23 +104,22 @@ length.
         >
       </RadioGroup>
       {#if value_type_viz_explanations === 0}
-      <div style="align-self: center;">
-        <XPcp
-        {names}
-        {values}
-        bind:preference
-        referencePoint={reference_point}
-        {multipliers}
-        ranges={bounds}
-        bind:selectedIndices={selected}
-        bind:to_improve
-        bind:to_impair
-        bind:show_explanations
-      />
-      </div>
-       
+        <div style="align-self: center;">
+          <!--    <XPcp
+            {names}
+            {values}
+            bind:preference
+            referencePoint={reference_point}
+            {multipliers}
+            ranges={bounds}
+            bind:selectedIndices={selected}
+            bind:to_improve
+            bind:to_impair
+            bind:show_explanations
+          /> -->
+        </div>
       {:else if value_type_viz_explanations === 1}
-        <MultiMiniXBarChart
+        <!--         <MultiMiniXBarChart
           {names}
           solutions={values}
           referencePoint={reference_point}
@@ -133,7 +132,7 @@ length.
           bind:to_impair
           bind:show_explanations
           bind:selectedIndices={selected}
-        />
+        /> -->
       {/if}
     {/if}
   </svelte:fragment>

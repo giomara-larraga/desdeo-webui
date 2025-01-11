@@ -9,33 +9,18 @@ A user interface for the NIMBUS method.
   // TODO: Improve error handling. Currently we show very general error
   // messages.
   //
-
-  import {
-    ListBox,
-    ListBoxItem,
-    modalStore,
-    popup,
-    type ModalSettings,
-  } from "@skeletonlabs/skeleton";
-
   import type { Token } from "$lib/api";
-  import { toastStore } from "@skeletonlabs/skeleton";
-
   import Visualizations from "$lib/components/util/undecorated/Visualizations.svelte";
-  import Card from "$lib/components/main/Card.svelte";
   import GeneralError from "$lib/components/util/undecorated/GeneralError.svelte";
   import Table from "$lib/components/util/undecorated/Table.svelte";
-  import ParallelCoordinatePlotBase from "$lib/components/visual/visualization/props-linking/ParallelCoordinatePlot.svelte";
-  import { transform_bounds } from "$lib/components/util/util";
-
   import ClassificationPreference from "$lib/components/visual/preference-interaction/XClassificationPreference.svelte";
-  import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
-  import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import { onMount } from "svelte";
-  import EchartsComponent from "$lib/components/visual/general/EchartsComponent.svelte";
-  import NimbusLayout from "$lib/components/util/undecorated/NIMBUSLayout.svelte";
   import { roundToDecimal } from "$lib/components/visual/helperFunctions";
   import RpmLayout from "./RPMLayout.svelte";
+  import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
+  import MultiMiniXBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniXBarChart.svelte";
+  import XPcp from "$lib/components/visual/explanations/xPCP.svelte";
+  import { transform_bounds } from "$lib/components/util/util";
 
   /** The problem to solve. */
   export let problem_id: number;
@@ -77,6 +62,8 @@ A user interface for the NIMBUS method.
     shap_values: number[][];
     explanations: string[];
   };
+
+  let value_type_viz: number = 0;
 
   let solutions: solutionType[] = [
     {
@@ -356,12 +343,7 @@ A user interface for the NIMBUS method.
   let solutions_to_visualize: number[][];
 
   // The number of decimals to show for numeric values.
-  let decimals = 2;
-
-  // Flags to check if the classification/intermediate/save selection are valid.
-  let is_classification_valid = false;
-  let is_intermediate_selection_valid = false;
-  let is_save_solutions_valid = false;
+  let decimals = 3;
 
   let max_multiplier: number[] | undefined = undefined;
   let classification_checker = false;
@@ -417,29 +399,6 @@ A user interface for the NIMBUS method.
       } else {
         classification_checker = false;
       }
-    }
-  }
-
-  /* eslint-enable */
-  // Check if the intermediate selection is valid. Exactly two solutions must be selected.
-  $: {
-    if (!(state === State.IntermediateSelected)) {
-      is_intermediate_selection_valid = false;
-    } else if (selected_solutions?.length !== 2) {
-      is_intermediate_selection_valid = false;
-    } else {
-      is_intermediate_selection_valid = true;
-    }
-  }
-
-  // Check if the save solutions selection is valid. At least one solution must be selected.
-  $: {
-    if (!(state === State.SaveSolutionsSelected)) {
-      is_save_solutions_valid = false;
-    } else if (selected_solutions?.length === 0) {
-      is_save_solutions_valid = false;
-    } else {
-      is_save_solutions_valid = true;
     }
   }
 
@@ -509,7 +468,7 @@ A user interface for the NIMBUS method.
     if (current_iteration > 0) {
       current_iteration = current_iteration - 1;
       problemInfo = {
-        objective_long_names: ["f_1", "f_2", "f_3", "f_4", "f_5"],
+        objective_long_names: ["WQFish", "WQCity", "ROI", "CityTax", "Plant"],
         is_maximized: [false, false, false, false, false],
         lower_bounds: [-6.34, -3.44487179, -7.5, 0.0, 1.71409445e-3],
         upper_bounds: [-4.751, -2.85595261, -0.32111111, 9.70666667, 0.35],
@@ -528,7 +487,7 @@ A user interface for the NIMBUS method.
   }
   async function handle_initialize() {
     problemInfo = {
-      objective_long_names: ["f_1", "f_2", "f_3", "f_4", "f_5"],
+      objective_long_names: ["WQFish", "WQCity", "ROI", "CityTax", "Plant"],
       is_maximized: [false, false, false, false, false],
       lower_bounds: [-6.34, -3.44487179, -7.5, 0.0, 1.71409445e-3],
       upper_bounds: [-4.751, -2.85595261, -0.32111111, 9.70666667, 0.35],
@@ -558,7 +517,7 @@ A user interface for the NIMBUS method.
     if (current_iteration < total_iterations - 1) {
       current_iteration = current_iteration + 1;
       problemInfo = {
-        objective_long_names: ["f_1", "f_2", "f_3", "f_4", "f_5"],
+        objective_long_names: ["WQFish", "WQCity", "ROI", "CityTax", "Plant"],
         is_maximized: [false, false, false, false, false],
         lower_bounds: [-6.34, -3.44487179, -7.5, 0.0, 1.71409445e-3],
         upper_bounds: [-4.751, -2.85595261, -0.32111111, 9.70666667, 0.35],
@@ -590,7 +549,7 @@ A user interface for the NIMBUS method.
     >
       <div slot="preferences" class="pl-2 pr-2">
         {#if problemInfo !== undefined && reference_solution !== undefined}
-          Provide classification
+          <h5 class="font-semibold">Preference information</h5>
           <div class="pb-2 pt-2 text-sm">
             Provide your preferences by classifying the objectives by either
             clicking on the bars or using the input boxes. You must give a
@@ -634,23 +593,56 @@ A user interface for the NIMBUS method.
       </div>
       <div slot="visualizations" style="padding-top:0">
         {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
-          <Visualizations
-            names={problemInfo.objective_long_names}
-            values={solutions_to_visualize}
-            reference_point={problemInfo.previous_preference}
-            bind:preference
-            multipliers={problemInfo.current_shap}
-            lower_bounds={problemInfo.lower_bounds}
-            upper_bounds={problemInfo.upper_bounds}
-            lower_is_better={problemInfo.is_maximized.map((value) => !value)}
-            grid_mode={gridded_visualizations}
-            bind:selected={selected_solutions}
-            bind:tab={visualizations_tab}
-            max_selections={1}
-            bind:to_impair
-            bind:to_improve
-            bind:show_explanations
-          />
+          <RadioGroup
+            active="variant-filled-primary"
+            hover="hover:variant-soft-primary"
+          >
+            <RadioItem bind:group={value_type_viz} name="justify" value={0}
+              >Parallel Coordinates</RadioItem
+            >
+            <RadioItem bind:group={value_type_viz} name="justify" value={1}
+              >Bar charts</RadioItem
+            >
+          </RadioGroup>
+          {#if value_type_viz === 0}
+            <div style="align-self: center;">
+              <XPcp
+                names={problemInfo.objective_long_names}
+                values={solutions_to_visualize}
+                explanations={problemInfo.current_explanations}
+                bind:preference
+                referencePoint={problemInfo.previous_preference}
+                multipliers={problemInfo.current_shap}
+                is_maximized={problemInfo.is_maximized}
+                ranges={transform_bounds(
+                  problemInfo.lower_bounds,
+                  problemInfo.upper_bounds
+                )}
+                bind:selectedIndices={selected_solutions}
+                bind:to_improve
+                bind:to_impair
+                bind:show_explanations
+              />
+            </div>
+          {:else if value_type_viz === 1}
+            <MultiMiniXBarChart
+              names={problemInfo.objective_long_names}
+              solutions={solutions_to_visualize}
+              referencePoint={problemInfo.previous_preference}
+              ranges={transform_bounds(
+                problemInfo.lower_bounds,
+                problemInfo.upper_bounds
+              )}
+              multipliers={problemInfo.current_shap}
+              lowerBounds={problemInfo.lower_bounds}
+              upperBounds={problemInfo.upper_bounds}
+              lowerIsBetter={problemInfo.is_maximized.map((value) => !value)}
+              bind:to_improve
+              bind:to_impair
+              bind:show_explanations
+              bind:selectedIndices={selected_solutions}
+            />
+          {/if}
         {:else}
           <GeneralError />
         {/if}
