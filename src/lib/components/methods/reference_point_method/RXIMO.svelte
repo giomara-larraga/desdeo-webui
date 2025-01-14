@@ -14,13 +14,14 @@ A user interface for the NIMBUS method.
   import GeneralError from "$lib/components/util/undecorated/GeneralError.svelte";
   import Table from "$lib/components/util/undecorated/Table.svelte";
   import ClassificationPreference from "$lib/components/visual/preference-interaction/XClassificationPreference.svelte";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { roundToDecimal } from "$lib/components/visual/helperFunctions";
   import RpmLayout from "./RPMLayout.svelte";
-  import { RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
+  import { RadioGroup, RadioItem, SlideToggle } from "@skeletonlabs/skeleton";
   import MultiMiniXBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniXBarChart.svelte";
   import XPcp from "$lib/components/visual/explanations/xPCP.svelte";
   import { transform_bounds } from "$lib/components/util/util";
+  //import { show_extra_menu } from "$lib/stores";
 
   /** The problem to solve. */
   export let problem_id: number;
@@ -64,6 +65,8 @@ A user interface for the NIMBUS method.
   };
 
   let value_type_viz: number = 0;
+
+  let show_explanation_bar = false;
 
   let solutions: solutionType[] = [
     {
@@ -513,6 +516,9 @@ A user interface for the NIMBUS method.
     await handle_initialize();
   });
 
+  onDestroy(() => {
+  });
+
   async function handle_iterate() {
     if (current_iteration < total_iterations - 1) {
       current_iteration = current_iteration + 1;
@@ -604,6 +610,8 @@ A user interface for the NIMBUS method.
               >Bar charts</RadioItem
             >
           </RadioGroup>
+          <SlideToggle name="slider-label" checked on:change={()=>show_explanation_bar=!show_explanation_bar}>Explanations</SlideToggle>
+
           {#if value_type_viz === 0}
             <div style="align-self: center;">
               <XPcp
@@ -678,7 +686,8 @@ A user interface for the NIMBUS method.
             {/if}
           </div>
         </div>
-      </div>
+      </div>  
+
     </RpmLayout>
   {/if}
 </div>

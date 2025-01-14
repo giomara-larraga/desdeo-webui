@@ -1,10 +1,12 @@
 <script>
   import { page } from "$app/stores";
-  import logo from "$lib/assets/logo.png";
+  //import { show_extra_menu } from "$lib/stores";
+  //import logo from "$lib/assets/logo.png";
   import NavigationTile from "$lib/components/main/NavigationTile.svelte";
   import { setContext } from "svelte";
   import PlayIcon from "~icons/heroicons/play";
   import PuzzlePiece from "~icons/heroicons/puzzle-piece";
+  import StopIcon from "~icons/heroicons/stop";
 
   //
   // Navigation tiles get the `active` and `hover` styles from the context,
@@ -42,6 +44,15 @@
     >
       <PlayIcon />
     </NavigationTile>
+    <!-- {#if $show_extra_menu}
+    <NavigationTile
+      href="/solve"
+      selected={$page.url.pathname === "/new_problem"}
+      text={["X"]}
+    >
+      <StopIcon />
+    </NavigationTile> 
+    {/if}-->
     <!--  <NavigationTile
       href="/new_problem"
       selected={$page.url.pathname === "/new_problem"}
