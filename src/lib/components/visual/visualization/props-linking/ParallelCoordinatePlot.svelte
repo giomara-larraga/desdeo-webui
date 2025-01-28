@@ -85,7 +85,7 @@
   export let disableAnimation: boolean | undefined = true;
 
   /** The aspect ratio of the plot container. */
-  export let aspect: string | undefined = "aspect-[5/3]";
+  export let aspect: string | undefined = "aspect-[5/2]";
 
   /** Custom CSS styles to apply to the chart container. */
   export let customStyle: string | undefined = undefined;

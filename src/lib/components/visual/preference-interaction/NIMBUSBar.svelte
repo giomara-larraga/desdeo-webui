@@ -5,6 +5,7 @@
 <script lang="ts">
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import SingleHorizontalBar from "$lib/components/visual/preference-interaction/HorizontalBarAlt.svelte";
+    import { roundToDecimal } from "../helperFunctions";
 
   enum classification {
     ChangeFreely = "Change freely",
@@ -95,30 +96,19 @@
 
 <!-- NIMBUS bar with inputs -->
 <!-- <div class="container" style="--barColor:{barColor ? barColor : '#c000'}"> -->
-<div class="container {aspect}">
-  <div
-    class="firstPart"
-    style="--justify: {barName ? 'space-between' : 'flex-end'}"
-  >
-    {#if barName}
+<div class="container {aspect}" style="display: flex;flex-direction:column">
+  <div style="display: flex;flex-direction:row">
+    <div>
+      {#if barName}
       <span>{barName}</span>
     {/if}
+    </div>
 
-    <Input
-      bind:value={selectedValue}
-      labelName={classificationValue}
-      onChange={moveToRange}
-    />
-    <!-- <div>
-      <input type="number" bind:value={selectedValue} step="any" on:change={moveToRange}/>
-    </div> -->
-  </div>
-  <div class="secondPart">
     <div id="prev">
       <!-- TODO: Implement this so that when no prev values is given, nothing shows up. But implementation should not make a mess. Maybe reserve a blank space (how)? -->
       <span style="color:gray; font-size: small; ">Previous preference</span>
       {#if previousValue}
-        <span id="prevValue">{previousValue}</span>
+        <span id="prevValue">{roundToDecimal(previousValue,decimalPrecision)}</span>
       {:else}
         <span id="prevValue">--</span>
       {/if}
@@ -129,6 +119,25 @@
         readonly={true}
       /> -->
     </div>
+  </div>
+  <div style="display: flex;flex-direction:row">
+
+  
+  <div
+    class="firstPart"
+    style="--justify: {barName ? 'space-between' : 'flex-end'}"
+  >
+    <Input
+      bind:value={selectedValue}
+      labelName={classificationValue}
+      onChange={moveToRange}
+    />
+    <!-- <div>
+      <input type="number" bind:value={selectedValue} step="any" on:change={moveToRange}/>
+    </div> -->
+  </div>
+  <div class="secondPart">
+
     <SingleHorizontalBar
       {lowerBound}
       {higherBound}
@@ -141,6 +150,7 @@
       {arrowMode}
     />
   </div>
+</div>
 </div>
 
 <style>

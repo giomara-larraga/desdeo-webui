@@ -5,6 +5,7 @@
 <script lang="ts">
   import Input from "$lib/components/visual/preference-interaction/BasicInput.svelte";
   import SingleHorizontalBar from "$lib/components/visual/preference-interaction/HorizontalBar.svelte";
+    import { roundToDecimal } from "../helperFunctions";
 
   /** The lower bound of the chart. */
   export let lowerBound: number;
@@ -28,7 +29,7 @@
   export let lowerIsBetter = true;
 
   /** The decimal precision to use for rounding values. */
-  export let decimalPrecision: number | undefined = undefined;
+  export let decimalPrecision: number | undefined = 3;
 
   /** The color of the bar. */
   export let barColor: string | undefined = undefined;
@@ -84,7 +85,7 @@
       <!-- TODO: Implement this so that when no prev values is given, nothing shows up. But implementation should not make a mess. Maybe reserve a blank space (how)? -->
       <span style="color:gray; font-size: small; ">Previous preference</span>
       {#if previousValue}
-        <span id="prevValue">{previousValue}</span>
+        <span id="prevValue">{roundToDecimal(previousValue, decimalPrecision)}</span>
       {:else}
         <span id="prevValue">--</span>
       {/if}

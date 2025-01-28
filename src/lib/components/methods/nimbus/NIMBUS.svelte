@@ -702,10 +702,6 @@ A user interface for the NIMBUS method.
 </script>
 
 <div class="flex flex-col gap-10">
-  <div class="flex flex-col items-start gap-4">
-    <h1 class="font-bold">NIMBUS method</h1>
-  </div>
-
   {#if state === State.InitialLoad}
     <div class="grid grid-cols-2 items-start gap-10">
       <!-- <ProblemDetails {problem} /> -->

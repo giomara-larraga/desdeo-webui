@@ -51,13 +51,13 @@
   export let lowerIsBetter = true;
 
   /** The decimal precision to use for rounding values. */
-  export let decimalPrecision: number | undefined = undefined;
+  export let decimalPrecision: number | undefined = 3;
 
   /** Whether to display the arrow mode. */
   export let arrowMode = true;
 
   /** The aspect ratio of the chart container. */
-  export let aspect = "aspect-[11/2]";
+  export let aspect = "aspect-[16/2]";
 
   // $: console.log(selectedValue);
   $: if (selectedValue != null) {
@@ -103,8 +103,8 @@
         onZero: false,
       },
       id: "xAxis",
-      min: lowerBound,
-      max: higherBound,
+      min: roundToDecimal(lowerBound, decimalPrecision),
+      max: roundToDecimal(higherBound, decimalPrecision),
       type: "value",
       axisPointer: {
         z: 1000,

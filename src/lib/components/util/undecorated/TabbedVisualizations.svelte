@@ -11,7 +11,7 @@ length.
 </script>
 
 <script lang="ts">
-  import { TabGroup, Tab, RadioGroup, RadioItem } from "@skeletonlabs/skeleton";
+  import { TabGroup, Tab} from "@skeletonlabs/skeleton";
   import { transform_bounds } from "$lib/components/util/util";
 
   export let names: string[] | undefined = undefined;
@@ -29,44 +29,21 @@ length.
   export let disabled = false;
   export let to_impair: boolean[];
   export let to_improve: boolean[];
-
   export let show_explanations: boolean = false;
-  let value_type_viz_solutions: number = 0;
-  let value_type_viz_explanations: number = 0;
 
   $: bounds = transform_bounds(lower_bounds, upper_bounds);
 
   // Import the visualizations here.
   import ParallelCoordinatePlotBase from "$lib/components/visual/visualization/props-linking/ParallelCoordinatePlot.svelte";
   import MultiMiniBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniBarChart.svelte";
-  import MultiMiniXBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniXBarChart.svelte";
-
-  import XPcp from "$lib/components/visual/explanations/xPCP.svelte";
-  // import Petals from "$lib/components/visual/visualization/props-linking/MultiplePetalCharts.svelte";
 </script>
 
 <TabGroup>
-  <Tab bind:group={tab} name="tab1" value={0}>Solutions</Tab>
-  <Tab bind:group={tab} name="tab2" value={1}>Explanations</Tab>
+  <Tab bind:group={tab} name="tab1" value={0}>Parallel Coordinates</Tab>
+  <Tab bind:group={tab} name="tab2" value={1}>Bar charts</Tab>
 
   <svelte:fragment slot="panel">
     {#if tab === 0}
-      <RadioGroup
-        active="variant-filled-primary"
-        hover="hover:variant-soft-primary"
-      >
-        <RadioItem
-          bind:group={value_type_viz_solutions}
-          name="justify"
-          value={0}>Parallel Coordinates</RadioItem
-        >
-        <RadioItem
-          bind:group={value_type_viz_solutions}
-          name="justify"
-          value={1}>Bar charts</RadioItem
-        >
-      </RadioGroup>
-      {#if value_type_viz_solutions === 0}
         <ParallelCoordinatePlotBase
           {names}
           {values}
@@ -78,62 +55,14 @@ length.
           bind:selectedIndices={selected}
           bind:highlightedIndex={highlighted}
         />
-      {:else if value_type_viz_solutions === 1}
-        <MultiMiniBarChart
-          solutions={values}
-          lowerBounds={lower_bounds}
-          upperBounds={upper_bounds}
-          lowerIsBetter={lower_is_better}
-          bind:selectedIndices={selected}
-        />
-      {/if}
     {:else if tab === 1}
-      <RadioGroup
-        active="variant-filled-primary"
-        hover="hover:variant-soft-primary"
-      >
-        <RadioItem
-          bind:group={value_type_viz_explanations}
-          name="justify"
-          value={0}>Parallel Coordinates</RadioItem
-        >
-        <RadioItem
-          bind:group={value_type_viz_explanations}
-          name="justify"
-          value={1}>Bar charts</RadioItem
-        >
-      </RadioGroup>
-      {#if value_type_viz_explanations === 0}
-        <div style="align-self: center;">
-          <!--    <XPcp
-            {names}
-            {values}
-            bind:preference
-            referencePoint={reference_point}
-            {multipliers}
-            ranges={bounds}
-            bind:selectedIndices={selected}
-            bind:to_improve
-            bind:to_impair
-            bind:show_explanations
-          /> -->
-        </div>
-      {:else if value_type_viz_explanations === 1}
-        <!--         <MultiMiniXBarChart
-          {names}
-          solutions={values}
-          referencePoint={reference_point}
-          ranges={bounds}
-          {multipliers}
-          lowerBounds={lower_bounds}
-          upperBounds={upper_bounds}
-          lowerIsBetter={lower_is_better}
-          bind:to_improve
-          bind:to_impair
-          bind:show_explanations
-          bind:selectedIndices={selected}
-        /> -->
-      {/if}
+      <MultiMiniBarChart
+      solutions={values}
+      lowerBounds={lower_bounds}
+      upperBounds={upper_bounds}
+      lowerIsBetter={lower_is_better}
+      bind:selectedIndices={selected}
+    />
     {/if}
   </svelte:fragment>
 </TabGroup>
