@@ -43,6 +43,7 @@
     "immer": "^10.0.2",
     "mathlive": "^0.95.4",
     "npm": "^10.8.2",
+    "paneforge": "^0.0.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "socket.io": "^4.7.5",

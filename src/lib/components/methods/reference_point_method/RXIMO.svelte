@@ -9,14 +9,14 @@ A user interface for the NIMBUS method.
   // TODO: Improve error handling. Currently we show very general error
   // messages.
   //
-  import type { Token } from "$lib/api";
+  import type { selectedProblem, Token } from "$lib/api";
   import Visualizations from "$lib/components/util/undecorated/Visualizations.svelte";
   import GeneralError from "$lib/components/util/undecorated/GeneralError.svelte";
   import Table from "$lib/components/util/undecorated/Table.svelte";
   import ClassificationPreference from "$lib/components/visual/preference-interaction/XClassificationPreference.svelte";
   import { onMount, onDestroy } from "svelte";
   import { roundToDecimal } from "$lib/components/visual/helperFunctions";
-  import RpmLayout from "./RPMLayout.svelte";
+  import RpmLayout from "./RXIMOLayout.svelte";
   import { RadioGroup, RadioItem, SlideToggle } from "@skeletonlabs/skeleton";
   import MultiMiniXBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniXBarChart.svelte";
   import XPcp from "$lib/components/visual/explanations/xPCP.svelte";
@@ -66,7 +66,7 @@ A user interface for the NIMBUS method.
 
   let value_type_viz: number = 0;
 
-  let show_explanation_bar = false;
+  let show_explanation_bar = true;
 
   let solutions: solutionType[] = [
     {
@@ -552,6 +552,8 @@ A user interface for the NIMBUS method.
       classify={state === State.ClassifySelected ? true : false}
       finalChoice={finalChoiceState}
       drawMap={draw_map}
+      show_preferences_bar={true}
+      bind:show_explanation_bar
     >
       <div slot="preferences" class="pl-2 pr-2">
         {#if problemInfo !== undefined && reference_solution !== undefined}
@@ -610,7 +612,6 @@ A user interface for the NIMBUS method.
               >Bar charts</RadioItem
             >
           </RadioGroup>
-          <SlideToggle name="slider-label" checked on:change={()=>show_explanation_bar=!show_explanation_bar}>Explanations</SlideToggle>
 
           {#if value_type_viz === 0}
             <div style="align-self: center;">
@@ -687,7 +688,38 @@ A user interface for the NIMBUS method.
           </div>
         </div>
       </div>  
+      <div slot="explanations" class="p-2">
+        <h5 class="font-semibold pb-4">Summary of impairing effects</h5>
+        <div class="pb-2">
+          The following plot show you how the values you provided as a reference point influenced each objective value of the obtained solution.
+        </div>
+        <div>Figure here</div>
 
+
+        <div class="pb-4">
+          I want to know more about the value obtained in objective: 
+          <select class="select">
+            {#each problemInfo.objective_long_names as obj_name}
+            <option value={obj_name}>{obj_name}</option>
+            {/each}
+          </select>
+        </div>
+        <div class="pb-2">
+          Effects of the reference point on objective of the obtained solution
+        </div>
+        <div class="pb-4">
+          Tip: Remember that for improving an objective function value you need to impair another one.
+        </div>
+        <div>Figure here</div>
+        <div class="pb-4">If you want to improve this, then impair one of the bad guys.</div>
+        <div>
+          <label class="flex items-center space-x-2">
+            <input class="checkbox" type="checkbox" checked />
+            <p>Show suggestion in preferences bar</p>
+          </label>
+          </div>
+        
+      </div>
     </RpmLayout>
   {/if}
 </div>
