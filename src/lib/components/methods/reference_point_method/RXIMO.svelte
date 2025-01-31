@@ -21,6 +21,7 @@ A user interface for the NIMBUS method.
   import MultiMiniXBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniXBarChart.svelte";
   import XPcp from "$lib/components/visual/explanations/xPCP.svelte";
   import { transform_bounds } from "$lib/components/util/util";
+  import Heatmap from "$lib/components/visual/explanations/Heatmap.svelte"
   //import { show_extra_menu } from "$lib/stores";
 
   /** The problem to solve. */
@@ -693,7 +694,7 @@ A user interface for the NIMBUS method.
         <div class="pb-2">
           The following plot show you how the values you provided as a reference point influenced each objective value of the obtained solution.
         </div>
-        <div>Figure here</div>
+        <Heatmap names={problemInfo.objective_long_names} values={problemInfo.current_shap}></Heatmap>
 
 
         <div class="pb-4">
