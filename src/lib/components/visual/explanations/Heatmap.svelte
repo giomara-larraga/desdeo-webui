@@ -22,7 +22,7 @@
    * @example
    *   aspect - [5 / 3];
    */
-  export let aspect: string | undefined = undefined;
+  export let aspect: string | undefined = "[2/1]";
 
   /**
    * An array of boolean values indicating whether lower values are better for
@@ -51,38 +51,50 @@ function generateHeatmapData(rows: number, cols: number): [number, number, numbe
       position: "top",
       //formatter: (params) => `Value: ${params.value[2]}`
     },
+    grid: {
+      height: '70%',
+      left: '80px',
+      bottom: '0',
+      top: '30%'
+    },
     xAxis: {
       type: "category",
+      name:"Solution",
+      nameLocation:"middle",
       data: names, // 10 columns
+      position:"top",
+      axisLabel: {
+        interval:0,
+      //rotate: -20,
+      fontSize:10,
+    }
     },
     yAxis: {
       type: "category",
+      inverse: true,
+      name: "reference point",
       data: names, // 10 rows
+      axisLabel:{
+        interval:0,
+        fontSize:10,
+      }
     },
     // @ts-ignore
     visualMap: [{
+      min: -4,
+      max: 2,
       show:false,
-      min: -5,
-      max: 5,
-      calculable: true,
-      orient: "vertical",
-      left: "right",
-      top: "center"
+      //calculable: true,
+      inRange: {
+            color: ['green', 'rgb(255,241,183)','#C00000'],
+           
+        },
+
     }],
     series: [
       {
         type: "heatmap",
         data: generateHeatmapData(5,5),
-        label: {
-          show: false,
-          color: "#fff"
-        },
-        emphasis: {
-          itemStyle: {
-            borderColor: "#333",
-            borderWidth: 1
-          }
-        }
       }
     ]
   };

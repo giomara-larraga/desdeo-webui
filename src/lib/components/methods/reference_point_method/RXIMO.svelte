@@ -689,7 +689,7 @@ A user interface for the NIMBUS method.
           </div>
         </div>
       </div>  
-      <div slot="explanations" class="p-2">
+      <div slot="explanations" class="pt-2 pl-4 pr-4">
         <h5 class="font-semibold pb-4">Summary of impairing effects</h5>
         <div class="pb-2">
           The following plot show you how the values you provided as a reference point influenced each objective value of the obtained solution.
