@@ -19,17 +19,13 @@ A user interface for the NIMBUS method.
   import RpmLayout from "./RXIMOLayout.svelte";
   import { RadioGroup, RadioItem, SlideToggle } from "@skeletonlabs/skeleton";
   import MultiMiniXBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniXBarChart.svelte";
-  import XPcp from "$lib/components/visual/explanations/xPCP.svelte";
+  import XPcp from "$lib/components/visual/explanations/ParallelCoordinatePlot.svelte";
   import { transform_bounds } from "$lib/components/util/util";
-  import Heatmap from "$lib/components/visual/explanations/Heatmap.svelte"
-  //import { show_extra_menu } from "$lib/stores";
+  import Heatmap from "$lib/components/visual/explanations/Heatmap.svelte";
+  import Barchart from "$lib/components/visual/explanations/Barchart.svelte"
 
-  /** The problem to solve. */
-  export let problem_id: number;
-  // Link to the backend.
-  export let API_URL: string;
-  // The authentication token.
-  export let AUTH_TOKEN: Token;
+  import Card from "$lib/components/main/Card.svelte";
+  //import { show_extra_menu } from "$lib/stores";
   // Flag to visualize the decision space. Useful for UTOPIA maybe? Unused for now.
   //export let visualize_decision_space: boolean = false;
 
@@ -602,57 +598,24 @@ A user interface for the NIMBUS method.
       </div>
       <div slot="visualizations" style="padding-top:0">
         {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
-          <RadioGroup
-            active="variant-filled-primary"
-            hover="hover:variant-soft-primary"
-          >
-            <RadioItem bind:group={value_type_viz} name="justify" value={0}
-              >Parallel Coordinates</RadioItem
-            >
-            <RadioItem bind:group={value_type_viz} name="justify" value={1}
-              >Bar charts</RadioItem
-            >
-          </RadioGroup>
-
-          {#if value_type_viz === 0}
             <div style="align-self: center;">
-              <XPcp
+              <Card>
+                <svelte:fragment slot="header">Parallel coordinates plot</svelte:fragment>
+                <XPcp
                 names={problemInfo.objective_long_names}
                 values={solutions_to_visualize}
-                explanations={problemInfo.current_explanations}
-                bind:preference
                 referencePoint={problemInfo.previous_preference}
-                multipliers={problemInfo.current_shap}
                 is_maximized={problemInfo.is_maximized}
                 ranges={transform_bounds(
                   problemInfo.lower_bounds,
                   problemInfo.upper_bounds
                 )}
                 bind:selectedIndices={selected_solutions}
-                bind:to_improve
-                bind:to_impair
-                bind:show_explanations
               />
+                </Card>
+              
             </div>
-          {:else if value_type_viz === 1}
-            <MultiMiniXBarChart
-              names={problemInfo.objective_long_names}
-              solutions={solutions_to_visualize}
-              referencePoint={problemInfo.previous_preference}
-              ranges={transform_bounds(
-                problemInfo.lower_bounds,
-                problemInfo.upper_bounds
-              )}
-              multipliers={problemInfo.current_shap}
-              lowerBounds={problemInfo.lower_bounds}
-              upperBounds={problemInfo.upper_bounds}
-              lowerIsBetter={problemInfo.is_maximized.map((value) => !value)}
-              bind:to_improve
-              bind:to_impair
-              bind:show_explanations
-              bind:selectedIndices={selected_solutions}
-            />
-          {/if}
+          
         {:else}
           <GeneralError />
         {/if}
@@ -662,6 +625,9 @@ A user interface for the NIMBUS method.
           <div class="overflow-x-auto">
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
               {#if !finalChoiceState}
+              <Card>
+                <svelte:fragment slot="header">Numerical values</svelte:fragment>
+
                 <Table
                   head={["Solution ID", ...problemInfo.objective_long_names]}
                   body={solutions_to_visualize.map((solution, index) => {
@@ -672,7 +638,9 @@ A user interface for the NIMBUS method.
                   })}
                   bind:selected_rows={selected_solutions}
                 />
+              </Card>
               {:else if reference_solution !== undefined}
+              <Card>
                 <Table
                   head={["Solution ID", ...problemInfo.objective_long_names]}
                   body={[reference_solution].map((solution, index) => {
@@ -682,6 +650,7 @@ A user interface for the NIMBUS method.
                     ];
                   })}
                 />
+              </Card>
               {/if}
             {:else}
               <GeneralError />
@@ -690,12 +659,13 @@ A user interface for the NIMBUS method.
         </div>
       </div>  
       <div slot="explanations" class="pt-2 pl-4 pr-4">
-        <h5 class="font-semibold pb-4">Summary of impairing effects</h5>
+        <h5 class="font-semibold pb-4">Explanations</h5>
         <div class="pb-2">
-          The following plot show you how the values you provided as a reference point influenced each objective value of the obtained solution.
+       Effects of the <span class="font-bold">reference point values</span> on the <span class="font-bold text-blue-600">obtained solution</span>.
         </div>
+        <div class="pb-4">
         <Heatmap names={problemInfo.objective_long_names} values={problemInfo.current_shap}></Heatmap>
-
+        </div>
 
         <div class="pb-4">
           I want to know more about the value obtained in objective: 
@@ -711,7 +681,7 @@ A user interface for the NIMBUS method.
         <div class="pb-4">
           Tip: Remember that for improving an objective function value you need to impair another one.
         </div>
-        <div>Figure here</div>
+        <Barchart names={problemInfo.objective_long_names} values={problemInfo.current_shap[0]}></Barchart>
         <div class="pb-4">If you want to improve this, then impair one of the bad guys.</div>
         <div>
           <label class="flex items-center space-x-2">

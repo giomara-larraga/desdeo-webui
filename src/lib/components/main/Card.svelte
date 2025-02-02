@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-2 bg-white p-4 shadow-md {$$props.class ?? ''}">
+<div class="flex flex-col bg-white p-2 mt-0 ml-4 mr-4 mb-4 shadow-lg border-gray-400 {$$props.class ?? ''}">
   {#if $$slots.header || $$slots.buttons}
     <header class="mb-4 flex justify-between gap-4">
       <span class="font-bold">

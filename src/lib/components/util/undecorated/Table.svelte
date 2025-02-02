@@ -41,8 +41,8 @@ A simple table.
   }
 </script>
 
-<table class="table-compact" style="width: 800px;">
-  <thead class="bg-surface-200">
+<table class="table-compact" style="width: 100%;">
+  <thead class="bg-surface-100">
     {#each head as item}
       <th class="p-4">{item}</th>
     {/each}
@@ -50,7 +50,7 @@ A simple table.
   <tbody class="text-sm">
     {#each body as row, row_id}
       {@const background = is_in(selected_rows, row_id)
-        ? "bg-surface-400"
+        ? "bg-surface-200"
         : "bg-surface-100"}
       <tr
         class="border-b-2 border-surface-200 {background} last:border-none hover:cursor-pointer"

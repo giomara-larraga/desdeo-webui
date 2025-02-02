@@ -41,9 +41,7 @@
 <!-- TODO: Unify styles. Until then, comment studd out -->
 {#if $selectedMethod === "r_ximo"}
   <Rximo
-    problem_id={$selectedProblem}
-    API_URL={baseURL}
-    AUTH_TOKEN={get_access_token()}
+    
   />
 {:else if $selectedMethod === "reference_point_method"}
   <ReferencePointMethod
