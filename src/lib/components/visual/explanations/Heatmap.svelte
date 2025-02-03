@@ -16,6 +16,12 @@
   /** The names to use for the individual bars (objective names). */
   export let names: string[] = [];
 
+  let option: echarts.EChartOption;
+
+  $: flattenedValues = values.flat(); // Convert 2D array to 1D array
+  $: minValue = Math.min(...flattenedValues);
+  $: maxValue = Math.max(...flattenedValues);
+
   /**
    * The aspect ratio as a tailwind class for the div container, which contains
    * the chart.
@@ -49,8 +55,9 @@ function generateHeatmapData(): [number, number, number][] {
  
   // Create the option object for the whole chart.
   // @ts-ignore
-  const option: echarts.EChartOption = {
+  $: option = {
     tooltip: {
+      show: true,
       position: "top",
       /*formatter: (params: { value: any[] }) => {
         let value = Array.isArray(params.value)? params.value?.[2] : undefined;
@@ -128,8 +135,8 @@ function generateHeatmapData(): [number, number, number][] {
     },
     // @ts-ignore
     visualMap: [{
-      min: -4,
-      max: 2,
+      min: minValue,
+      max: maxValue,
       show:false,
       //calculable: true,
       inRange: {

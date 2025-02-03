@@ -17,7 +17,7 @@ A user interface for the NIMBUS method.
   import { onMount, onDestroy } from "svelte";
   import { roundToDecimal } from "$lib/components/visual/helperFunctions";
   import RpmLayout from "./RXIMOLayout.svelte";
-  import { RadioGroup, RadioItem, SlideToggle } from "@skeletonlabs/skeleton";
+  import { RadioGroup, RadioItem, SlideToggle, Tab, TabGroup } from "@skeletonlabs/skeleton";
   import MultiMiniXBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniXBarChart.svelte";
   import XPcp from "$lib/components/visual/explanations/ParallelCoordinatePlot.svelte";
   import { transform_bounds } from "$lib/components/util/util";
@@ -25,6 +25,8 @@ A user interface for the NIMBUS method.
   import Barchart from "$lib/components/visual/explanations/Barchart.svelte"
 
   import Card from "$lib/components/main/Card.svelte";
+
+  let tabExplanations:number = 0;
   //import { show_extra_menu } from "$lib/stores";
   // Flag to visualize the decision space. Useful for UTOPIA maybe? Unused for now.
   //export let visualize_decision_space: boolean = false;
@@ -356,6 +358,9 @@ A user interface for the NIMBUS method.
   let draw_map = false;
 
   let finalChoiceState = false;
+  let selectedObjective: number = 0;
+  let selectedSHAPValues:number[] = [];
+
 
   $: {
     if (problemInfo !== undefined) {
@@ -446,6 +451,7 @@ A user interface for the NIMBUS method.
   $: {
     if (problemInfo !== undefined) {
       solutions_to_visualize = problemInfo.current_solutions;
+      selectedSHAPValues = problemInfo.current_shap[selectedObjective];
     }
   }
 
@@ -460,9 +466,17 @@ A user interface for the NIMBUS method.
     gridded_visualizations = false;
   }
 
+  
+
   //
   // The handlers
   //
+  function handleSelectionChange(event: Event) {
+    const selectElement = event.target as HTMLSelectElement;
+    selectedObjective = selectElement.selectedIndex;
+    selectedSHAPValues = problemInfo.current_shap[selectedObjective];
+    console.log("Selected Objective:", selectedObjective);
+  }
 
   function handle_iterate_back() {
     if (current_iteration > 0) {
@@ -659,36 +673,39 @@ A user interface for the NIMBUS method.
         </div>
       </div>  
       <div slot="explanations" class="pt-2 pl-4 pr-4">
-        <h5 class="font-semibold pb-4">Explanations</h5>
-        <div class="pb-2">
-       Effects of the <span class="font-bold">reference point values</span> on the <span class="font-bold text-blue-600">obtained solution</span>.
-        </div>
-        <div class="pb-4">
-        <Heatmap names={problemInfo.objective_long_names} values={problemInfo.current_shap}></Heatmap>
-        </div>
+        <TabGroup>
+          <Tab bind:group={tabExplanations} name="tab2" value={0}>Explanations by objective</Tab>
+	        <Tab bind:group={tabExplanations} name="tab3" value={1}>General explanations</Tab>
 
-        <div class="pb-4">
-          I want to know more about the value obtained in objective: 
-          <select class="select">
-            {#each problemInfo.objective_long_names as obj_name}
-            <option value={obj_name}>{obj_name}</option>
-            {/each}
-          </select>
-        </div>
-        <div class="pb-2">
-          Effects of the reference point on objective of the obtained solution
-        </div>
-        <div class="pb-4">
-          Tip: Remember that for improving an objective function value you need to impair another one.
-        </div>
-        <Barchart names={problemInfo.objective_long_names} values={problemInfo.current_shap[0]}></Barchart>
-        <div class="pb-4">If you want to improve this, then impair one of the bad guys.</div>
-        <div>
-          <label class="flex items-center space-x-2">
-            <input class="checkbox" type="checkbox" checked />
-            <p>Show suggestion in preferences bar</p>
-          </label>
-          </div>
+          <svelte:fragment slot="panel">
+            {#if tabExplanations === 0}
+            <div class="pb-4">
+              Select an objective to analyze how each value from the <span class="font-bold">reference point</span> affects the chosen objective in the <span class="font-bold text-blue-600">obtained solution</span>.
+              <select class="select" bind:value={selectedObjective} on:change={handleSelectionChange}>
+                {#each problemInfo.objective_long_names as obj_name, index}
+                <option value={index}>{obj_name}</option>
+                {/each}
+              </select>
+            </div>
+     
+            <Barchart names={problemInfo.objective_long_names} bind:values={selectedSHAPValues}></Barchart>
+            <div class="pb-4">If you want to improve {problemInfo.objective_long_names[selectedObjective]}, then impair one of the objectives with an impairing effect.</div>
+            <div>
+              <label class="flex items-center space-x-2">
+                <input class="checkbox" type="checkbox" checked />
+                <p>Show suggestion in preferences bar</p>
+              </label>
+              </div>
+            {:else if tabExplanations === 1}
+            <div class="pb-2">
+              Effects of the <span class="font-bold">reference point values</span> on the <span class="font-bold text-blue-600">obtained solution</span>.
+               </div>
+               <div class="pb-4">
+               <Heatmap names={problemInfo.objective_long_names} values={problemInfo.current_shap}></Heatmap>
+               </div>
+            {/if}
+          </svelte:fragment>
+        </TabGroup>
         
       </div>
     </RpmLayout>

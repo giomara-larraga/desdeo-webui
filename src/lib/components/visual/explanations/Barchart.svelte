@@ -23,7 +23,7 @@
    * @example
    *   aspect - [5 / 3];
    */
-  export let aspect: string | undefined = "[2/3]";
+  export let aspect: string | undefined = "[3/7]";
 
   /**
    * An array of boolean values indicating whether lower values are better for
@@ -31,18 +31,37 @@
    */
   console.log(values);
   let chart: echarts.EChartsType;
+  let option:echarts.EChartOption;
+  let barColors:string[];
+
+  // Define colors: Red for positive impact, Green for negative impact
+  $: barColors = values? values.map(value => value > 0 ? 'red' : 'green'):[];
+
+  // ✅ Separate values into positive and negative categories
+  $: positiveValues = values.map(value => (value > 0 ? value : 0)); 
+  $: negativeValues = values.map(value => (value < 0 ? value : 0)); 
   // Create the option object for the whole chart.
   // @ts-ignore
-  const option: echarts.EChartOption = {
+  $: option = {
     tooltip: {
+      show: false,
       trigger: 'axis',
       axisPointer : {           
             type : 'shadow'
       }
       //formatter: (params) => `Value: ${params.value[2]}`
     },
+    legend: {
+      show:true,
+      data: ['Improving Effect', 'Impairing Effect'],
+      top: 0,
+      textStyle: {
+        fontSize: 12
+      }, 
+    },
     grid: {
-      height: '80%',
+      top:'20%',
+      height: '60%',
       bottom: '20%',
     },
     xAxis: {
@@ -78,9 +97,16 @@
     },
     series: [
       {
-        type: "bar",
-        data: values,
-        
+        name: 'Impairing Effect',
+        type: 'bar',
+        data: positiveValues,
+        itemStyle: { color: 'red' }, // Red for positive
+      },
+      {
+        name: 'Improving Effect',
+        type: 'bar',
+        data: negativeValues,
+        itemStyle: { color: 'green' }, // Green for negative
       }
     ]
   };
