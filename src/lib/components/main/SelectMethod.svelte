@@ -14,6 +14,10 @@
       display: "NIMBUS",
     },
     {
+      id: "xnimbus",
+      display: "XNIMBUS",
+    },
+    {
       id: "nautnavi",
       display: "NAUTILUS Navigator",
     },

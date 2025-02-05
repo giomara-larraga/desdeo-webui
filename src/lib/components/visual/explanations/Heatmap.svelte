@@ -21,6 +21,7 @@
   $: flattenedValues = values.flat(); // Convert 2D array to 1D array
   $: minValue = Math.min(...flattenedValues);
   $: maxValue = Math.max(...flattenedValues);
+  $: minMaxRange = Math.max(...[Math.abs(minValue), Math.abs(maxValue)])
 
   /**
    * The aspect ratio as a tailwind class for the div container, which contains
@@ -42,12 +43,21 @@
   // Create the series data for the radar chart and the data for the markLines (They indicate if lower or higher value is better).
 // Generate sample data
 function generateHeatmapData(): [number, number, number][] {
-    let data: [number, number, number][] = [];
+    let data: any[] = [];
     let cols = names.length;
     let rows = names.length;
     for (let x = 0; x < cols; x++) {
       for (let y = 0; y < rows; y++) {
-        data.push([x, y, values[x][y]]);
+        if (x == y){
+          data.push({
+                    value: [x, y, values[x][y]],
+                    itemStyle: { color: "black" } // Set diagonal cells to black
+                });
+        }
+        else{
+          data.push([x, y, values[x][y]]);
+
+        }
       }
     }
     return data;
@@ -135,12 +145,12 @@ function generateHeatmapData(): [number, number, number][] {
     },
     // @ts-ignore
     visualMap: [{
-      min: minValue,
-      max: maxValue,
+      min: -1 * minMaxRange,
+      max: minMaxRange,
       show:false,
       //calculable: true,
       inRange: {
-            color: ['green', 'rgb(255,241,183)','#C00000'],
+            color: ['green', 'white','#C00000'],
            
         },
 
@@ -151,8 +161,9 @@ function generateHeatmapData(): [number, number, number][] {
         data: generateHeatmapData(),
         itemStyle: {
           borderWidth: 1,
-          borderColor: "#fff",  // Adds border for better visibility
+          borderColor: "#F1F4F7",  // Adds border for better visibility
           borderRadius:2,
+          
         }
       }
     ]

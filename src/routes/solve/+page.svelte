@@ -6,6 +6,8 @@
   import NautilusNavigator from "$lib/components/methods/nautilus_navigator/NAUT_NAVI.svelte";
   import NautilusNavigatorGroup from "$lib/components/methods/nautilus_navigator/NAUT_NAVI_group.svelte";
   import NIMBUS from "$lib/components/methods/nimbus/NIMBUS.svelte";
+  import XNIMBUS from "$lib/components/methods/xnimbus/XNIMBUS.svelte";
+
   //import GNIMBUS from "$lib/components/methods/nimbus/NIMBUS_group.svelte";
   import GeneralError from "$lib/components/util/undecorated/GeneralError.svelte";
   import ReferencePointMethod from "$lib/components/methods/reference_point_method/ReferencePointMethod.svelte";
@@ -41,7 +43,9 @@
 <!-- TODO: Unify styles. Until then, comment studd out -->
 {#if $selectedMethod === "r_ximo"}
   <Rximo
-    
+    problem_id={$selectedProblem}
+    API_URL={baseURL}
+    AUTH_TOKEN={get_access_token()}
   />
 {:else if $selectedMethod === "reference_point_method"}
   <ReferencePointMethod
@@ -51,6 +55,12 @@
   />
 {:else if $selectedMethod === "nimbus"}
   <NIMBUS
+    problem_id={$selectedProblem}
+    API_URL={baseURL}
+    AUTH_TOKEN={get_access_token()}
+  />
+{:else if $selectedMethod === "xnimbus"}
+  <XNIMBUS
     problem_id={$selectedProblem}
     API_URL={baseURL}
     AUTH_TOKEN={get_access_token()}

@@ -9,6 +9,7 @@
 
   /** The colors to use for the chart. */
   export let colors: string[] = [];
+  export let selectedObjective:number = 0;
 
   /** The values to use for the chart. */
   export let values: number[];
@@ -34,12 +35,16 @@
   let option:echarts.EChartOption;
   let barColors:string[];
 
+  $: filteredValues = values.filter((ele, ind) => ind !== selectedObjective);
+  $: filteredNames = names.filter((ele, ind) => ind !== selectedObjective);
+  $: objectiveColors = colorPalette.filter((ele, ind) => ind !== selectedObjective);
   // Define colors: Red for positive impact, Green for negative impact
-  $: barColors = values? values.map(value => value > 0 ? 'red' : 'green'):[];
+  $: barColors = filteredValues? filteredValues.map(value => value > 0 ? 'red' : 'green'):[];
 
   // ✅ Separate values into positive and negative categories
-  $: positiveValues = values.map(value => (value > 0 ? value : 0)); 
-  $: negativeValues = values.map(value => (value < 0 ? value : 0)); 
+  $: positiveValues = filteredValues.map(value => (value > 0 ? value : 0)); 
+  $: negativeValues = filteredValues.map(value => (value < 0 ? value : 0)); 
+  
   // Create the option object for the whole chart.
   // @ts-ignore
   $: option = {
@@ -69,16 +74,16 @@
       axisLine: {show: true},
       axisTick: {show: true},
       splitLine: {show: false},
-      data: names.map((name, i) => ` ${name} {marker${i}|}`),
+      data: filteredNames.map((name, i) => ` ${name} {marker${i}|}`),
       axisLabel: {
         interval:0,
       //rotate: -20,
       fontSize:10,
       rich: Object.fromEntries(
-          names.map((_, i) => [
+        filteredNames.map((_, i) => [
             `marker${i}`,
             {
-              backgroundColor: colorPalette[i % colorPalette.length], // Assign color based on index
+              backgroundColor: objectiveColors[i % objectiveColors.length], // Assign color based on index
               width: 6,
               height: 6,
               borderRadius: 1,

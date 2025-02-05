@@ -17,16 +17,29 @@ A user interface for the NIMBUS method.
   import { onMount, onDestroy } from "svelte";
   import { roundToDecimal } from "$lib/components/visual/helperFunctions";
   import RpmLayout from "./RXIMOLayout.svelte";
-  import { RadioGroup, RadioItem, SlideToggle, Tab, TabGroup } from "@skeletonlabs/skeleton";
+  import {
+    RadioGroup,
+    RadioItem,
+    SlideToggle,
+    Tab,
+    TabGroup,
+  } from "@skeletonlabs/skeleton";
   import MultiMiniXBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniXBarChart.svelte";
   import XPcp from "$lib/components/visual/explanations/ParallelCoordinatePlot.svelte";
   import { transform_bounds } from "$lib/components/util/util";
   import Heatmap from "$lib/components/visual/explanations/Heatmap.svelte";
-  import Barchart from "$lib/components/visual/explanations/Barchart.svelte"
+  import Barchart from "$lib/components/visual/explanations/Barchart.svelte";
 
   import Card from "$lib/components/main/Card.svelte";
 
-  let tabExplanations:number = 0;
+  /** The problem to solve. */
+  export let problem_id: number;
+  // Link to the backend.
+  export let API_URL: string;
+  // The authentication token.
+  export let AUTH_TOKEN: Token;
+
+  let tabExplanations: number = 0;
   //import { show_extra_menu } from "$lib/stores";
   // Flag to visualize the decision space. Useful for UTOPIA maybe? Unused for now.
   //export let visualize_decision_space: boolean = false;
@@ -359,8 +372,7 @@ A user interface for the NIMBUS method.
 
   let finalChoiceState = false;
   let selectedObjective: number = 0;
-  let selectedSHAPValues:number[] = [];
-
+  let selectedSHAPValues: number[] = [];
 
   $: {
     if (problemInfo !== undefined) {
@@ -466,8 +478,6 @@ A user interface for the NIMBUS method.
     gridded_visualizations = false;
   }
 
-  
-
   //
   // The handlers
   //
@@ -527,8 +537,7 @@ A user interface for the NIMBUS method.
     await handle_initialize();
   });
 
-  onDestroy(() => {
-  });
+  onDestroy(() => {});
 
   async function handle_iterate() {
     if (current_iteration < total_iterations - 1) {
@@ -612,10 +621,12 @@ A user interface for the NIMBUS method.
       </div>
       <div slot="visualizations" style="padding-top:0">
         {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
-            <div style="align-self: center;">
-              <Card>
-                <svelte:fragment slot="header">Parallel coordinates plot</svelte:fragment>
-                <XPcp
+          <div style="align-self: center;">
+            <Card>
+              <svelte:fragment slot="header"
+                >Parallel coordinates plot</svelte:fragment
+              >
+              <XPcp
                 names={problemInfo.objective_long_names}
                 values={solutions_to_visualize}
                 referencePoint={problemInfo.previous_preference}
@@ -626,10 +637,8 @@ A user interface for the NIMBUS method.
                 )}
                 bind:selectedIndices={selected_solutions}
               />
-                </Card>
-              
-            </div>
-          
+            </Card>
+          </div>
         {:else}
           <GeneralError />
         {/if}
@@ -639,74 +648,102 @@ A user interface for the NIMBUS method.
           <div class="overflow-x-auto">
             {#if problemInfo !== undefined && solutions_to_visualize !== undefined}
               {#if !finalChoiceState}
-              <Card>
-                <svelte:fragment slot="header">Numerical values</svelte:fragment>
+                <Card>
+                  <svelte:fragment slot="header"
+                    >Numerical values</svelte:fragment
+                  >
 
-                <Table
-                  head={["Solution ID", ...problemInfo.objective_long_names]}
-                  body={solutions_to_visualize.map((solution, index) => {
-                    return [
-                      `Solution ${index + 1}`, // Add the ID for the solution
-                      ...solution.map((value) => value.toFixed(decimals)),
-                    ];
-                  })}
-                  bind:selected_rows={selected_solutions}
-                />
-              </Card>
+                  <Table
+                    head={["Solution ID", ...problemInfo.objective_long_names]}
+                    body={solutions_to_visualize.map((solution, index) => {
+                      return [
+                        `Solution ${index + 1}`, // Add the ID for the solution
+                        ...solution.map((value) => value.toFixed(decimals)),
+                      ];
+                    })}
+                    bind:selected_rows={selected_solutions}
+                  />
+                </Card>
               {:else if reference_solution !== undefined}
-              <Card>
-                <Table
-                  head={["Solution ID", ...problemInfo.objective_long_names]}
-                  body={[reference_solution].map((solution, index) => {
-                    return [
-                      `Solution ${index + 1}`, // Add the ID for the solution
-                      ...solution.map((value) => value.toFixed(decimals)), // Append the rest of the values
-                    ];
-                  })}
-                />
-              </Card>
+                <Card>
+                  <Table
+                    head={["Solution ID", ...problemInfo.objective_long_names]}
+                    body={[reference_solution].map((solution, index) => {
+                      return [
+                        `Solution ${index + 1}`, // Add the ID for the solution
+                        ...solution.map((value) => value.toFixed(decimals)), // Append the rest of the values
+                      ];
+                    })}
+                  />
+                </Card>
               {/if}
             {:else}
               <GeneralError />
             {/if}
           </div>
         </div>
-      </div>  
-      <div slot="explanations" class="pt-2 pl-4 pr-4">
+      </div>
+      <div slot="explanations" class="pl-4 pr-4 pt-2">
         <TabGroup>
-          <Tab bind:group={tabExplanations} name="tab2" value={0}>Explanations by objective</Tab>
-	        <Tab bind:group={tabExplanations} name="tab3" value={1}>General explanations</Tab>
+          <Tab bind:group={tabExplanations} name="tab2" value={0}
+            >Explanations by objective</Tab
+          >
+          <Tab bind:group={tabExplanations} name="tab3" value={1}
+            >General explanations</Tab
+          >
 
           <svelte:fragment slot="panel">
             {#if tabExplanations === 0}
-            <div class="pb-4">
-              Select an objective to analyze how each value from the <span class="font-bold">reference point</span> affects the chosen objective in the <span class="font-bold text-blue-600">obtained solution</span>.
-              <select class="select" bind:value={selectedObjective} on:change={handleSelectionChange}>
-                {#each problemInfo.objective_long_names as obj_name, index}
-                <option value={index}>{obj_name}</option>
-                {/each}
-              </select>
-            </div>
-     
-            <Barchart names={problemInfo.objective_long_names} bind:values={selectedSHAPValues}></Barchart>
-            <div class="pb-4">If you want to improve {problemInfo.objective_long_names[selectedObjective]}, then impair one of the objectives with an impairing effect.</div>
-            <div>
-              <label class="flex items-center space-x-2">
-                <input class="checkbox" type="checkbox" checked />
-                <p>Show suggestion in preferences bar</p>
-              </label>
+              <div class="pb-4">
+                Select an objective to analyze how each value from the <span
+                  class="font-bold">reference point</span
+                >
+                affects the chosen objective in the
+                <span class="font-bold text-blue-600">obtained solution</span>.
+                <select
+                  class="select"
+                  bind:value={selectedObjective}
+                  on:change={handleSelectionChange}
+                >
+                  {#each problemInfo.objective_long_names as obj_name, index}
+                    <option value={index}>{obj_name}</option>
+                  {/each}
+                </select>
+              </div>
+
+              <Barchart
+                names={problemInfo.objective_long_names}
+                bind:values={selectedSHAPValues}
+                bind:selectedObjective
+              />
+              <div class="pb-4">
+                If you want to improve {problemInfo.objective_long_names[
+                  selectedObjective
+                ]}, then impair one of the objectives with an impairing effect.
+              </div>
+              <div>
+                <label class="flex items-center space-x-2">
+                  <input class="checkbox" type="checkbox" checked />
+                  <p>Show suggestion in preferences bar</p>
+                </label>
               </div>
             {:else if tabExplanations === 1}
-            <div class="pb-2">
-              Effects of the <span class="font-bold">reference point values</span> on the <span class="font-bold text-blue-600">obtained solution</span>.
-               </div>
-               <div class="pb-4">
-               <Heatmap names={problemInfo.objective_long_names} values={problemInfo.current_shap}></Heatmap>
-               </div>
+              <div class="pb-2">
+                Effects of the <span class="font-bold"
+                  >reference point values</span
+                >
+                on the
+                <span class="font-bold text-blue-600">obtained solution</span>.
+              </div>
+              <div class="pb-4">
+                <Heatmap
+                  names={problemInfo.objective_long_names}
+                  values={problemInfo.current_shap}
+                />
+              </div>
             {/if}
           </svelte:fragment>
         </TabGroup>
-        
       </div>
     </RpmLayout>
   {/if}
