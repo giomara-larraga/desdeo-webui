@@ -112,7 +112,7 @@ length.
             bind:preference
             referencePoint={reference_point}
             {explanations}
-            is_maximized={lower_is_better}
+            is_maximized={lower_is_better.map((value) => !value)}
             {multipliers}
             ranges={bounds}
             bind:selectedIndices={selected}
