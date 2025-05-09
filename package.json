@@ -16,7 +16,9 @@
     "check:watch": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --watch",
     "lint": "prettier --check . && eslint .",
     "format": "prettier --write .",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
   },
   "dependencies": {
     "@cortex-js/compute-engine": "^0.12.3",
@@ -64,9 +66,17 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.28.1",
+    "@storybook/addon-essentials": "^8.6.12",
+    "@storybook/addon-interactions": "^8.6.12",
+    "@storybook/addon-svelte-csf": "^4.2.0",
+    "@storybook/blocks": "^8.6.12",
+    "@storybook/svelte": "^8.6.12",
+    "@storybook/sveltekit": "^8.6.12",
+    "@storybook/test": "^8.6.12",
     "@types/d3": "^7.4.3",
     "eslint": "^8.28.0",
     "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-storybook": "^0.12.0",
     "eslint-plugin-svelte": "^2.30.0",
     "eslint-plugin-tailwindcss": "^3.12.0",
     "husky": "^8.0.0",
@@ -76,6 +86,7 @@
     "prettier": "^2.8.0",
     "prettier-plugin-jsdoc": "^0.4.2",
     "prettier-plugin-svelte": "^2.10.1",
-    "prettier-plugin-tailwindcss": "^0.3.0"
+    "prettier-plugin-tailwindcss": "^0.3.0",
+    "storybook": "^8.6.12"
   }
 }

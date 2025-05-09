@@ -601,4 +601,4 @@
   });
 </script>
 
-<svg bind:this={svg} />
+<svg bind:this={svg}  style="width: 100%; height: 500px; position: relative;"/>

@@ -48,10 +48,9 @@ module.exports = {
     "plugin:@typescript-eslint/recommended",
     "plugin:svelte/recommended",
     "plugin:tailwindcss/recommended",
-
-    // Turn off rules that conflict with Prettier
     "prettier",
     "plugin:svelte/prettier",
+    "plugin:storybook/recommended"
   ],
 
   // See https://eslint.org/docs/latest/use/configure/language-options

@@ -1,6 +1,6 @@
 <script lang="ts">
   import * as d3 from "d3";
-  import { onMount } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import {
     colorPalette,
     selectedLineStyle,
@@ -26,6 +26,7 @@
   export let multipliers: number[][] = [[0.1, 0.5, 0.1, 0.2, 0.3]]; // Array representing the impact of each objective
   export let width = 850;
   export let height = 400;
+  
   let selectedObjective: number = -1;
   let svg: SVGSVGElement;
   let tooltip: any; // Tooltip container
@@ -35,7 +36,11 @@
 
   export let show_explanations: boolean = false;
 
+  let resizeObserver: ResizeObserver;
+
+
   function drawPlot() {
+    svg.remove();
     if (!ranges || names.length === 0 || values.length === 0) return;
 
     //const width = 800;
@@ -684,8 +689,19 @@
   }
 
   onMount(() => {
-    drawPlot(); // Initial plot drawing
+    resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const rect = entry.contentRect;
+        width = rect.width;
+        height = rect.height;
+        drawPlot();
+      }
+    });
+    resizeObserver.observe(svg);
   });
+  onDestroy(()=>{
+    resizeObserver.disconnect();
+  })
 </script>
 
-<svg bind:this={svg} />
+<svg bind:this={svg}  style="width: 100%; height: 300px; position: relative;"/>
