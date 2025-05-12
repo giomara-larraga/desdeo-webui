@@ -2,6 +2,7 @@
   import User from "$lib/components/main/User.svelte";
   import { AppBar } from "@skeletonlabs/skeleton";
   import logo from "$lib/assets/logo.png";
+  
 </script>
 
 <AppBar background="bg-black" class="text-white">
