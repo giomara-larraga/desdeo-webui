@@ -8,6 +8,7 @@
 
   import { colorPalette } from "$lib/components/visual/constants";
     import { X } from "lucide-svelte";
+    import { createXAxis } from "./utils/d3Helpers";
 
   /** The colors to use for the chart. */
   export let selectedObjective:number = -1;
@@ -54,7 +55,7 @@
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`)      
 
-    
+
     // Create scales for each axis
     const x = d3.scaleBand()
       .domain(names)
@@ -99,11 +100,11 @@
     .attr("stroke", "black")
     .attr("stroke-width", 1);
 
-    const xAxis = svgElement.append("g")
-      .attr("transform", `translate(0,${innerHeight})`)
-      .call(d3.axisBottom(x));
+    // Create axes
+    createXAxis(svgElement, x, innerHeight, colorPalette);
 
-    xAxis.select(".domain").remove();
+
+
 
   }
 

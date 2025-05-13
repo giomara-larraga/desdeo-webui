@@ -7,6 +7,7 @@
   import { onMount, onDestroy } from "svelte";
 
   import { colorPalette } from "$lib/components/visual/constants";
+    import { createXAxis, createYAxis } from "./utils/d3Helpers";
 
   /** The colors to use for the chart. */
   export let colors: string[] = [];
@@ -18,7 +19,7 @@
   export let names: string[] = [];
 
   export let width = 350;
-  export let height = 350;
+  export let height = 250;
   export let lowerIsBetter: boolean[] | undefined = undefined;
   let svg: SVGSVGElement;
   let resizeObserver: ResizeObserver;
@@ -32,7 +33,7 @@
   function drawPlot() {
     if (names.length === 0 || values.length === 0) return;
 
-    const margin = { top: 10, right: 2, bottom: 30, left: 50 };
+    const margin = { top: 30, right: 2, bottom: 30, left: 80 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
 
@@ -59,18 +60,9 @@
       .range([innerHeight, 0])
       .padding(0.03);
 
-    svgElement
-      .append("g")
-      .call(d3.axisLeft(y));
-
-    // Create axes
-    svgElement
-      .append("g")
-      .attr("class", "x-axis")
-      .attr("transform", `translate(0, ${innerHeight})`)
-      .call(d3.axisBottom(x));
-
-    svgElement.append("g").attr("class", "y-axis").call(d3.axisLeft(y));
+    // format axis labels
+    createXAxis(svgElement, x, innerHeight, colorPalette);
+    createYAxis(svgElement, y, innerWidth, colorPalette);
 
     const colorScale = d3
       .scaleSequential(d3.interpolateRdYlBu)
@@ -88,6 +80,8 @@
           .attr("fill", colorScale(value));
       });
     });
+
+
   }
 
  // Redraw plot if input data or selection changes
