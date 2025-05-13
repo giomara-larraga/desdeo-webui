@@ -8,6 +8,10 @@
    
 	export let show_preferences_bar = true;
 	export let show_explanation_bar = true;
+
+  function toggleExplanationBar() {
+    show_explanation_bar = !show_explanation_bar;
+  }
 </script>
 
 
@@ -27,12 +31,25 @@
       {#if drawMap}
         <slot name="Map" />
       {/if}
+
     </div></Pane>
     {#if show_explanation_bar}
       <PaneResizer />
       <Pane defaultSize={1 / 4} order={3}><slot name="explanations" /></Pane>
     {/if}
   </PaneGroup>
+
+    <!-- Floating Toggle Button -->
+  <button
+    class="fixed right-3 top-1/2 transform -translate-y-1/2 translate-x-1/2 z-50 bg-white border border-gray-300 rounded-l px-3 py-1 shadow-md hover:bg-gray-100"
+    on:click={toggleExplanationBar}
+  >
+    {#if show_explanation_bar}
+      ❯
+    {:else}
+      ❮
+    {/if}
+  </button>
 
   <div class="grid-layout">
 

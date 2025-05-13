@@ -13,20 +13,17 @@
 <AppShell
   slotPageContent="p-20 bg-white flex-row overflow-y-auto h-full"
 >
-  <svelte:fragment slot="sidebarLeft"><Navigation /></svelte:fragment>
-  <svelte:fragment slot="header">
- <div class="flex h-12 w-full items-center justify-between bg-black text-white px-2 md:px-4">
+<!--   <svelte:fragment slot="sidebarLeft"><Navigation /></svelte:fragment>
+ -->  <svelte:fragment slot="header">
+ <div class="flex h-12 w-full items-center justify-between bg-primary text-white px-2 md:px-4">
       <div class="flex items-center gap-2">
         <a href="/" class="flex items-center gap-2">
           <PowerIcon className="h-6 w-6" />
-          <span class="text-lg font-bold hidden sm:block">DESDEO</span>
+          <span class="text-lg font-bold hidden sm:block">DESDEO </span> <span>| {$methodHeaderText}</span>
         </a>
       </div>
-      <div class="hidden items-center gap-4 md:flex">
-        {$methodHeaderText}
-      </div>
       <div class="flex gap-1">
-        <Menubar.Root class="bg-black text-white border-none">
+        <Menubar.Root class="bg-primary text-white border-none">
   <Menubar.Menu>
     <Menubar.Trigger>Problem</Menubar.Trigger>
     <Menubar.Content>

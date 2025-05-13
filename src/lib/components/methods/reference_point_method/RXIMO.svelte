@@ -686,10 +686,10 @@ A user interface for the NIMBUS method.
       <div slot="explanations" class="pl-4 pr-4 pt-2">
         <TabGroup>
           <Tab bind:group={tabExplanations} name="tab2" value={0}
-            >Explanations by objective</Tab
+            >Explanations</Tab
           >
           <Tab bind:group={tabExplanations} name="tab3" value={1}
-            >General explanations</Tab
+            >Advanced</Tab
           >
 
           <svelte:fragment slot="panel">
