@@ -734,11 +734,9 @@ A user interface for the NIMBUS method.
               </div>
             {:else if tabExplanations === 1}
               <div class="pb-2">
-                Effects of the <span class="font-bold"
-                  >reference point values</span
-                >
-                on the
-                <span class="font-bold text-blue-600">obtained solution</span>.
+                The following heatmap summarizes the trade-offs and synergies between different objectives. Each row represents the effects of improving the objective on that row, while the columns show how the other objectives are affected. 
+                <span class="font-bold text-red-600">Red</span> cells indicate trade-offs (improving one objective worsens the other).
+                <span class="font-bold text-blue-600">Blue</span> cells indicate synergies (both objectives improve together). 
               </div>
               <div class="pb-4">
                 <Heatmap

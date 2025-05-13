@@ -3,8 +3,9 @@
 -->
 <!-- TODO: Values on the x-axis too close to each other -->
 <script lang="ts">
-  import type * as echarts from "echarts";
-  import EchartsComponent from "../general/EchartsComponent.svelte";
+  import * as d3 from "d3";
+  import { onMount, onDestroy } from "svelte";
+
   import { colorPalette } from "$lib/components/visual/constants";
 
   /** The colors to use for the chart. */
@@ -16,179 +17,102 @@
   /** The names to use for the individual bars (objective names). */
   export let names: string[] = [];
 
-  let option: echarts.EChartOption;
+  export let width = 350;
+  export let height = 350;
+  export let lowerIsBetter: boolean[] | undefined = undefined;
+  let svg: SVGSVGElement;
+  let resizeObserver: ResizeObserver;
+
 
   $: flattenedValues = values.flat(); // Convert 2D array to 1D array
   $: minValue = Math.min(...flattenedValues);
   $: maxValue = Math.max(...flattenedValues);
   $: minMaxRange = Math.max(...[Math.abs(minValue), Math.abs(maxValue)])
 
-  /**
-   * The aspect ratio as a tailwind class for the div container, which contains
-   * the chart.
-   *
-   * @example
-   *   aspect - [5 / 3];
-   */
-  export let aspect: string | undefined = "[2/3]";
+  function drawPlot() {
+    if (names.length === 0 || values.length === 0) return;
 
-  /**
-   * An array of boolean values indicating whether lower values are better for
-   * each data point (In MOO if the objective is to be minimized or maximized).
-   */
-  export let lowerIsBetter: boolean[] | undefined = undefined;
+    const margin = { top: 10, right: 2, bottom: 30, left: 50 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
 
-  console.log(values);
-  let chart: echarts.EChartsType;
-  // Create the series data for the radar chart and the data for the markLines (They indicate if lower or higher value is better).
-// Generate sample data
-function generateHeatmapData(): [number, number, number][] {
-    let data: any[] = [];
-    let cols = names.length;
-    let rows = names.length;
-    for (let x = 0; x < cols; x++) {
-      for (let y = 0; y < rows; y++) {
-        if (x == y){
-          data.push({
-                    value: [x, y, values[x][y]],
-                    itemStyle: { color: "black" } // Set diagonal cells to black
-                });
-        }
-        else{
-          data.push([x, y, values[x][y]]);
+    // Clear existing plot
+    d3.select(svg).selectAll("*").remove();
 
-        }
-      }
-    }
-    return data;
+    const svgElement = d3
+      .select(svg)
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+    // Create scales for each axis
+    const x = d3
+      .scaleBand()
+      .domain(names)
+      .range([0, innerWidth])
+      .padding(0.03);
+
+    const y = d3
+      .scaleBand()
+      .domain(names)
+      .range([innerHeight, 0])
+      .padding(0.03);
+
+    svgElement
+      .append("g")
+      .call(d3.axisLeft(y));
+
+    // Create axes
+    svgElement
+      .append("g")
+      .attr("class", "x-axis")
+      .attr("transform", `translate(0, ${innerHeight})`)
+      .call(d3.axisBottom(x));
+
+    svgElement.append("g").attr("class", "y-axis").call(d3.axisLeft(y));
+
+    const colorScale = d3
+      .scaleSequential(d3.interpolateRdYlBu)
+      .domain([minValue, maxValue]);
+
+    // Add a rectangle for each value
+    values.forEach((row, i) => {
+      row.forEach((value, j) => {
+        svgElement
+          .append("rect")
+          .attr("x", x(names[i]) ?? 0)
+          .attr("y", y(names[j]) ?? 0)
+          .attr("width", x.bandwidth())
+          .attr("height", y.bandwidth())
+          .attr("fill", colorScale(value));
+      });
+    });
   }
- 
-  // Create the option object for the whole chart.
-  // @ts-ignore
-  $: option = {
-    tooltip: {
-      show: true,
-      position: "top",
-      /*formatter: (params: { value: any[] }) => {
-        let value = Array.isArray(params.value)? params.value?.[2] : undefined;
-        let effect = value > 0 ? "negative effect" : "positive effect";
-        if (value ===undefined){
-          return undefined
-        }
-        else{
-          return `Value of reference point produce a ${effect} on the obtained soution`;
-        }
-      }*/
-      //formatter: (params) => `Value: ${params.value?.[2]}`
-    },
-    grid: {
-      height: '60%',
-      left: '100px',  
-      bottom: '1%',
-      top: '40%'
-    },
-    xAxis: {
-      type: "category",
-      name:"Obtained solution",
-      nameGap:30,
-      nameLocation:"middle",
-      data: names.map((name, i) => ` ${name}\n {marker${i}|}`),
-      position:"top",
-      axisLabel: {
-        interval:0,
-      //rotate: -20,
-      fontSize:10,
-      rich: Object.fromEntries(
-          names.map((_, i) => [
-            `marker${i}`,
-            {
-              backgroundColor: colorPalette[i % colorPalette.length], // Assign color based on index
-              width: 6,
-              height: 6,
-              borderRadius: 1,
-              borderWidth:1,
-              borderColor: "blue",
-              //padding: [2, 2, 2, 2]
-            }
-          ])
-        )
-    }
-    },
-    yAxis: {
-      type: "category",
-      inverse: true,
-      name: "Reference point",
-      nameLocation: "middle",
-      nameGap: 70,  // Moves name away from axis
-      nameTextStyle:{
-        fontSize:10
-      },
-      data: names.map((name, i) => ` ${name} {marker${i}|}`),
-      axisLabel: {
-        interval: 0,
-        fontSize: 10,
-        rich: Object.fromEntries(
-          names.map((_, i) => [
-            `marker${i}`,
-            {
-              backgroundColor: colorPalette[i % colorPalette.length], // Assign color based on index
-              width: 6,
-              height: 6,
-              borderRadius: 1,
-              borderWidth:1,
-              borderColor: "black",
-              //padding: [2, 2, 2, 2]
-            }
-          ])
-        )
-      }
-    },
-    // @ts-ignore
-    visualMap: [{
-      min: -1 * minMaxRange,
-      max: minMaxRange,
-      show:false,
-      //calculable: true,
-      inRange: {
-            color: ['green', 'white','#C00000'],
-           
-        },
 
-    }],
-    series: [
-      {
-        type: "heatmap",
-        data: generateHeatmapData(),
-        itemStyle: {
-          borderWidth: 1,
-          borderColor: "#F1F4F7",  // Adds border for better visibility
-          borderRadius:2,
-          
-        }
+ // Redraw plot if input data or selection changes
+  $: if (values.length > 0 ||  names.length > 0) {
+    drawPlot(); // Redraw whenever any input changes
+  }
+
+  onMount(() => {
+    resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const rect = entry.contentRect;
+        width = rect.width;
+        height = rect.height;
+        drawPlot();
       }
-    ]
-  };
-  // TODO: The following part (let events...) of the code is duplicated in every chart component. Moving to separate file doesn't work, most likely because of chart.on -functions that might need to be defined in the same file as the chart is created.
-  let events = {
-    click: function () {
-      return;
-    },
-    mouseover: function () {
-      return;
-    },
-    mouseout: function () {
-      return;
-    },
-  };
+    });
+    resizeObserver.observe(svg);
+  });
+  onDestroy(()=>{
+    resizeObserver.disconnect();
+  })
+  
 
 </script>
 
-<EchartsComponent
-  {option}
-  bind:chart
-  bind:events
-  {colors}
-  disableAnimation={false}
-  {aspect}
-/>
+<svg bind:this={svg}  style="width: 400px; height: 400px; position: relative;"/>
+
 <!-- height = {6/3} -->
