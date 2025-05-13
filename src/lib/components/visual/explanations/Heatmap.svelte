@@ -47,6 +47,19 @@
       .append("g")
       .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
+    
+  // Define a pattern for diagonal cells
+  const defs = svgElement.append("defs");
+  defs.append("pattern")
+    .attr("id", "diagonalTexture")
+    .attr("patternUnits", "userSpaceOnUse")
+    .attr("width", 10)
+    .attr("height", 10)
+    .append("path")
+    .attr("d", "M0,0 L10,10") // Diagonal lines
+    .attr("stroke", "gray")
+    .attr("stroke-width", 1);
+
     // Create scales for each axis
     const x = d3
       .scaleBand()
@@ -71,13 +84,17 @@
     // Add a rectangle for each value
     values.forEach((row, i) => {
       row.forEach((value, j) => {
+      const rectX = x(names[i]) ?? 0;
+      const rectY = y(names[j]) ?? 0;
+      const rectWidth = x.bandwidth();
+      const rectHeight = y.bandwidth();
         svgElement
           .append("rect")
-          .attr("x", x(names[i]) ?? 0)
-          .attr("y", y(names[j]) ?? 0)
-          .attr("width", x.bandwidth())
-          .attr("height", y.bandwidth())
-          .attr("fill", colorScale(value));
+          .attr("x", rectX)
+          .attr("y", rectY)
+          .attr("width", rectWidth)
+          .attr("height", rectHeight)
+          .attr("fill", i===j? "url(#diagonalTexture)":colorScale(value));    
       });
     });
 

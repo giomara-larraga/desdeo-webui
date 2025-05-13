@@ -1,6 +1,27 @@
 import * as d3 from "d3";
 
 /**
+ * Adds a square in front of axis labels.
+ * @param tick - The D3 selection of the tick element.
+ * @param color - The color of the square.
+ */
+export function addSquareLabels(tick: d3.Selection<d3.BaseType, unknown, null, undefined>, color: string): void {
+  const text = tick.select("text");
+
+  const bbox = (text.node() as SVGTextElement).getBBox(); // Get actual rendered size
+
+  const squareSize = 16;
+  const padding = 4;
+
+  tick.insert("rect", "text")
+    .attr("x", bbox.x - squareSize - padding) // 4px gap before label
+    .attr("y", bbox.y + (bbox.height - squareSize) / 2) // Vertically center
+    .attr("width", squareSize)
+    .attr("height", squareSize)
+    .attr("fill", color);
+}
+
+/**
  * Creates and styles an x-axis for a D3 plot.
  * @param svgElement - The D3 selection of the SVG element.
  * @param x - The D3 scale for the x-axis.
@@ -27,19 +48,8 @@ export function createXAxis(
   xAxis.selectAll(".tick")
     .each(function (d, i) {
       const tick = d3.select(this);
-      const text = tick.select("text");
+      addSquareLabels(tick, colorPalette[i] ?? "gray");
 
-      const bbox = (text.node() as SVGTextElement).getBBox(); // get actual rendered size
-
-      const squareSize = 16;
-      const padding = 4;
-
-      tick.insert("rect", "text")
-        .attr("x", bbox.x - squareSize - padding) // 4px gap before label
-        .attr("y", bbox.y + (bbox.height - squareSize) / 2) // vertically center
-        .attr("width", squareSize)
-        .attr("height", squareSize)
-        .attr("fill", colorPalette[i] ?? "gray");
     });
 }
 
@@ -69,18 +79,7 @@ export function createYAxis(
   yAxis.selectAll(".tick")
     .each(function (d, i) {
       const tick = d3.select(this);
-      const text = tick.select("text");
+      addSquareLabels(tick, colorPalette[i] ?? "gray");
 
-      const bbox = (text.node() as SVGTextElement).getBBox(); // get actual rendered size
-
-      const squareSize = 16;
-      const padding = 4;
-
-      tick.insert("rect", "text")
-        .attr("x", bbox.x - squareSize - padding) // 4px gap before label
-        .attr("y", bbox.y + (bbox.height - squareSize) / 2) // vertically center
-        .attr("width", squareSize)
-        .attr("height", squareSize)
-        .attr("fill", colorPalette[i] ?? "gray");
     });
 }
