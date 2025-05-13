@@ -3,139 +3,131 @@
 -->
 <!-- TODO: Values on the x-axis too close to each other -->
 <script lang="ts">
-  import type * as echarts from "echarts";
-  import EchartsComponent from "../general/EchartsComponent.svelte";
+  import * as d3 from "d3";
+  import { onMount, onDestroy } from "svelte";
+
   import { colorPalette } from "$lib/components/visual/constants";
+    import { X } from "lucide-svelte";
 
   /** The colors to use for the chart. */
-  export let colors: string[] = [];
-  export let selectedObjective:number = 0;
+  export let selectedObjective:number = -1;
 
   /** The values to use for the chart. */
-  export let values: number[];
+  export let values: number[] = [];
 
   /** The names to use for the individual bars (objective names). */
   export let names: string[] = [];
 
-  /**
-   * The aspect ratio as a tailwind class for the div container, which contains
-   * the chart.
-   *
-   * @example
-   *   aspect - [5 / 3];
-   */
-  export let aspect: string | undefined = "[3/7]";
+  export let width = 1000;
+  export let height = 300;
 
-  /**
-   * An array of boolean values indicating whether lower values are better for
-   * each data point (In MOO if the objective is to be minimized or maximized).
-   */
-  console.log(values);
-  let chart: echarts.EChartsType;
-  let option:echarts.EChartOption;
+  let svg: SVGSVGElement;
   let barColors:string[];
 
+  //38-56
   $: filteredValues = values.filter((ele, ind) => ind !== selectedObjective);
   $: filteredNames = names.filter((ele, ind) => ind !== selectedObjective);
   $: objectiveColors = colorPalette.filter((ele, ind) => ind !== selectedObjective);
+
   // Define colors: Red for positive impact, Green for negative impact
-  $: barColors = filteredValues? filteredValues.map(value => value > 0 ? 'red' : 'green'):[];
+  $: barColors = values? values.map(value => value > 0 ? 'red' : 'blue'):[];
 
-  // ✅ Separate values into positive and negative categories
-  $: positiveValues = filteredValues.map(value => (value > 0 ? value : 0)); 
-  $: negativeValues = filteredValues.map(value => (value < 0 ? value : 0)); 
+  let resizeObserver: ResizeObserver;
+
+
+  function drawPlot(){
+    console.log(values);
+    if (selectedObjective < 0 || names.length === 0 || values.length === 0) return;
+
+    const margin = { top: 10, right: 2, bottom: 30, left: 2 };
+    const innerWidth = width - margin.left - margin.right;
+    const innerHeight = height - margin.top - margin.bottom;
+
+
+    // Clear existing plot
+    d3.select(svg).selectAll("*").remove();
+
+    const svgElement = d3
+      .select(svg)
+      .attr("width", width)
+      .attr("height", height)
+      .append("g")
+      .attr("transform", `translate(${margin.left}, ${margin.top})`)      
+
+    
+    // Create scales for each axis
+    const x = d3.scaleBand()
+      .domain(names)
+      .range([0, innerWidth])
+      .padding(0.1);
+
+
+
+    const y = d3.scaleLinear()
+      .domain([  
+        d3.min(values) ?? 0, 
+        d3.max(values) ?? 1]) 
+      .range([ innerHeight, 0]);
+
+
+    // Add a rectangle for each value
+    values.forEach((value, i) => {
+      svgElement.append("rect")
+        .attr("x", x(names[i])??0)
+        .attr("y", value >=0? y(value) : y(0))
+        .attr("width", x.bandwidth())
+        .attr("height", Math.abs(y(value) - y(0)))
+        .attr("fill", barColors[i]);
   
-  // Create the option object for the whole chart.
-  // @ts-ignore
-  $: option = {
-    tooltip: {
-      show: false,
-      trigger: 'axis',
-      axisPointer : {           
-            type : 'shadow'
-      }
-      //formatter: (params) => `Value: ${params.value[2]}`
-    },
-    legend: {
-      show:true,
-      data: ['Improving Effect', 'Impairing Effect'],
-      top: 0,
-      textStyle: {
-        fontSize: 12
-      }, 
-    },
-    grid: {
-      top:'20%',
-      height: '60%',
-      bottom: '20%',
-    },
-    xAxis: {
-      type : 'category',
-      axisLine: {show: true},
-      axisTick: {show: true},
-      splitLine: {show: false},
-      data: filteredNames.map((name, i) => ` ${name} {marker${i}|}`),
-      axisLabel: {
-        interval:0,
-      //rotate: -20,
-      fontSize:10,
-      rich: Object.fromEntries(
-        filteredNames.map((_, i) => [
-            `marker${i}`,
-            {
-              backgroundColor: objectiveColors[i % objectiveColors.length], // Assign color based on index
-              width: 6,
-              height: 6,
-              borderRadius: 1,
-              borderWidth:1,
-              borderColor: "blue",
-              //padding: [2, 2, 2, 2]
-            }
-          ])
-        )
-    },
-  },
-    yAxis: {
-        type : 'value',
-        //position: 'top',
-        splitLine: {lineStyle:{type:'dashed'}},
-    },
-    series: [
-      {
-        name: 'Impairing Effect',
-        type: 'bar',
-        data: positiveValues,
-        itemStyle: { color: 'red' }, // Red for positive
-      },
-      {
-        name: 'Improving Effect',
-        type: 'bar',
-        data: negativeValues,
-        itemStyle: { color: 'green' }, // Green for negative
-      }
-    ]
-  };
-  // TODO: The following part (let events...) of the code is duplicated in every chart component. Moving to separate file doesn't work, most likely because of chart.on -functions that might need to be defined in the same file as the chart is created.
-  let events = {
-    click: function () {
-      return;
-    },
-    mouseover: function () {
-      return;
-    },
-    mouseout: function () {
-      return;
-    },
-  };
+    });
 
+    // Add a line in y=0
+    svgElement.append("line")
+      .attr("x1", 0)
+      .attr("y1", y(0))
+      .attr("x2", innerWidth)
+      .attr("y2", y(0))
+      .attr("stroke", "black")
+      .attr("stroke-width", 1);
+
+    svgElement.append("rect")
+    .attr("x", 0)
+    .attr("y", 0)
+    .attr("width", innerWidth)
+    .attr("height", innerHeight)
+    .attr("fill", "none")
+    .attr("stroke", "black")
+    .attr("stroke-width", 1);
+
+    const xAxis = svgElement.append("g")
+      .attr("transform", `translate(0,${innerHeight})`)
+      .call(d3.axisBottom(x));
+
+    xAxis.select(".domain").remove();
+
+  }
+
+   // Redraw plot if input data or selection changes
+  $: if (values.length > 0 ||  names.length > 0 || selectedObjective) {
+    drawPlot(); // Redraw whenever any input changes
+  }
+
+  onMount(() => {
+    resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const rect = entry.contentRect;
+        width = rect.width;
+        height = rect.height;
+        drawPlot();
+      }
+    });
+    resizeObserver.observe(svg);
+  });
+  onDestroy(()=>{
+    resizeObserver.disconnect();
+  })
 </script>
 
-<EchartsComponent
-  {option}
-  bind:chart
-  bind:events
-  {colors}
-  disableAnimation={false}
-  {aspect}
-/>
+<svg bind:this={svg}  style="width: 100%; height: 300px; position: relative;"/>
+
 <!-- height = {6/3} -->

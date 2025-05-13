@@ -695,11 +695,9 @@ A user interface for the NIMBUS method.
           <svelte:fragment slot="panel">
             {#if tabExplanations === 0}
               <div class="pb-4">
-                Select an objective to analyze how each value from the <span
-                  class="font-bold">reference point</span
-                >
-                affects the chosen objective in the
-                <span class="font-bold text-blue-600">obtained solution</span>.
+                Choose the objective function you want to improve in the solution.
+                
+
                 <select
                   class="select"
                   bind:value={selectedObjective}
@@ -711,15 +709,22 @@ A user interface for the NIMBUS method.
                 </select>
               </div>
 
+              <span
+                  class="font-bold text-red-600">Red bars</span
+                >
+                represent objectives that are in conflict with the selected
+                objective. <span class="font-bold text-blue-600">Blue
+                  bars</span> represent those with synergies.
+
               <Barchart
                 names={problemInfo.objective_long_names}
                 bind:values={selectedSHAPValues}
                 bind:selectedObjective
               />
               <div class="pb-4">
-                If you want to improve {problemInfo.objective_long_names[
+                To improve <span class="font-bold">{problemInfo.objective_long_names[
                   selectedObjective
-                ]}, then impair one of the objectives with an impairing effect.
+                ]}</span>, consider impairing those objectives with stronger conflict [list]  or weaker synergies [list].
               </div>
               <div>
                 <label class="flex items-center space-x-2">
