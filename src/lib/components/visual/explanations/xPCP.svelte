@@ -14,7 +14,7 @@
 -->
 <script lang="ts">
   import * as d3 from "d3";
-  import { onMount } from "svelte";
+  import { onMount, onDestroy } from "svelte";
   import { colorPalette } from "$lib/components/visual/constants";
   import { scale } from "svelte/transition";
   import type { Ranges } from "$lib/components/visual/types";
@@ -48,7 +48,12 @@
 
   export let show_explanations: boolean = true;
 
+  let resizeObserver: ResizeObserver;
+
+
   function drawPlot() {
+
+
     if (!ranges || names.length === 0 || values.length === 0) return;
     const margin = { top: 40, right: 50, bottom: 40, left: 50 };
     const barWidth = (width - margin.left - margin.right) / names.length;
@@ -597,8 +602,19 @@
   }
 
   onMount(() => {
-    drawPlot(); // Initial plot drawing
+    resizeObserver = new ResizeObserver(entries => {
+      for (const entry of entries) {
+        const rect = entry.contentRect;
+        width = rect.width;
+        height = rect.height;
+        drawPlot();
+      }
+    });
+    resizeObserver.observe(svg);
   });
+  onDestroy(()=>{
+    resizeObserver.disconnect();
+  })
 </script>
 
 <svg bind:this={svg}  style="width: 100%; height: 500px; position: relative;"/>
