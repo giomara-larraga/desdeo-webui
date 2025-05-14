@@ -7,12 +7,11 @@
   import { onMount, onDestroy } from "svelte";
 
   import { colorPalette } from "$lib/components/visual/constants";
-    import { X } from "lucide-svelte";
-    import { createXAxis } from "./utils/d3Helpers";
+  import { createXAxis } from "./utils/d3Helpers";
+  import Tooltip from "./Tooltip.svelte";
 
   /** The colors to use for the chart. */
   export let selectedObjective:number = -1;
-
   /** The values to use for the chart. */
   export let values: number[] = [];
 
@@ -25,13 +24,18 @@
   let svg: SVGSVGElement;
   let barColors:string[];
 
+  let tooltipX = 0;
+  let tooltipY = 0;
+  let tooltipContent = "";
+  let tooltipVisible = false;
+
   //38-56
   $: filteredValues = values.filter((ele, ind) => ind !== selectedObjective);
   $: filteredNames = names.filter((ele, ind) => ind !== selectedObjective);
   $: objectiveColors = colorPalette.filter((ele, ind) => ind !== selectedObjective);
 
   // Define colors: Red for positive impact, Green for negative impact
-  $: barColors = values? values.map(value => value > 0 ? 'red' : 'blue'):[];
+  $: barColors = values? values.map(value => value > 0 ? '#C00000' : '#00008B'):[];
 
   let resizeObserver: ResizeObserver;
 
@@ -43,6 +47,7 @@
     const margin = { top: 10, right: 2, bottom: 30, left: 2 };
     const innerWidth = width - margin.left - margin.right;
     const innerHeight = height - margin.top - margin.bottom;
+    const innerPadding = 5;
 
 
     // Clear existing plot
@@ -59,16 +64,16 @@
     // Create scales for each axis
     const x = d3.scaleBand()
       .domain(names)
-      .range([0, innerWidth])
+      .range([innerPadding, innerWidth - innerPadding])
       .padding(0.1);
 
 
 
     const y = d3.scaleLinear()
       .domain([  
-        d3.min(values) ?? 0, 
+        Math.min(0, d3.min(values) ?? 0), 
         d3.max(values) ?? 1]) 
-      .range([ innerHeight, 0]);
+      .range([ innerHeight - innerPadding, innerPadding]);
 
 
     // Add a rectangle for each value
@@ -78,7 +83,20 @@
         .attr("y", value >=0? y(value) : y(0))
         .attr("width", x.bandwidth())
         .attr("height", Math.abs(y(value) - y(0)))
-        .attr("fill", barColors[i]);
+        .attr("fill", i===selectedObjective?"black":barColors[i])
+        .on("mouseover", (event) => {
+        tooltipX = event.pageX;
+        tooltipY = event.pageY;
+        tooltipContent =  i===selectedObjective?"Objective to improve":`${names[i]}: ${value}`;
+        tooltipVisible = true;
+        })
+        .on("mousemove", (event) => {
+          tooltipX = event.pageX;
+          tooltipY = event.pageY;
+        })
+        .on("mouseout", () => {
+          tooltipVisible = false;
+        });
   
     });
 
@@ -130,5 +148,12 @@
 </script>
 
 <svg bind:this={svg}  style="width: 100%; height: 300px; position: relative;"/>
+
+<Tooltip
+  x={tooltipX}
+  y={tooltipY}
+  content={tooltipContent}
+  visible={tooltipVisible}
+/>
 
 <!-- height = {6/3} -->

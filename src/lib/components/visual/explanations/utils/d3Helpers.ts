@@ -83,3 +83,7 @@ export function createYAxis(
 
     });
 }
+
+export function createTextTooltip(selectedColor:string, selectedObjective:string, comparedColor:string, comparedObjective:string){
+  console.log("selectedColor", selectedColor);
+}
