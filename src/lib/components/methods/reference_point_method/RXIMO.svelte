@@ -17,12 +17,11 @@ A user interface for the NIMBUS method.
   import { onMount, onDestroy } from "svelte";
   import { roundToDecimal } from "$lib/components/visual/helperFunctions";
   import RpmLayout from "./RXIMOLayout.svelte";
+  import * as Tabs from "$lib/components_shadcdn/ui/tabs";
   import {
     RadioGroup,
     RadioItem,
     SlideToggle,
-    Tab,
-    TabGroup,
   } from "@skeletonlabs/skeleton";
   import MultiMiniXBarChart from "$lib/components/visual/visualization/props-linking/MultiMiniXBarChart.svelte";
   import XPcp from "$lib/components/visual/explanations/ParallelCoordinatePlot.svelte";
@@ -684,16 +683,13 @@ A user interface for the NIMBUS method.
         </div>
       </div>
       <div slot="explanations" class="pl-4 pr-4 pt-2">
-        <TabGroup>
-          <Tab bind:group={tabExplanations} name="tab2" value={0}
-            >Explanations</Tab
-          >
-          <Tab bind:group={tabExplanations} name="tab3" value={1}
-            >Advanced</Tab
-          >
+        <Tabs.Root value="explanations" class="w-[400px]">
+          <Tabs.List>
+            <Tabs.Trigger value="explanations">Explanations</Tabs.Trigger>
+            <Tabs.Trigger value="advanced">Advanced</Tabs.Trigger>
+          </Tabs.List>
 
-          <svelte:fragment slot="panel">
-            {#if tabExplanations === 0}
+          <Tabs.Content value="explanations">
               <div class="pb-4">
                 Choose the objective function you want to improve in the solution.
                 
@@ -732,7 +728,8 @@ A user interface for the NIMBUS method.
                   <p>Show suggestion in preferences bar</p>
                 </label>
               </div>
-            {:else if tabExplanations === 1}
+              </Tabs.Content>
+            <Tabs.Content value="advanced">
               <div class="pb-2">
                 The following heatmap summarizes the trade-offs and synergies between different objectives. Each row represents the effects of improving the objective on that row, while the columns show how the other objectives are affected. 
                 <span class="font-bold text-red-600">Red</span> cells indicate trade-offs (improving one objective worsens the other).
@@ -744,9 +741,8 @@ A user interface for the NIMBUS method.
                   values={problemInfo.current_shap}
                 />
               </div>
-            {/if}
-          </svelte:fragment>
-        </TabGroup>
+           </Tabs.Content>
+        </Tabs.Root>
       </div>
     </RpmLayout>
   {/if}
