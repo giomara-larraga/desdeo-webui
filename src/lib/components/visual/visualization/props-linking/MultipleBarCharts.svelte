@@ -58,7 +58,7 @@
   export let lowerIsBetter: boolean[] | undefined = undefined;
 
   //TODO: Check if these are needed in this component
-  let chart: echarts.EChartsType;
+  let chart: echarts.EChartsType | null = null;
   $: if (selectedIndices) {
     if (chart) {
       handleSelectionChange(chart, selectedIndices, maxSelections);

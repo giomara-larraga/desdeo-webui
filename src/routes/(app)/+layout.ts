@@ -5,6 +5,6 @@ import type { LayoutLoad } from "./$types";
 
 export const load: LayoutLoad = () => {
   if (get(login_status) === LoginStatus.LoggedOut) {
-    throw redirect(307, "/login");
+    redirect(307, "/login");
   }
 };
